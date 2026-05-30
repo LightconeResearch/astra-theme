@@ -1,0 +1,47 @@
+# ---- dependencies ----
+node_modules/
+.pnp
+.pnp.js
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+
+# ---- build output (Remix / Vite theme app) ----
+/build/
+/public/build/
+/.cache/
+.vite/
+dist/
+packages/*/dist/
+*.tsbuildinfo
+
+# ---- MyST engine artifacts (when this theme is run against a project) ----
+_build/
+.myst.session.json
+
+# ---- the static stress-test render is generated from MySTRA's build ----
+# keep render.mjs + README (source), ignore the generated pages + copied assets
+examples/prototype/*.html
+examples/prototype/assets/
+
+# ---- local tooling / scratch ----
+.playwright-mcp/
+*.log
+.env
+.env.*
+!.env.example
+
+# ---- editor / OS ----
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+*~
+
+examples
+design-preview

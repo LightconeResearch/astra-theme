@@ -1,0 +1,230 @@
+{
+  "version": 1,
+  "kind": "Article",
+  "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "slug": "cosmic-shear",
+  "location": "/cosmic-shear.md",
+  "dependencies": [],
+  "frontmatter": {
+    "title": "Cosmic Shear (contract fixture)",
+    "content_includes_tables": false
+  },
+  "mdast": {
+    "type": "root",
+    "children": [
+      {
+        "type": "div",
+        "identifier": "astra-store",
+        "class": "astra-store",
+        "style": { "display": "none" },
+        "data": {
+          "astra": {
+            "analysis": { "name": "Cosmic Shear (fixture)", "slug": "cosmic-shear" },
+            "inputs": {
+              "shear_catalog": {
+                "id": "shear_catalog",
+                "type": "data",
+                "label": "Shear catalog",
+                "description": "Calibrated weak-lensing shape catalog.",
+                "source": "/data/shear/cat_v3.fits"
+              }
+            },
+            "outputs": {
+              "sigma8_metric": {
+                "id": "sigma8_metric",
+                "type": "metric",
+                "label": "sigma8",
+                "description": "Marginalised sigma8 posterior mean.",
+                "resolved_path": "results/baseline/sigma8.json",
+                "recipe": {
+                  "command": "python fit.py --output {output} --cov {decisions.cov_source}"
+                },
+                "inputs": ["shear_catalog"],
+                "decisions": ["cov_source"],
+                "metric": { "value": 0.811, "uncertainty": 0.012, "unit": "" }
+              },
+              "shear_plot": {
+                "id": "shear_plot",
+                "type": "figure",
+                "label": "Shear correlation function",
+                "description": "Two-point shear correlation, tomographic bins.",
+                "resolved_path": "results/baseline/shear_xi.png",
+                "inputs": ["shear_catalog"],
+                "decisions": ["cov_source"]
+              }
+            },
+            "decisions": {
+              "cov_source": {
+                "id": "cov_source",
+                "label": "Covariance source",
+                "rationale": "Use the analytic covariance; the jackknife alternative is noisier in the linear regime.",
+                "selected": "analytic",
+                "options": {
+                  "analytic": "Analytic Gaussian + SSC",
+                  "jackknife": "Jackknife from data"
+                }
+              }
+            },
+            "findings": {
+              "s8_consistent": {
+                "id": "s8_consistent",
+                "label": "S8 consistent with Planck",
+                "claim": "The recovered S8 is consistent with the Planck 2018 value at the 1-sigma level.",
+                "notes": "Consistency holds across both tomographic-binning choices.",
+                "scope": "Baseline universe, all tomographic bins."
+              }
+            },
+            "prior_insights": {
+              "kids_s8_low": {
+                "id": "kids_s8_low",
+                "claim": "KiDS-1000 reported a mildly low S8 relative to Planck.",
+                "scope": "Weak lensing, S8 tension context.",
+                "doi": "10.1051/0004-6361/202039070",
+                "quote": "We find S8 lower than the Planck value, with a discordance of about 3 sigma."
+              }
+            },
+            "subanalyses": {
+              "calibration": {
+                "id": "calibration",
+                "name": "Shape calibration",
+                "summary": "Per-bin multiplicative shear-calibration solve.",
+                "url": "/calibration",
+                "decisions": 3,
+                "outputs": 4
+              }
+            }
+          }
+        },
+        "children": []
+      },
+
+      {
+        "type": "paragraph",
+        "children": [
+          { "type": "text", "value": "We adopt the " },
+          {
+            "type": "span",
+            "class": "astra-ref astra-ref--decision",
+            "data": {
+              "astra": { "kind": "decision", "id": "cov_source", "path": "cov_source" }
+            },
+            "children": [{ "type": "text", "value": "Covariance source" }]
+          },
+          { "type": "text", "value": " and recover " },
+          {
+            "type": "span",
+            "class": "astra-ref astra-ref--value astra-ref--metric",
+            "data": {
+              "astra": {
+                "kind": "value",
+                "id": "sigma8_metric",
+                "path": "sigma8_metric",
+                "col": "value",
+                "filter": "",
+                "type": "metric"
+              }
+            },
+            "children": [{ "type": "text", "value": "0.811 ± 0.012" }]
+          },
+          { "type": "text", "value": ", consistent with " },
+          {
+            "type": "span",
+            "class": "astra-ref astra-ref--finding",
+            "data": {
+              "astra": { "kind": "finding", "id": "s8_consistent", "path": "s8_consistent" }
+            },
+            "children": [{ "type": "text", "value": "S8 consistent with Planck" }]
+          },
+          { "type": "text", "value": "." }
+        ]
+      },
+
+      {
+        "type": "span",
+        "class": "astra-ref astra-ref--analysis",
+        "data": {
+          "astra": { "kind": "analysis", "id": "MISSING_FROM_STORE", "path": "MISSING_FROM_STORE" }
+        },
+        "children": [{ "type": "text", "value": "Shape calibration (orphan ref)" }]
+      },
+
+      {
+        "type": "container",
+        "kind": "figure",
+        "identifier": "output-shear_plot",
+        "label": "output-shear_plot",
+        "class": "astra-output astra-output--figure",
+        "html_id": "output-shear-plot",
+        "children": [
+          {
+            "type": "image",
+            "url": "results/baseline/shear_xi.png",
+            "alt": "Shear correlation function"
+          },
+          {
+            "type": "caption",
+            "children": [
+              { "type": "paragraph", "children": [{ "type": "text", "value": "Shear correlation function." }] }
+            ]
+          }
+        ]
+      },
+
+      {
+        "type": "container",
+        "kind": "figure",
+        "identifier": "output-NOT_IN_STORE",
+        "label": "output-NOT_IN_STORE",
+        "class": "astra-output astra-output--figure",
+        "html_id": "output-not-in-store",
+        "children": [
+          {
+            "type": "image",
+            "url": "results/baseline/orphan.png",
+            "alt": "Orphan output (no store entry — must fall back to these children)"
+          }
+        ]
+      },
+
+      {
+        "type": "details",
+        "identifier": "decision-cov_source",
+        "label": "decision-cov_source",
+        "class": "astra-decision",
+        "html_id": "decision-cov-source",
+        "children": [
+          {
+            "type": "summary",
+            "children": [{ "type": "text", "value": "Covariance source" }]
+          },
+          {
+            "type": "paragraph",
+            "children": [{ "type": "text", "value": "Analytic vs jackknife covariance (stock fallback body)." }]
+          }
+        ]
+      },
+
+      {
+        "type": "container",
+        "kind": "table",
+        "class": "astra-inputs",
+        "children": [
+          {
+            "type": "table",
+            "children": [
+              {
+                "type": "tableRow",
+                "identifier": "input-shear_catalog",
+                "children": [
+                  { "type": "tableCell", "header": false, "children": [{ "type": "text", "value": "shear_catalog" }] },
+                  { "type": "tableCell", "header": false, "children": [{ "type": "text", "value": "Shear catalog" }] }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "references": { "cite": { "order": [], "data": {} } }
+}

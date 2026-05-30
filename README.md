@@ -33,13 +33,27 @@ only coupling, and it's specified and versioned.
 
 ## Status
 
-🚧 **Planning.** No theme code yet. Start here:
+🛠️ **Phases 0–2 scaffolded (source-complete, not yet built).** The contract
+mirror (`@astra-spec/store-types`), the full Vellum CSS design system, the theme
+scaffold (template + overlay `root.tsx` + store provider/hooks), the shared
+preview-card primitives, and **all eight** contract renderers are written. Today
+this is a **no-build design preview**: `node_modules` has not been installed and
+the `@myst-theme/book` Remix shell is not yet vendored, so nothing has been
+type-checked or run as a live site. Phase 3 (author-placed patterns) is not
+started.
 
+- **[STATUS.md](./STATUS.md)** — what's implemented vs each plan phase, what's
+  stubbed/vendored, open discrepancies, and the concrete steps to a running
+  `myst start`.
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** — how the pieces connect at runtime,
+  the directory tree, and the per-element selector → component → store table map.
 - **[IMPLEMENTATION-PLAN.md](./IMPLEMENTATION-PLAN.md)** — architecture, the
   separation of concerns, the MyST renderer mechanism we build on, phasing
   (light CSS → rich React renderers → patterns), and the dev/distribution loop.
 - **[CONTRACT.md](./CONTRACT.md)** — the exact plugin↔theme interface: every
   emitted class, identifier, inline token, and the resolved-store shape.
+- **[tests/contract.md](./tests/contract.md)** — the cross-repo contract guard
+  (assertions over [`tests/fixtures/cosmic-shear.content.json`](./tests/fixtures/cosmic-shear.content.json)).
 
 ## License
 
