@@ -109,6 +109,21 @@ present in `content/<slug>.json`). It is **per page scope** (the root analysis o
 `index`, each sub-analysis on its own page). The theme reads it once and joins
 placed/inline nodes to it by id.
 
+Alongside it, when the page's store carries insight DOIs, the plugin emits a
+second hidden carrier:
+
+```
+div.astra-cites              (style: display:none)
+  paragraph > cite[label=<doi>] …   ← one cite node per unique insight DOI
+```
+
+MyST's own pipeline (`transformLinkedDOIs` → `transformCitations`) resolves
+those cite nodes at build time, populating `references.cite.data` and the
+author–year children. The theme's `AstraCite` joins a store `doi` back to the
+resolved cite node (via `references.article`) so overlay cards render the SAME
+citation treatment as main-text DOIs — and falls back to a plain doi.org link
+when no citation resolves (offline build, unknown DOI).
+
 `ResolvedStore` (from the plugin's `transform/resolved-store.ts`):
 
 ```ts

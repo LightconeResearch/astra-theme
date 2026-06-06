@@ -22,3 +22,10 @@ export {
   KIND_TO_TABLE,
 } from './store/useAstraStore';
 export type { AstraEntry } from './store/useAstraStore';
+export {
+  AstraCite,
+  useCiteNodeForDoi,
+  buildDoiCiteIndex,
+  normalizeDoi,
+  doiHref,
+} from './cite';

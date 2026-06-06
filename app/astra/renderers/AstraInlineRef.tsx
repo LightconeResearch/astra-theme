@@ -27,6 +27,7 @@ import { MyST } from 'myst-to-react';
 import { useAstraEntry } from '../store/useAstraStore';
 import { PreviewCard } from '../card/PreviewCard';
 import { CardChrome, PosteriorSketch, DataFlow } from '../card';
+import { AstraCite } from '../cite';
 import type {
   AstraKind,
   InlineAstra,
@@ -166,13 +167,7 @@ const InsightCard: React.FC<{ entry: SerializedInsight }> = ({ entry }) => {
       ) : null}
       {entry.doi ? (
         <div className="astra-cite">
-          <a
-            href={`https://doi.org/${entry.doi}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {entry.doi}
-          </a>
+          <AstraCite doi={entry.doi} />
         </div>
       ) : null}
       <CardChrome.MetaFooter>

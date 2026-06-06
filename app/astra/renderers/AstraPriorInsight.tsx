@@ -18,13 +18,7 @@ import { MyST } from 'myst-to-react';
 import type { SerializedInsight } from '@astra-spec/store-types';
 import { useEntryByIdentifier } from '../store/useAstraStore';
 import { labelFor } from '../glyphs';
-
-/** Build a doi.org URL from a raw DOI string (tolerates a full URL already). */
-function doiHref(doi: string): string {
-  const trimmed = doi.trim();
-  if (/^https?:\/\//i.test(trimmed)) return trimmed;
-  return `https://doi.org/${trimmed.replace(/^doi:\s*/i, '')}`;
-}
+import { AstraCite } from '../cite';
 
 export const AstraPriorInsight: React.FC<{ node: GenericNode }> = ({ node }) => {
   const entry = useEntryByIdentifier(node.identifier) as
@@ -65,9 +59,7 @@ export const AstraPriorInsight: React.FC<{ node: GenericNode }> = ({ node }) => 
       {doi ? (
         <div className="astra-cite">
           <span className="astra-cite__label">Source</span>
-          <a href={doiHref(doi)} target="_blank" rel="noreferrer">
-            {doi}
-          </a>
+          <AstraCite doi={doi} />
         </div>
       ) : null}
 
