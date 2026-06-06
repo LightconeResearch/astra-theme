@@ -47,6 +47,23 @@ The `astra-<kind>` class sits on the **carrier** node — the one bearing the
 theme should select on `class` first (`.astra-output`) and use the identifier
 for the store join, not as the primary selector.
 
+**Carrier node types (verified against the build).** The "Underlying stock node"
+column above describes the component *body*; the `astra-<kind>` class + identifier
+land on the carrier, whose actual node `type` is what a theme keys on:
+
+| Directive | Carrier node `type` |
+|---|---|
+| `astra:decision` | `heading` |
+| `astra:finding` | `heading` |
+| `astra:output` | `container` (figure/table); `paragraph` for inline metric |
+| `astra:prior-insight` | `admonition` |
+| `astra:inputs` / `astra:outputs` | `table` |
+| `astra:subanalysis` | `card` |
+
+A theme matches e.g. `heading[class*="astra-decision"]`, `container[class*="astra-output"]`.
+(Use a substring `[class*=…]` attribute selector: `unist-util-select` rejects `.class`
+and its `[class~=…]` does not split the multi-class `class` string.)
+
 ## 2. Inline tokens (`{astra:*}` roles)
 
 Each inline reference is a neutral **`span`**:
@@ -122,8 +139,8 @@ Each entry is **resolved**, not raw YAML — the theme never re-derives anything
 - `SerializedSubAnalysis` — `id, name, summary, url` (page URL), `decisions` +
   `outputs` (counts).
 
-(Full field types live in the plugin's `resolved-store.ts`; mirror them in the
-theme's `@astra-spec/store-types` rather than redefining by hand — see the plan.)
+(Full field types live in the plugin's `resolved-store.ts`; the theme mirrors them
+in `@astra-spec/store-types` rather than redefining by hand.)
 
 ## 4. Recognition & join (the theme's algorithm)
 
@@ -155,4 +172,4 @@ theme's `@astra-spec/store-types` rather than redefining by hand — see the pla
 The plugin's emitted classes/identifiers + the `ResolvedStore` shape are this
 interface. The theme should pin a compatible plugin version range. **Open
 item:** add a `store.version` field to `ResolvedStore` so the theme can detect
-mismatch at render time — see the plan's open questions.
+mismatch at render time.

@@ -3,9 +3,14 @@
  *
  * MyST keys renderers by node TYPE, and within a type matches `unist-util-select`
  * CSS selectors (reversed → last matching entry wins) with a `base` fallback
- * (see IMPLEMENTATION-PLAN.md §3 and `myst-to-react`'s `selectRenderer`). So we
- * override stock types but branch on the `astra-*` class, and always provide a
- * `base` that defers to the stock book-theme renderer for non-ASTRA nodes.
+ * (see `myst-to-react`'s `selectRenderer`). So we override stock types but branch
+ * on the `astra-*` class, and always provide a `base` that defers to the stock
+ * book-theme renderer for non-ASTRA nodes.
+ *
+ * Selectors use the SUBSTRING attribute form `type[class*="astra-…"]`, NOT
+ * `.class` (rejected by unist-util-select) and NOT `[class~="…"]` (which treats
+ * the multi-class `class` string as a single token and never matches
+ * `"astra-ref astra-ref--decision"`). See DEVELOPING.md → Gotchas.
  *
  * Because this map is merged over `DEFAULT_RENDERERS`, the `base` we set is the
  * stock renderer for that type — a plain `span`/`container`/`table` etc. renders
@@ -13,10 +18,10 @@
  * `<MyST ast={node.children} />` when its store entry is missing.
  *
  * Selector ordering note (reversed match, last wins): for `span` we list
- * `span.astra-ref` first and `span.astra-ref--value` LAST, so a value token
- * (which carries BOTH classes) is matched by the more specific value renderer.
+ * `span[class*="astra-ref"]` first and `span[class*="astra-ref--value"]` LAST, so
+ * a value token (which carries BOTH classes) is matched by the value renderer.
  */
-import type { NodeRenderers } from '@myst-theme/providers';
+import type { NodeRenderers, NodeRenderer } from '@myst-theme/providers';
 import { DEFAULT_RENDERERS } from 'myst-to-react';
 
 import { AstraInlineRef } from './renderers/AstraInlineRef';
@@ -28,17 +33,23 @@ import { AstraPriorInsight } from './renderers/AstraPriorInsight';
 import { AstraDataSources } from './renderers/AstraDataSources';
 import { AstraSubanalysis } from './renderers/AstraSubanalysis';
 
-/** Stock renderer for a type, or undefined — used as the `base` fallback. */
-function base(type: string) {
-  return (DEFAULT_RENDERERS as NodeRenderers)[type]?.base;
+/** Stock renderer for a type, or undefined — used as the `base` fallback. A
+ *  type's renderer set is a `{ selector: Component, base }` record; index it as
+ *  such (NodeRenderers' value type is a union with a single-renderer form). */
+function base(type: string): NodeRenderer {
+  const bucket = (DEFAULT_RENDERERS as Record<string, Record<string, NodeRenderer>>)[type];
+  // Stock types (span/container/table/heading/…) always carry a `base`; the cast
+  // satisfies the non-optional `base` field of NodeRenderers (selectRenderer also
+  // tolerates a missing base by falling back to DefaultComponent).
+  return bucket?.base as NodeRenderer;
 }
 
 export const ASTRA_RENDERERS: NodeRenderers = {
   // Inline tokens. `--value` listed last so it wins for value spans (which carry
   // both `.astra-ref` and `.astra-ref--value`).
   span: {
-    'span.astra-ref': AstraInlineRef,
-    'span.astra-ref--value': AstraValue,
+    'span[class*="astra-ref"]': AstraInlineRef,
+    'span[class*="astra-ref--value"]': AstraValue,
     base: base('span'),
   },
 
@@ -46,11 +57,11 @@ export const ASTRA_RENDERERS: NodeRenderers = {
   // metric/data output lands on a `paragraph` carrier. Register both so either
   // carrier type resolves to AstraOutput.
   container: {
-    'container.astra-output': AstraOutput,
+    'container[class*="astra-output"]': AstraOutput,
     base: base('container'),
   },
   paragraph: {
-    'paragraph.astra-output': AstraOutput,
+    'paragraph[class*="astra-output"]': AstraOutput,
     base: base('paragraph'),
   },
 
@@ -59,28 +70,28 @@ export const ASTRA_RENDERERS: NodeRenderers = {
   // The component body (rationale/options, claim/notes/scope) comes from the
   // store entry keyed by the heading identifier, not the heading's children.
   heading: {
-    'heading.astra-decision': AstraDecision,
-    'heading.astra-finding': AstraFinding,
+    'heading[class*="astra-decision"]': AstraDecision,
+    'heading[class*="astra-finding"]': AstraFinding,
     base: base('heading'),
   },
 
   // astra:prior-insight — admonition(seealso). (class `astra-prior-insight`.)
   admonition: {
-    'admonition.astra-prior-insight': AstraPriorInsight,
+    'admonition[class*="astra-prior-insight"]': AstraPriorInsight,
     base: base('admonition'),
   },
 
   // astra:inputs / astra:outputs — registry tables.
   table: {
-    'table.astra-inputs': AstraDataSources,
-    'table.astra-outputs': AstraDataSources,
+    'table[class*="astra-inputs"]': AstraDataSources,
+    'table[class*="astra-outputs"]': AstraDataSources,
     base: base('table'),
   },
 
   // astra:subanalysis — nav card (class `astra-subanalysis`, id `analysis-<id>`).
   // The plugin emits the sub-analysis carrier as a `card`.
   card: {
-    'card.astra-subanalysis': AstraSubanalysis,
+    'card[class*="astra-subanalysis"]': AstraSubanalysis,
     base: base('card'),
   },
 };

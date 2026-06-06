@@ -1,31 +1,25 @@
 # ---- dependencies ----
 node_modules/
-.pnp
-.pnp.js
-.yarn/*
-!.yarn/patches
-!.yarn/releases
-!.yarn/plugins
-!.yarn/sdks
-!.yarn/versions
 
-# ---- build output (Remix / Vite theme app) ----
+# ---- Remix build output + generated assets (reproduce with `npm run build`) ----
 /build/
-/public/build/
+# /public/ is entirely generated: Remix client build + copied thebe assets
+/public/
+# Remix compiler cache
 /.cache/
-.vite/
-dist/
-packages/*/dist/
+# tailwind output (source is styles/app.css)
+/app/styles/app.css
+# copied from remix.config.prod.js by `npm run prod:copy`
+/remix.config.js
 *.tsbuildinfo
+packages/*/dist/
 
-# ---- MyST engine artifacts (when this theme is run against a project) ----
+# ---- MyST engine artifacts (created when running a project against the theme) ----
 _build/
 .myst.session.json
 
-# ---- the static stress-test render is generated from MySTRA's build ----
-# keep render.mjs + README (source), ignore the generated pages + copied assets
-examples/prototype/*.html
-examples/prototype/assets/
+# ---- examples (local demo projects; not part of the published theme) ----
+examples
 
 # ---- local tooling / scratch ----
 .playwright-mcp/
@@ -43,5 +37,5 @@ Thumbs.db
 *.swp
 *~
 
-examples
-design-preview
+# ---- design source (large binary; not needed to build) ----
+*.fig

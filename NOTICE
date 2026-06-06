@@ -1,0 +1,54 @@
+astra-theme
+Copyright (c) Lightcone Research
+Licensed under the BSD 3-Clause License (see LICENSE).
+
+This product includes software from the MyST Theme project
+(https://github.com/jupyter-book/myst-theme), Copyright (c) Curvenote Inc.,
+licensed under the MIT License.
+
+astra-theme is a fork of the @myst-theme/book site theme. The following files in
+this repository are vendored from @myst-theme/book and remain under the MIT
+License:
+
+  app/root.tsx                 (modified: merges ASTRA_RENDERERS, wraps the
+                                AstraStoreProvider, links the ASTRA stylesheet)
+  app/entry.client.tsx
+  app/entry.server.tsx
+  app/types.ts
+  app/routes/**
+  app/components/**            (ArticlePage.tsx modified: wraps the page render
+                                in AstraStoreProvider)
+  app/utils/**
+  styles/app.css
+  styles/grid-system.css
+  server.js
+  remix.config.prod.js, remix.config.dev.js
+  tailwind.config.js, tsconfig.json, remix.env.d.ts, .eslintrc.js
+
+The theme also depends on the published @myst-theme/* npm packages
+(@myst-theme/site, @myst-theme/providers, myst-to-react, etc.), each under their
+own licenses (MIT), resolved at install time.
+
+The ASTRA-specific code — app/astra/**, styles/astra.css, packages/store-types,
+and this repository's configuration and documentation — is original work under
+the BSD 3-Clause License.
+
+MIT License (for the vendored @myst-theme/book files):
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.

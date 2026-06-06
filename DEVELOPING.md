@@ -1,109 +1,111 @@
 # Developing astra-theme
 
-The dev, build, and distribution loop for the theme. For *what* the theme does
-and *why* the split exists, read [`IMPLEMENTATION-PLAN.md`](./IMPLEMENTATION-PLAN.md)
-and the [`CONTRACT.md`](./CONTRACT.md).
+The build, dev, and distribution loop for the theme. For *what* the theme does
+and *why* the plugin/theme split exists, read [`CONTRACT.md`](./CONTRACT.md); for
+*how the pieces wire up* read [`ARCHITECTURE.md`](./ARCHITECTURE.md).
 
-## How the app shell is vendored
+## What this repo is
 
-This repo is an **overlay** on the stock MyST book theme, not a fork. We depend
-on the published `@myst-theme/*` packages and vendor the book theme's Remix app
-shell (`entry.client.tsx`, `entry.server.tsx`, the `routes/`, `vite.config.ts`,
-`server.js`, Tailwind/PostCSS config) at build time. The **only** ASTRA-aware
-files we own live under [`app/`](./app):
+A standalone MyST **site template** — a [Remix](https://remix.run) application
+(classic compiler, React 19) that is a **fork of `@myst-theme/book`**. It depends
+on the published `@myst-theme/*` packages and carries book-theme's MIT app shell
+(`app/root.tsx`, `app/entry.*`, `app/routes/`, `app/components/`, `app/utils/`,
+`styles/app.css`, Remix/Tailwind config). The **only** ASTRA-specific code is:
 
-- [`app/root.tsx`](./app/root.tsx) — overlays the book-theme root: merges
-  `ASTRA_RENDERERS` over the default renderer stack, wraps the document in
-  `<AstraStoreProvider>`, and imports `styles/astra.css`.
-- [`app/astra/`](./app/astra) — the renderers map, the store provider/hooks, the
-  card primitives, and one component per contract element.
+- [`app/astra/`](./app/astra) — the renderers, store provider/hooks, card
+  primitives, and the `ASTRA_RENDERERS` map.
 - [`styles/astra.css`](./styles/astra.css) — the Vellum design system.
+- [`packages/store-types`](./packages/store-types) — the `ResolvedStore` contract
+  mirror (a workspace package).
 
-The vendoring step (a small `prebuild` that materializes the book theme's app
-files we don't override, then drops our `app/` on top) is wired in CI/distribution
-tooling; locally, `npm install` pulls `@myst-theme/book`, and our `app/root.tsx`
-is the entry the Vite/Remix config compiles.
+The book-theme shell is integrated by **three small edits** (see ARCHITECTURE.md):
+`app/root.tsx` adds `ASTRA_RENDERERS` to `mergeRenderers([...])` and links
+`astra.css`; `app/components/ArticlePage.tsx` wraps the page render in
+`<AstraStoreProvider>`.
 
-## The dev loop (against a real ASTRA project)
+## Prerequisites
 
-The end-to-end path — build content with the plugin, render it with this theme:
+- Node ≥ 18, npm. (Upstream book-theme uses `bun`; we use npm — see Gotchas.)
+- For the example: the sibling [`MySTRA`](https://github.com/LightconeResearch/MySTRA)
+  plugin built (`npm install && npm run build` there → `dist/index.js`).
 
-1. Point an ASTRA project's site template at this repo. In the project's
-   `myst.yml`:
-
-   ```yaml
-   site:
-     template: /absolute/path/to/astra-theme    # local path while developing
-   ```
-
-   (You can also use a git URL or a registered template name once published.)
-
-2. Run the engine from the project directory:
-
-   ```bash
-   myst start
-   ```
-
-   The engine builds the project content (running the `@astra-spec/mystra`
-   plugin → neutral AST + `astra-*` classes + the resolved-store carrier),
-   serves the content JSON, runs this template's `build.install` (`npm ci`) and
-   `build.start` (`npm run start`), and opens the rendered site.
-
-The MySTRA prototype at `../MySTRA/prototype` is the canonical test project — its
-`index.md` exercises the full vocabulary. Phase 0's exit criterion is: that
-prototype renders on `template: astra-theme`, visually ≈ book-theme, with zero
-ASTRA styling — proving the theme runs and consumes content.
-
-## Fast theme HMR (against a running content server)
-
-`myst start` re-launching the theme on every change is slow. For tight feedback
-on the **theme** itself, run a content server once and point the theme's own
-Vite/Remix dev server at it. The engine hands the theme three environment
-variables on `build.start`; the same wiring works for the dev server:
-
-| Variable | Meaning |
-|---|---|
-| `PORT` | port the theme server listens on |
-| `CONTENT_CDN_PORT` | port of the running MyST content server (where `/content/<slug>.json` and `config.json` are served) |
-| `MODE` | `static` or `app` — rendering mode the engine requests |
-
-Typical fast loop:
+## Build
 
 ```bash
-# Terminal 1 — content only, from the ASTRA project dir; note the CDN port it prints.
-myst start --headless
-
-# Terminal 2 — the theme dev server with HMR, pointed at that content server.
-CONTENT_CDN_PORT=3100 PORT=3000 MODE=app npm run dev
+npm install          # installs deps + applies patches (postinstall: patch-package)
+npm run build        # prod:copy → build:thebe → build:css → remix build
 ```
 
-Now edits under `app/astra/**` and `styles/astra.css` hot-reload without
-rebuilding content. Re-run the content server only when the source Markdown or
-`astra.yaml` changes.
+`npm run build` produces the runnable theme server:
 
-## Build & distribution
+- `build/index.js` — the compiled Remix server bundle (CJS; `server.js` requires it).
+- `public/build/` — fingerprinted client assets (incl. the bundled `astra.css`).
+- `public/*.thebe-core.min.js` — Jupyter/thebe runtime assets (live compute).
+- `app/styles/app.css` — Tailwind output (`styles/app.css` is the source).
+
+`server.js` is a small Express server (`node ./server.js`) that serves `build/`
++ `public/` — this is what `myst start` runs via `build.start`.
+
+Useful scripts: `npm run typecheck`, `npm test`, `npm run clean`.
+
+## Run the example
 
 ```bash
-npm run build       # remix vite:build → build/ (server + client bundles)
-npm run typecheck   # tsc --noEmit against the whole overlay + store-types
-npm run start       # node ./server.js — serve a production build locally
+cd examples/desi-dr1
+myst start                 # template: ../.. points at this repo
 ```
 
-A distributable template bundle is exactly the files listed in
-[`template.yml`](./template.yml)'s `files:` block:
+See [`examples/desi-dr1/README.md`](./examples/desi-dr1/README.md). MyST runs the
+template's `build.install` (`npm ci --ignore-scripts`) then `build.start`
+(`node server.js`), passing `PORT` / `CONTENT_CDN_PORT` / `MODE` in the env, and
+serves the theme against its content server.
 
-- `template.yml`, `server.js`, `package.json`, `package-lock.json`
-- `build/**/*` (compiled app), `public/**/*` (static assets), `styles/**/*`
+## Fast theme iteration
 
-Publish that bundle to a stable git tag or zip URL (and optionally register it in
-the [`myst-templates`](https://github.com/myst-templates/templates) index with
-`kind: site`). Tag each release against a supported `@astra-spec/mystra` plugin
-range — the [contract](./CONTRACT.md) is the compatibility surface.
+Editing `app/astra/**` or `styles/astra.css` requires a rebuild (`npm run build`)
+and a theme-server restart. (`npm run dev` runs the Remix dev server with CSS
+watch for hot reload against a running content server — point a project's content
+server at it via `CONTENT_CDN_PORT`.)
 
-## Shared types
+## Distribution
 
-`@astra-spec/store-types` (in [`packages/store-types`](./packages/store-types)) is
-a workspace package mirroring the plugin's `ResolvedStore` shape. It is the typed
-contract both the plugin and theme import; keep it in lock-step with the plugin's
-`src/transform/resolved-store.ts`. `npm run typecheck` validates the overlay
-against it.
+Publish like book-theme: the built bundle is `template.yml` + `server.js` +
+`package.json` + `package-lock.json` + `build/**` + `public/**` (the `files:` glob
+in `template.yml`). Ship it to a git URL / zip, or register `astra-theme` in the
+[`myst-templates`](https://github.com/myst-templates) registry. Once registered,
+users write `template: astra-theme` with no setup. Tag releases against a
+compatible `@astra-spec/mystra` plugin range (the contract is the compatibility
+surface — see CONTRACT.md §6).
+
+## Gotchas (and why the config looks the way it does)
+
+- **npm over bun.** Upstream uses bun; the scripts here are npm equivalents
+  (`prod:copy`, `build:css`, `build:thebe`, `remix build`). `node server.js`
+  (Express) is the production server, not the Vercel handler in the upstream
+  source `server.js`.
+- **Single React via `overrides`.** jupyterlab/thebe deps pull React 18; without
+  the `overrides` block in `package.json` forcing React 19 everywhere, multiple
+  React copies get bundled into the server build and SSR throws
+  *"Cannot read properties of null (reading 'useState')"*. Mirrors upstream.
+- **`legacy-peer-deps` (`.npmrc`).** The `@myst-theme/*` packages declare React
+  16–18 peer ranges but ship/run on React 19; npm's strict resolver rejects that,
+  so `.npmrc` sets `legacy-peer-deps=true` (bun is lenient). Applies to
+  `npm install` here and `npm ci` under `myst start`.
+- **`patch-package`.** `patches/@jupyter-widgets+controls+5.0.12.patch` comments
+  out two non-CSS `@import`s in `widgets-base.css` that the Remix/esbuild CSS
+  pipeline can't bundle (the same patch upstream applies). Run by the
+  `postinstall` hook. (`build.install` uses `--ignore-scripts` since the shipped
+  bundle is prebuilt and doesn't need patching at serve time.)
+- **`npm run typecheck` and upstream dep source.** The `@myst-theme/*` packages
+  ship TypeScript **source** and point `types` at `./src/*` (not built `.d.ts`), so
+  `tsc` type-checks their source too. Under React 19 types this surfaces a few
+  diagnostics inside `@myst-theme/site` (a `lodash.throttle` missing-types note and
+  two `RefObject<T | null>` ref-type mismatches in `DocumentOutline.tsx`) that we
+  can't fix without editing a dependency. **Our** code (`app/astra/**`, `packages/`,
+  the forked shell) is typecheck-clean, and the esbuild-based `remix build`,
+  the test suite, and the runtime are all unaffected.
+- **Selector syntax.** `ASTRA_RENDERERS` keys use `type[class*="astra-…"]`
+  **substring** attribute selectors — NOT `.class` (which `unist-util-select`
+  rejects) and NOT `[class~="…"]` (which treats the multi-class `class` string as
+  one token and fails to match `"astra-ref astra-ref--decision"`). See
+  `app/astra/renderers.ts`.

@@ -31,30 +31,58 @@ MyST is two-stage — the **engine** turns source into AST at build time, the
 The interface between them — classes, identifiers, and the store shape — is the
 only coupling, and it's specified and versioned.
 
+## Quickstart
+
+`astra-theme` is a standalone MyST **site template** (a Remix app). Build it once,
+then point any ASTRA project at it:
+
+```bash
+git clone https://github.com/LightconeResearch/astra-theme && cd astra-theme
+npm install
+npm run build          # → build/ + public/  (the runnable theme server)
+```
+
+In your ASTRA project's `myst.yml`:
+
+```yaml
+site:
+  template: astra-theme            # once published to the MyST registry
+  # template: /path/to/astra-theme # or a local checkout while developing
+```
+
+then `myst start`. A complete worked example lives in
+[`examples/desi-dr1/`](./examples/desi-dr1) (the DESI DR1 BAO reproduction) — see
+its README to run it locally.
+
 ## Status
 
-🛠️ **Phases 0–2 scaffolded (source-complete, not yet built).** The contract
-mirror (`@astra-spec/store-types`), the full Vellum CSS design system, the theme
-scaffold (template + overlay `root.tsx` + store provider/hooks), the shared
-preview-card primitives, and **all eight** contract renderers are written. Today
-this is a **no-build design preview**: `node_modules` has not been installed and
-the `@myst-theme/book` Remix shell is not yet vendored, so nothing has been
-type-checked or run as a live site. Phase 3 (author-placed patterns) is not
-started.
+✅ **Phases 0–2 complete and running.** astra-theme is a standalone fork of
+[`@myst-theme/book`](https://github.com/jupyter-book/myst-theme) (classic Remix,
+React 19) built on the published `@myst-theme/*` packages, with the ASTRA layer
+compiled in: the `@astra-spec/store-types` contract mirror, the Vellum design
+system, the `AstraStoreProvider`, and **all eight** renderers wired via
+`mergeRenderers`. `npm run build` produces the theme server; `myst start` renders
+the DESI DR1 example end-to-end — inline hover preview cards, the interactive
+decision panel (narrative⇄options), output figures with provenance drawers,
+finding/insight cards, registry tables, and live value tokens. Phase 3
+(author-placed `astra:dag`/`astra:gallery` patterns) needs plugin-side directive
+hooks first and is not started.
 
-- **[STATUS.md](./STATUS.md)** — what's implemented vs each plan phase, what's
-  stubbed/vendored, open discrepancies, and the concrete steps to a running
-  `myst start`.
+- **[STATUS.md](./STATUS.md)** — what's implemented per phase and the remaining items.
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** — how the pieces connect at runtime,
   the directory tree, and the per-element selector → component → store table map.
-- **[IMPLEMENTATION-PLAN.md](./IMPLEMENTATION-PLAN.md)** — architecture, the
-  separation of concerns, the MyST renderer mechanism we build on, phasing
-  (light CSS → rich React renderers → patterns), and the dev/distribution loop.
+- **[DEVELOPING.md](./DEVELOPING.md)** — the build, dev, and distribution loop.
 - **[CONTRACT.md](./CONTRACT.md)** — the exact plugin↔theme interface: every
   emitted class, identifier, inline token, and the resolved-store shape.
-- **[tests/contract.md](./tests/contract.md)** — the cross-repo contract guard
-  (assertions over [`tests/fixtures/cosmic-shear.content.json`](./tests/fixtures/cosmic-shear.content.json)).
 
 ## License
 
-BSD 3-Clause
+BSD 3-Clause (this repo's ASTRA code: `app/astra/`, `styles/astra.css`,
+`packages/store-types`, configuration, and docs).
+
+astra-theme is built on the MyST theme stack: it depends on the published
+`@myst-theme/*` packages and **vendors the MIT-licensed app shell** of
+[`@myst-theme/book`](https://github.com/jupyter-book/myst-theme) (the Remix
+`app/root.tsx`, `app/entry.*`, `app/routes/`, `app/components/`, `app/utils/`,
+`styles/app.css`, `styles/grid-system.css`, and the Remix/Tailwind config). Those
+files retain their MIT license — see [`NOTICE`](./NOTICE).

@@ -6,13 +6,14 @@
    Conventions
    -----------
    - Every token is a CSS custom property on :root, prefixed --astra-.
-   - Every class below is part of the published contract: renderers and the
-     preview card emit these, this file styles them. Keep the catalog in sync
-     with styles/README.md.
+   - Every class below is part of the theme's internal contract: the renderers in
+     app/astra/ emit these classes, this file styles them.
    - Restrained, print-like. Hairline rules over heavy borders, no loud colour.
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+/* Fonts (EB Garamond / Inter / JetBrains Mono) are linked by the theme in
+   app/root.tsx (<link rel="stylesheet">), not @import-ed here, so this file can
+   be bundled at any position by the Remix/esbuild CSS pipeline. */
 
 /* -----------------------------------------------------------------------------
    1. Tokens
@@ -62,7 +63,58 @@
 }
 
 /* -----------------------------------------------------------------------------
-   2. Base / page chrome
+   1b. Global page theme — applies the Vellum palette + EB Garamond to the host
+   book-theme app's DOM (this theme extends book-theme; these are ordinary theme
+   rules, not a hack — the ASTRA block/inline elements are rendered by our React
+   renderers and styled by the component rules further below).
+   -------------------------------------------------------------------------- */
+/* LIGHT mode: paint the Vellum parchment over book-theme's `body.bg-white`
+   (a utility class, specificity 0,1,0) — !important, scoped to :not(.dark) so we
+   never fight book-theme's well-tested native DARK theme (which owns dark mode). */
+html:not(.dark) body {
+  background: var(--astra-paper) !important;
+  color: var(--astra-ink);
+}
+/* EB Garamond prose + headings in BOTH modes (serif reads well dark too). */
+article,
+article p,
+article li,
+article dd,
+article dt,
+article blockquote,
+article h1, article h2, article h3, article h4, article h5, article h6,
+.myst-fm-block-title {
+  font-family: var(--astra-serif);
+}
+article p,
+article li {
+  font-size: 1.0625rem;
+  line-height: 1.72;
+}
+article h1, article h2, article h3, article h4, article h5, article h6,
+.myst-fm-block-title {
+  letter-spacing: -0.01em;
+}
+.myst-fm-block-title { font-weight: 600; }
+/* Warm ink + accents ONLY in light; dark mode inherits book-theme's prose colours. */
+html:not(.dark) article,
+html:not(.dark) article p,
+html:not(.dark) article li,
+html:not(.dark) article dd,
+html:not(.dark) article dt,
+html:not(.dark) article blockquote,
+html:not(.dark) article h1, html:not(.dark) article h2, html:not(.dark) article h3,
+html:not(.dark) article h4, html:not(.dark) article h5, html:not(.dark) article h6,
+html:not(.dark) .myst-fm-block-title {
+  color: var(--astra-ink);
+}
+html:not(.dark) article p a,
+html:not(.dark) article li a,
+html:not(.dark) article blockquote a { color: var(--astra-accent); }
+html:not(.dark) article hr { border-color: var(--astra-rule); }
+
+/* -----------------------------------------------------------------------------
+   2. Base / page chrome (used by standalone ASTRA pages / the .astra-doc wrapper)
    -------------------------------------------------------------------------- */
 .astra-doc {
   background: var(--astra-paper);
