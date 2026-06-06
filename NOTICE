@@ -7,17 +7,16 @@ This product includes software from the MyST Theme project
 licensed under the MIT License.
 
 astra-theme is a fork of the @myst-theme/book site theme. The following files in
-this repository are vendored from @myst-theme/book and remain under the MIT
-License:
+this repository are derived from @myst-theme/book (with local modifications —
+ASTRA integration, deduplication, and performance cleanups) and remain under
+the MIT License:
 
-  app/root.tsx                 (modified: merges ASTRA_RENDERERS, wraps the
-                                AstraStoreProvider, links the ASTRA stylesheet)
+  app/root.tsx
   app/entry.client.tsx
   app/entry.server.tsx
   app/types.ts
   app/routes/**
-  app/components/**            (ArticlePage.tsx modified: wraps the page render
-                                in AstraStoreProvider)
+  app/components/**
   app/utils/**
   styles/app.css
   styles/grid-system.css

@@ -68,50 +68,45 @@
    rules, not a hack — the ASTRA block/inline elements are rendered by our React
    renderers and styled by the component rules further below).
    -------------------------------------------------------------------------- */
-/* LIGHT mode: paint the Vellum parchment over book-theme's `body.bg-white`
-   (a utility class, specificity 0,1,0) — !important, scoped to :not(.dark) so we
-   never fight book-theme's well-tested native DARK theme (which owns dark mode). */
-html:not(.dark) body {
+/* Paint the Vellum paper + ink in BOTH modes: every colour below is an
+   --astra-* token that swaps on `html.dark` (section 13), so one set of
+   mode-agnostic rules yields warm parchment in light and warm near-black in
+   dark. `!important` beats book-theme's `bg-white` / `dark:bg-stone-900` body
+   utilities (specificity 0,1,0). */
+body {
   background: var(--astra-paper) !important;
   color: var(--astra-ink);
 }
-/* EB Garamond prose + headings in BOTH modes (serif reads well dark too). */
+/* EB Garamond prose + headings.
+   (`:is()` over pure element lists keeps specificity identical to the longhand;
+   `.myst-fm-block-title` stays outside it so it doesn't raise the element
+   branches' specificity.) */
 article,
-article p,
-article li,
-article dd,
-article dt,
-article blockquote,
-article h1, article h2, article h3, article h4, article h5, article h6,
+article :is(p, li, dd, dt, blockquote, h1, h2, h3, h4, h5, h6),
 .myst-fm-block-title {
   font-family: var(--astra-serif);
 }
-article p,
-article li {
+article :is(p, li) {
   font-size: 1.0625rem;
   line-height: 1.72;
 }
-article h1, article h2, article h3, article h4, article h5, article h6,
+article :is(h1, h2, h3, h4, h5, h6),
 .myst-fm-block-title {
   letter-spacing: -0.01em;
 }
 .myst-fm-block-title { font-weight: 600; }
-/* Warm ink + accents ONLY in light; dark mode inherits book-theme's prose colours. */
-html:not(.dark) article,
-html:not(.dark) article p,
-html:not(.dark) article li,
-html:not(.dark) article dd,
-html:not(.dark) article dt,
-html:not(.dark) article blockquote,
-html:not(.dark) article h1, html:not(.dark) article h2, html:not(.dark) article h3,
-html:not(.dark) article h4, html:not(.dark) article h5, html:not(.dark) article h6,
-html:not(.dark) .myst-fm-block-title {
+/* Warm ink + accents. The doubled `:root:root` prefix lifts these to (0,2,…)
+   so they beat Tailwind utility colours in BOTH modes — light utilities are
+   (0,1,0) and `dark:` variants are (0,2,0) (`.dark .dark\:…`). The old
+   `html:not(.dark)` scoping only cleared the light bar, which is why dark
+   prose used to fall back to book-theme's zinc. */
+:root:root article,
+:root:root article :is(p, li, dd, dt, blockquote, h1, h2, h3, h4, h5, h6),
+:root:root .myst-fm-block-title {
   color: var(--astra-ink);
 }
-html:not(.dark) article p a,
-html:not(.dark) article li a,
-html:not(.dark) article blockquote a { color: var(--astra-accent); }
-html:not(.dark) article hr { border-color: var(--astra-rule); }
+:root:root article :is(p, li, blockquote) a { color: var(--astra-accent); }
+:root:root article hr { border-color: var(--astra-rule); }
 
 /* -----------------------------------------------------------------------------
    2. Base / page chrome (used by standalone ASTRA pages / the .astra-doc wrapper)
@@ -1199,32 +1194,35 @@ hr.astra-rule {
 
 /* -----------------------------------------------------------------------------
    13. Dark mode — warm near-black parchment
+   Keyed on `html.dark`, NOT `prefers-color-scheme`: book-theme's dark mode is
+   class-based (theme cookie, falling back to a pre-hydration script that maps
+   the OS preference onto the class — `html.dark` is the single source of
+   truth and can diverge from the media query after a toggle). `html.dark`
+   (0,1,1) outranks the `:root` (0,1,0) light defaults above.
    -------------------------------------------------------------------------- */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --astra-paper: #15120D;
-    --astra-surface: #1D1A14;
-    --astra-surface-2: #211D16;
+html.dark {
+  --astra-paper: #15120D;
+  --astra-surface: #1D1A14;
+  --astra-surface-2: #211D16;
 
-    --astra-ink: #EDE7DA;
-    --astra-ink-soft: #C9C1B1;
-    --astra-muted: #948C7C;
-    --astra-faint: #6A6353;
+  --astra-ink: #EDE7DA;
+  --astra-ink-soft: #C9C1B1;
+  --astra-muted: #948C7C;
+  --astra-faint: #6A6353;
 
-    --astra-rule: #322D24;
-    --astra-rule-strong: #423B2F;
+  --astra-rule: #322D24;
+  --astra-rule-strong: #423B2F;
 
-    --astra-accent: #D9A94E;
-    --astra-link: #D9A94E;
-    --astra-accent-soft: rgba(217, 169, 78, 0.16);
+  --astra-accent: #D9A94E;
+  --astra-link: #D9A94E;
+  --astra-accent-soft: rgba(217, 169, 78, 0.16);
 
-    --astra-c-decision: #D9A94E; /* gold  */
-    --astra-c-finding: #5FB3AE;  /* teal  */
-    --astra-c-insight: #C49AAA;  /* mauve */
-    --astra-c-analysis: #5FB3AE; /* teal  */
-    --astra-c-output: #A593C9;   /* violet */
-    --astra-c-value: #5FB3AE;
+  --astra-c-decision: #D9A94E; /* gold  */
+  --astra-c-finding: #5FB3AE;  /* teal  */
+  --astra-c-insight: #C49AAA;  /* mauve */
+  --astra-c-analysis: #5FB3AE; /* teal  */
+  --astra-c-output: #A593C9;   /* violet */
+  --astra-c-value: #5FB3AE;
 
-    --astra-shadow: 0 6px 18px rgba(0, 0, 0, .45);
-  }
+  --astra-shadow: 0 6px 18px rgba(0, 0, 0, .45);
 }

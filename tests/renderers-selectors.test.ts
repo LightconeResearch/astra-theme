@@ -6,12 +6,15 @@
  * These tests assert:
  *   - each expected selector key is registered under the right type,
  *   - the `--value` span selector is registered LAST so value spans route to it,
- *   - a `base` fallback exists per bucket,
+ *   - ASTRA sets no `base` keys, and the merged map (defaults + ASTRA, as
+ *     root.tsx wires it) still has a `base` fallback per bucket,
  *   - the selectors actually match (and don't over-match) representative nodes.
  */
 import { describe, it, expect } from 'vitest';
 import { matches } from 'unist-util-select';
 import type { GenericNode } from 'myst-common';
+import { DEFAULT_RENDERERS } from 'myst-to-react';
+import { mergeRenderers } from '@myst-theme/providers';
 import { ASTRA_RENDERERS } from '~/astra/renderers';
 import { AstraInlineRef } from '~/astra/renderers/AstraInlineRef';
 import { AstraValue } from '~/astra/renderers/AstraValue';
@@ -64,7 +67,11 @@ describe('ASTRA_RENDERERS registration', () => {
     expect(keys.indexOf(VALUE)).toBeGreaterThan(keys.indexOf(REF));
   });
 
-  it('provides a base fallback per registered bucket', () => {
+  it('sets no base keys, and the merged map keeps a base fallback per bucket', () => {
+    // ASTRA must not clobber the base accumulated by earlier maps in the merge
+    // (e.g. Jupyter's container Figure); merging over the defaults must still
+    // leave every ASTRA bucket with a base for non-ASTRA nodes.
+    const merged = mergeRenderers([DEFAULT_RENDERERS, ASTRA_RENDERERS], true);
     for (const type of [
       'span',
       'container',
@@ -74,9 +81,8 @@ describe('ASTRA_RENDERERS registration', () => {
       'table',
       'card',
     ]) {
-      const bucket = buckets[type];
-      expect(bucket).toBeTypeOf('object');
-      expect('base' in bucket).toBe(true);
+      expect('base' in buckets[type]).toBe(false);
+      expect(merged[type].base).toBeTypeOf('function');
     }
   });
 

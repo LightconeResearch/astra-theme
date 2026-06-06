@@ -2,7 +2,6 @@ import React from 'react';
 import {
   ArticleProvider,
   useProjectManifest,
-  useSiteManifest,
   useThemeTop,
   useMediaQuery,
 } from '@myst-theme/providers';
@@ -12,12 +11,12 @@ import {
   FrontmatterParts,
   BackmatterParts,
   DocumentOutline,
+  combineDownloads,
   extractKnownParts,
   Footnotes,
 } from '@myst-theme/site';
-import type { SiteManifest } from 'myst-config';
 import type { PageLoader } from '@myst-theme/common';
-import { copyNode, type GenericParent } from 'myst-common';
+import { copyNode } from 'myst-common';
 import { SourceFileKind } from 'myst-spec-ext';
 import {
   ExecuteScopeProvider,
@@ -29,28 +28,8 @@ import {
 } from '@myst-theme/jupyter';
 import { MyST } from 'myst-to-react';
 import { FrontmatterBlock } from '@myst-theme/frontmatter';
-import type { SiteAction } from 'myst-config';
-import type { TemplateOptions } from '../types.js';
+import { useTemplateOptions } from '~/utils/useTemplateOptions';
 import { AstraStoreProvider } from '~/astra';
-
-/**
- * Combines the project downloads and the export options
- */
-function combineDownloads(
-  siteDownloads: SiteAction[] | undefined,
-  pageFrontmatter: PageLoader['frontmatter'],
-) {
-  if (pageFrontmatter.downloads) {
-    return pageFrontmatter.downloads;
-  }
-  // No downloads on the page, combine the exports if they exist
-  if (siteDownloads) {
-    return [...(pageFrontmatter.exports ?? []), ...siteDownloads];
-  }
-  return pageFrontmatter.exports;
-}
-
-const TOP_OFFSET = 33;
 
 export const ArticlePage = React.memo(function ({
   article,
@@ -65,17 +44,21 @@ export const ArticlePage = React.memo(function ({
   const compute = useComputeOptions();
   const top = useThemeTop();
 
-  const pageDesign: TemplateOptions = (article.frontmatter as any)?.site ?? {};
-  const siteDesign: TemplateOptions =
-    (useSiteManifest() as SiteManifest & TemplateOptions)?.options ?? {};
-  const { hide_title_block, hide_footer_links, hide_outline, outline_maxdepth, hide_authors } = {
-    ...siteDesign,
-    ...pageDesign,
-  };
+  const { hide_title_block, hide_footer_links, hide_outline, outline_maxdepth, hide_authors } =
+    useTemplateOptions(article.frontmatter);
   const downloads = combineDownloads(manifest?.downloads, article.frontmatter);
-  const tree = copyNode(article.mdast);
+  // copyNode deep-copies the whole article AST; memoize so re-renders (theme
+  // top, media query, compute options) keep stable identities and <MyST> /
+  // the store scan are not invalidated.
+  const { tree, parts } = React.useMemo(() => {
+    const tree = copyNode(article.mdast);
+    return { tree, parts: extractKnownParts(tree, article.frontmatter?.parts) };
+  }, [article]);
+  const references = React.useMemo(
+    () => ({ ...article.references, article: article.mdast }),
+    [article],
+  );
   const keywords = article.frontmatter?.keywords ?? [];
-  const parts = extractKnownParts(tree, article.frontmatter?.parts);
   const isOutlineMargin = useMediaQuery('(min-width: 1024px)');
   const { thebe } = manifest as any;
   const { location } = article;
@@ -83,7 +66,7 @@ export const ArticlePage = React.memo(function ({
   return (
     <ArticleProvider
       kind={article.kind}
-      references={{ ...article.references, article: article.mdast }}
+      references={references}
       frontmatter={article.frontmatter}
     >
       <BusyScopeProvider>

@@ -9,14 +9,10 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      // Mirror tsconfig "paths": ~/* -> app/*
+      // Mirror tsconfig "paths": ~/* -> app/*. (@astra-spec/store-types needs
+      // no alias: the workspace symlink + its "main" already resolve to the TS
+      // source.)
       '~': path.resolve(root, 'app'),
-      // The workspace package resolves to its TS source (its package.json
-      // "main" points at ./src/index.ts).
-      '@astra-spec/store-types': path.resolve(
-        root,
-        'packages/store-types/src/index.ts',
-      ),
     },
   },
   test: {

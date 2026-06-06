@@ -5,17 +5,9 @@
 import { describe, it, expect } from 'vitest';
 import { findAstraStore } from '~/astra/store/AstraStoreProvider';
 import type { GenericNode } from 'myst-common';
-import type { ResolvedStore } from '@astra-spec/store-types';
+import { emptyStore } from './helpers/store';
 
-const store = {
-  analysis: { slug: 'demo' },
-  outputs: {},
-  inputs: {},
-  decisions: {},
-  findings: {},
-  prior_insights: {},
-  subanalyses: {},
-} as ResolvedStore;
+const store = emptyStore();
 
 function tree(carrier?: GenericNode): GenericNode {
   return {

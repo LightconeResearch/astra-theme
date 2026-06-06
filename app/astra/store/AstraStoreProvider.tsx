@@ -8,16 +8,12 @@
  *   walks the page mdast, finds that carrier, reads `node.data.astra`, and makes
  *   it available to every ASTRA renderer through `useAstraStore()`.
  *
- * Source of the mdast: book-theme's `ArticleProvider` stores the page's root
- * mdast on the article context as `references.article` (see ArticlePage.tsx),
- * which `@myst-theme/providers`' `useReferences()` returns. We read it from
- * there as a fallback, and also accept an explicit `store` or `mdast` prop (the
- * theme passes `mdast={tree}` from ArticlePage, the cleanest source). All paths
- * are null-safe; a missing carrier yields `undefined` and every renderer falls
+ * Source of the mdast: an explicit `store` or `mdast` prop (the theme passes
+ * `mdast={tree}` from ArticlePage; tests pass `store`). All paths are
+ * null-safe; a missing carrier yields `undefined` and every renderer falls
  * back to its node's own children.
  */
 import React, { createContext, useMemo } from 'react';
-import { useReferences } from '@myst-theme/providers';
 import type { ResolvedStore } from '@astra-spec/store-types';
 import type { GenericNode } from 'myst-common';
 
@@ -57,27 +53,22 @@ export interface AstraStoreProviderProps {
   children: React.ReactNode;
   /** Explicit store (tests / SSR overrides). Wins over mdast scanning. */
   store?: ResolvedStore;
-  /** Explicit mdast root to scan instead of the active page's. */
+  /** Mdast root to scan for the store carrier. */
   mdast?: GenericNode | GenericNode[];
 }
 
 /**
- * Wrap the page content. By default it reads the active page mdast from
- * `@myst-theme/providers`; pass `store` or `mdast` to override.
+ * Wrap the page content; pass the page `mdast` to scan (or an explicit `store`).
  */
 export function AstraStoreProvider({
   children,
   store,
   mdast,
 }: AstraStoreProviderProps) {
-  // book-theme's ArticleProvider sets `references.article = article.mdast`, so
-  // `useReferences()?.article` is the page's root mdast when we're inside a page.
-  const references = useReferences() as { article?: GenericNode } | undefined;
-  const pageMdast = references?.article;
   const resolved = useMemo<ResolvedStore | undefined>(() => {
     if (store) return store;
-    return findAstraStore(mdast ?? pageMdast);
-  }, [store, mdast, pageMdast]);
+    return findAstraStore(mdast);
+  }, [store, mdast]);
 
   return (
     <AstraStoreContext.Provider value={resolved}>

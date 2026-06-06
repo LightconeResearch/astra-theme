@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { MyST } from 'myst-to-react';
 import classNames from 'classnames';
 import type { GenericParent } from 'myst-common';
@@ -10,9 +10,9 @@ import { useBannerState } from '@myst-theme/providers';
  * A dismissible banner component at the top that shows content passed as a MyST AST.
  */
 export function Banner({ content, className }: { content: GenericParent; className?: string }) {
-  // Generate banner ID from content for storing dismissal state
-  const contentString = JSON.stringify(content);
-  const bannerId = hashString(contentString);
+  // Generate banner ID from content for storing dismissal state (memoized:
+  // serializing + hashing the banner AST need not run on every render)
+  const bannerId = useMemo(() => hashString(JSON.stringify(content)), [content]);
 
   // Start hidden, only show after checking localStorage on client.
   // This avoids flickering on initial load.

@@ -29,14 +29,13 @@ import {
   BannerStateProvider,
 } from '@myst-theme/providers';
 import { ComputeOptionsProvider, ThebeLoaderAndServer } from '@myst-theme/jupyter';
-import { MadeWithMyst } from '@myst-theme/icons';
 import { ArticlePage } from '../components/ArticlePage.js';
 import { Footer } from '../components/Footer.js';
 import { Banner } from '../components/Banner.js';
 import { SidebarFooter } from '../components/SidebarFooter.js';
-import type { TemplateOptions } from '../types.js';
+import type { ManifestProject } from '../types.js';
+import { useTemplateOptions } from '~/utils/useTemplateOptions';
 import { useRouteError, isRouteErrorResponse } from '@remix-run/react';
-type ManifestProject = Required<SiteManifest>['projects'][0];
 
 export const meta: V2_MetaFunction<typeof loader> = ({ data, matches, location }) => {
   if (!data) return [];
@@ -74,6 +73,7 @@ export const loader: LoaderFunction = async ({ params, request }) => {
   const flat = isFlatSite(config);
   try {
     const page = await getPage(request, {
+      config,
       project: flat ? projectName : (projectName ?? slug),
       slug: flat ? slug : projectName ? slug : undefined,
       // MODE=static is set by mystmd when pre-rendering pages for `myst build --html`; skip index redirects in that case.
@@ -122,12 +122,8 @@ function ArticlePageAndNavigationInternal({
         projectSlug={projectSlug}
       />
       <TabStateProvider>
-        <main
-          ref={container}
-          className="article-grid grid-gap"
-          // article does not need to get top as it is in the page flow (z-0)
-          // style={{ marginTop: top }}
-        >
+        {/* article does not need a top offset as it is in the page flow (z-0) */}
+        <main ref={container} className="article-grid grid-gap">
           {children}
         </main>
       </TabStateProvider>
@@ -171,20 +167,13 @@ export default function Page() {
   const { container } = useOutlineHeight();
   const data = useLoaderData() as { page: PageLoader; project: ManifestProject };
   const baseurl = useBaseurl();
-  const pageDesign: TemplateOptions = (data.page.frontmatter as any)?.site ?? {};
-  const siteDesign: TemplateOptions =
-    (useSiteManifest() as SiteManifest & TemplateOptions)?.options ?? {};
-  const { hide_toc, hide_search, hide_footer_links } = {
-    ...siteDesign,
-    ...pageDesign,
-  };
+  const { hide_toc, hide_search, hide_footer_links } = useTemplateOptions(data.page.frontmatter);
   return (
     <ArticlePageAndNavigation
       hide_toc={hide_toc}
       hideSearch={hide_search}
       projectSlug={data.page.project}
     >
-      {/* <ProjectProvider project={project}> */}
       <ProjectProvider>
         <ComputeOptionsProvider
           features={{ notebookCompute: true, figureCompute: true, launchBinder: false }}

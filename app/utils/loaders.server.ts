@@ -1,4 +1,6 @@
-import fetch from 'node-fetch';
+import http from 'node:http';
+import https from 'node:https';
+import nodeFetch from 'node-fetch';
 import type { SiteManifest } from 'myst-config';
 import {
   MYST_SPEC_VERSION,
@@ -16,6 +18,14 @@ import { migrate } from 'myst-migrate';
 
 const CONTENT_CDN_PORT = process.env.CONTENT_CDN_PORT ?? '3100';
 const CONTENT_CDN = process.env.CONTENT_CDN ?? `http://localhost:${CONTENT_CDN_PORT}`;
+
+// Reuse connections to the content server across requests (every page view
+// otherwise opens fresh TCP connections for config + content + assets).
+const httpAgent = new http.Agent({ keepAlive: true });
+const httpsAgent = new https.Agent({ keepAlive: true });
+const agent = (url: URL) => (url.protocol === 'http:' ? httpAgent : httpsAgent);
+const fetch = (url: Parameters<typeof nodeFetch>[0], init?: Parameters<typeof nodeFetch>[1]) =>
+  nodeFetch(url, { agent, ...init });
 
 type LinkRewriteOptions = { rewriteStaticFolder?: boolean };
 
@@ -71,10 +81,12 @@ export async function getPage(
     loadIndexPage?: boolean;
     slug?: string;
     redirect?: boolean;
+    /** Pass an already-fetched site config to avoid re-fetching it per request. */
+    config?: SiteManifest;
   },
 ) {
   const projectName = opts.project;
-  const config = await getConfig();
+  const config = opts.config ?? (await getConfig());
   if (!config) throw responseNoSite();
   const project = getProject(config, projectName);
   if (!project) throw responseNoArticle();

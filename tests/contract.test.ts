@@ -12,8 +12,9 @@
  * AstraDecision; the fixture's `details` carrier does NOT) and document the gap.
  */
 import { describe, it, expect } from 'vitest';
-import { matches } from 'unist-util-select';
 import type { GenericNode } from 'myst-common';
+import { DEFAULT_RENDERERS, selectRenderer } from 'myst-to-react';
+import { mergeRenderers } from '@myst-theme/providers';
 import fixture from './fixtures/cosmic-shear.content.json';
 import { findAstraStore } from '~/astra/store/AstraStoreProvider';
 import { parseCarrierId, PREFIX_TO_TABLE } from '~/astra/store/useAstraStore';
@@ -38,17 +39,10 @@ function collect(pred: (n: GenericNode) => boolean): GenericNode[] {
   return out;
 }
 
-/** Mirror of myst-to-react's selectRenderer (reverse order, last match wins). */
-function selectRenderer(node: GenericNode) {
-  const bucket = (ASTRA_RENDERERS as Record<string, Record<string, unknown>>)[
-    node.type
-  ];
-  if (!bucket) return undefined;
-  const hit = Object.entries(bucket)
-    .reverse()
-    .find(([sel]) => sel !== 'base' && matches(sel, node));
-  return hit?.[1] ?? bucket.base;
-}
+/** The merged renderer map as the app wires it (root.tsx merges ASTRA last)
+ *  so routing is asserted through myst-to-react's REAL selectRenderer. */
+const RENDERERS = mergeRenderers([DEFAULT_RENDERERS, ASTRA_RENDERERS], true);
+const route = (node: GenericNode) => selectRenderer(RENDERERS, node);
 
 /* ── A. Carrier & store shape ──────────────────────────────────────────────── */
 describe('A. carrier & store shape', () => {
@@ -211,7 +205,7 @@ describe('E. selector routing', () => {
       type: 'span',
       class: 'astra-ref astra-ref--value astra-ref--metric',
     };
-    expect(selectRenderer(valueSpan)).toBe(AstraValue);
+    expect(route(valueSpan)).toBe(AstraValue);
   });
 
   it('a non-value ref span routes to AstraInlineRef', () => {
@@ -219,12 +213,12 @@ describe('E. selector routing', () => {
       type: 'span',
       class: 'astra-ref astra-ref--decision',
     };
-    expect(selectRenderer(refSpan)).toBe(AstraInlineRef);
+    expect(route(refSpan)).toBe(AstraInlineRef);
   });
 
   it('a heading decision carrier routes to AstraDecision (current renderer key)', () => {
     const heading: GenericNode = { type: 'heading', class: 'astra-decision' };
-    expect(selectRenderer(heading)).toBe(AstraDecision);
+    expect(route(heading)).toBe(AstraDecision);
   });
 
   it('DISCREPANCY: the fixture decision carrier is a `details`, which the renderer map does NOT route to AstraDecision', () => {
@@ -236,7 +230,9 @@ describe('E. selector routing', () => {
     )[0];
     expect(detailsCarrier).toBeDefined();
     expect(ASTRA_RENDERERS.details).toBeUndefined();
-    expect(selectRenderer(detailsCarrier)).toBeUndefined();
+    // No ASTRA `details` bucket → falls through to the stock details renderer.
+    expect(route(detailsCarrier)).not.toBe(AstraDecision);
+    expect(route(detailsCarrier)).toBe(RENDERERS.details.base);
   });
 
   it('DISCREPANCY: the fixture input registry is a `container.astra-inputs`, which the `table`-keyed renderer does not match', () => {
@@ -246,8 +242,6 @@ describe('E. selector routing', () => {
     )[0];
     expect(inputsCarrier).toBeDefined();
     // The container bucket only keys astra-output, not astra-inputs → base.
-    expect(selectRenderer(inputsCarrier)).toBe(
-      (ASTRA_RENDERERS.container as { base?: unknown }).base,
-    );
+    expect(route(inputsCarrier)).toBe(RENDERERS.container.base);
   });
 });
