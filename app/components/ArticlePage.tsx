@@ -100,11 +100,14 @@ export const ArticlePage = React.memo(function ({
             <ErrorTray pageSlug={article.slug} />
           )}
           <div id="skip-to-article" />
-          <FrontmatterParts parts={parts} keywords={keywords} hideKeywords={hideKeywords} />
+          {/* The store provider must wrap the frontmatter/backmatter parts too:
+              the abstract is extracted from the tree and rendered separately,
+              and its astra refs need the store context for preview cards. */}
           <AstraStoreProvider mdast={tree}>
+            <FrontmatterParts parts={parts} keywords={keywords} hideKeywords={hideKeywords} />
             <MyST ast={tree} />
+            <BackmatterParts parts={parts} />
           </AstraStoreProvider>
-          <BackmatterParts parts={parts} />
           <Footnotes />
           <Bibliography />
           <ConnectionStatusTray />
