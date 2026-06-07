@@ -1,7 +1,12 @@
 /* =============================================================================
-   ASTRA — the Vellum design system
-   Editorial, narrative-first, warm-parchment presentation layer for the
+   ASTRA — the Lightcone Research design system
+   Editorial, narrative-first, parchment presentation layer for the
    @astra-spec/mystra plugin. All appearance lives here; the AST stays neutral.
+
+   Palette + typography follow the Lightcone Research brand guidelines:
+   Antique Gold / Blue Ink / Charcoal / Slate Blue primaries,
+   Vert de Gris / Wax Red / Mushroom Cap secondaries, parchment neutrals;
+   Quattrocento headings, Alegreya subheadings, Newsreader body.
 
    Conventions
    -----------
@@ -11,46 +16,51 @@
    - Restrained, print-like. Hairline rules over heavy borders, no loud colour.
    ========================================================================== */
 
-/* Fonts (EB Garamond / Inter / JetBrains Mono) are linked by the theme in
-   app/root.tsx (<link rel="stylesheet">), not @import-ed here, so this file can
-   be bundled at any position by the Remix/esbuild CSS pipeline. */
+/* Fonts (Quattrocento / Alegreya / Newsreader / JetBrains Mono) are linked by
+   the theme in app/root.tsx (<link rel="stylesheet">), not @import-ed here, so
+   this file can be bundled at any position by the Remix/esbuild CSS pipeline. */
 
 /* -----------------------------------------------------------------------------
    1. Tokens
    -------------------------------------------------------------------------- */
 :root {
-  /* surfaces — exact Vellum parchment ramp (from the Figma mocks) */
-  --astra-paper: #F6EEE0;     /* page background */
-  --astra-surface: #F1E7D6;   /* cards, rail — a touch deeper than the page */
-  --astra-surface-2: #E8DECF; /* recessed insets: figure frames, diagram wells */
+  /* surfaces — the brand's Background Neutrals ramp */
+  --astra-paper: #F8F7F3;     /* page background — Parchment */
+  --astra-surface: #F1EFE9;   /* cards, rail — Darker Parchment */
+  --astra-surface-2: #E9E6DD; /* recessed insets: figure frames, diagram wells
+                                 (Darker Parchment, deepened one step) */
 
   /* ink */
-  --astra-ink: #2B2620;
-  --astra-ink-soft: #6B6154;
-  --astra-muted: #A59886;
-  --astra-faint: #C7B89E;
+  --astra-ink: #221F20;       /* Charcoal */
+  --astra-ink-soft: #4E5A70;  /* Blue Ink — secondary text, per the type-style page */
+  --astra-muted: #8B7D70;     /* Mushroom Cap */
+  --astra-faint: #BCB2A6;     /* Mushroom Cap, lightened */
 
-  /* rules — the warm hairline (#D2C1A5) at the alpha the mocks use */
-  --astra-rule: #E2D6C0;
-  --astra-rule-strong: #D2C1A5;
+  /* rules — cool parchment hairlines */
+  --astra-rule: #E4E1D7;
+  --astra-rule-strong: #D2CCBF;
 
-  /* brand accent — warm gold (rail mark + inline links), per the mocks */
-  --astra-accent: #B8893A;
-  --astra-link: #B8893A;
-  --astra-accent-soft: rgba(184, 137, 58, 0.13); /* the warm hover hotspot */
+  /* brand accent — Antique Gold (rail mark + inline links + headings) */
+  --astra-accent: #A67C3C;
+  --astra-link: #A67C3C;
+  --astra-accent-soft: rgba(166, 124, 60, 0.12); /* the warm hover hotspot */
 
-  /* per-kind accents — exact hues sampled from the mocks */
-  --astra-c-decision: #B8893A; /* ◇ gold   */
-  --astra-c-finding:  #3E8E8A; /* ● teal   */
-  --astra-c-insight:  #8F6D7A; /* ◈ mauve  */
-  --astra-c-analysis: #3E8E8A; /* ◐ teal   */
-  --astra-c-output:   #6B5B95; /* ◆ violet (not in the mocks; kept restrained) */
-  --astra-c-value:    #3E8E8A; /* teal     */
+  /* kickers / uppercase labels — Slate Blue, as in the brand's type-style page */
+  --astra-kicker: #3F7280;
 
-  /* layout + type */
+  /* per-kind accents — mapped onto the brand palette */
+  --astra-c-decision: #A67C3C; /* ◇ Antique Gold  */
+  --astra-c-finding:  #3B7A73; /* ● Vert de Gris  */
+  --astra-c-insight:  #A45A43; /* ◈ Wax Red       */
+  --astra-c-analysis: #3F7280; /* ◐ Slate Blue    */
+  --astra-c-output:   #4E5A70; /* ◆ Blue Ink      */
+  --astra-c-value:    #3F7280; /* Slate Blue      */
+
+  /* layout + type — the three brand typefaces by role */
   --astra-measure: 40rem;      /* the 640px editorial column */
-  --astra-serif: "EB Garamond", Georgia, "Times New Roman", serif;
-  --astra-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --astra-heading: "Quattrocento", Georgia, "Times New Roman", serif;
+  --astra-serif: "Newsreader", Georgia, "Times New Roman", serif; /* body */
+  --astra-label: "Alegreya", Georgia, serif; /* subheadings, kickers, UI labels */
   --astra-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
   /* card — sharp editorial corners, soft warm shadow (exact mock values) */
@@ -63,27 +73,27 @@
 }
 
 /* -----------------------------------------------------------------------------
-   1b. Global page theme — applies the Vellum palette + EB Garamond to the host
-   book-theme app's DOM (this theme extends book-theme; these are ordinary theme
-   rules, not a hack — the ASTRA block/inline elements are rendered by our React
-   renderers and styled by the component rules further below).
+   1b. Global page theme — applies the Lightcone palette + brand typefaces to
+   the host book-theme app's DOM (this theme extends book-theme; these are
+   ordinary theme rules, not a hack — the ASTRA block/inline elements are
+   rendered by our React renderers and styled by the component rules further
+   below).
    -------------------------------------------------------------------------- */
-/* Paint the Vellum paper + ink in BOTH modes: every colour below is an
+/* Paint the parchment + ink in BOTH modes: every colour below is an
    --astra-* token that swaps on `html.dark` (section 13), so one set of
-   mode-agnostic rules yields warm parchment in light and warm near-black in
+   mode-agnostic rules yields parchment in light and brand charcoal in
    dark. `!important` beats book-theme's `bg-white` / `dark:bg-stone-900` body
    utilities (specificity 0,1,0). */
 body {
   background: var(--astra-paper) !important;
   color: var(--astra-ink);
 }
-/* EB Garamond prose + headings.
+/* Newsreader prose, Quattrocento headings.
    (`:is()` over pure element lists keeps specificity identical to the longhand;
    `.myst-fm-block-title` stays outside it so it doesn't raise the element
    branches' specificity.) */
 article,
-article :is(p, li, dd, dt, blockquote, h1, h2, h3, h4, h5, h6),
-.myst-fm-block-title {
+article :is(p, li, dd, dt, blockquote) {
   font-family: var(--astra-serif);
 }
 article :is(p, li) {
@@ -92,6 +102,7 @@ article :is(p, li) {
 }
 article :is(h1, h2, h3, h4, h5, h6),
 .myst-fm-block-title {
+  font-family: var(--astra-heading);
   letter-spacing: -0.01em;
 }
 .myst-fm-block-title { font-weight: 600; }
@@ -105,6 +116,13 @@ article :is(h1, h2, h3, h4, h5, h6),
 :root:root .myst-fm-block-title {
   color: var(--astra-ink);
 }
+/* Title + section headings carry Antique Gold, per the brand type-style page.
+   (The doc title is an `h1.myst-fm-block-title`; the class branch keeps this
+   rule's specificity above the `.myst-fm-block-title` ink rule just before.) */
+:root:root article :is(h1, h2),
+:root:root h1.myst-fm-block-title {
+  color: var(--astra-accent);
+}
 :root:root article :is(p, li, blockquote) a { color: var(--astra-accent); }
 :root:root article hr { border-color: var(--astra-rule); }
 
@@ -115,13 +133,13 @@ article :is(h1, h2, h3, h4, h5, h6),
   background: var(--astra-paper);
   color: var(--astra-ink);
   font-family: var(--astra-serif);
-  font-size: 18px;          /* EB Garamond body, per the mocks */
+  font-size: 18px;          /* Newsreader body */
   line-height: 1.667;       /* 30px on 18px */
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-/* the abstract / lead paragraph — EB Garamond italic, slightly smaller */
+/* the abstract / lead paragraph — Newsreader italic, slightly smaller */
 .astra-abstract,
 .astra-doc .astra-abstract p {
   font-style: italic;
@@ -146,11 +164,16 @@ article :is(h1, h2, h3, h4, h5, h6),
 .astra-doc h2,
 .astra-doc h3,
 .astra-doc h4 {
-  font-family: var(--astra-serif);
-  font-weight: 500;
+  font-family: var(--astra-heading); /* Quattrocento — 400/700 only */
+  font-weight: 400;
   color: var(--astra-ink);
   line-height: 1.2;
   letter-spacing: -0.01em;
+}
+/* title + section headings carry Antique Gold, per the brand type-style page */
+.astra-doc h1,
+.astra-doc h2 {
+  color: var(--astra-accent);
 }
 
 .astra-doc a {
@@ -176,8 +199,8 @@ article :is(h1, h2, h3, h4, h5, h6),
 }
 
 .astra-rail__mark {
-  font-family: var(--astra-serif);
-  font-weight: 600;
+  font-family: var(--astra-heading);
+  font-weight: 700;
   font-size: 18px;
   line-height: 1;
   color: var(--astra-accent);
@@ -186,7 +209,7 @@ article :is(h1, h2, h3, h4, h5, h6),
 
 /* breadcrumb */
 .astra-breadcrumb {
-  font-family: var(--astra-sans);
+  font-family: var(--astra-label);
   font-size: 11px;
   letter-spacing: 0.04em;
   color: var(--astra-muted);
@@ -212,19 +235,19 @@ article :is(h1, h2, h3, h4, h5, h6),
   color: var(--astra-faint);
 }
 
-/* document title + meta */
+/* document title + meta — Quattrocento regular in Antique Gold */
 .astra-doc-title {
-  font-family: var(--astra-serif);
-  font-weight: 600;
+  font-family: var(--astra-heading);
+  font-weight: 400;
   font-size: clamp(1.9rem, 1.4rem + 2vw, 2.8rem);
   line-height: 1.12;
   letter-spacing: -0.015em;
-  color: var(--astra-ink);
+  color: var(--astra-accent);
   margin: 0 0 0.5rem;
 }
 
 .astra-doc-meta {
-  font-family: var(--astra-sans);
+  font-family: var(--astra-label);
   font-size: 11px;
   letter-spacing: 0.02em;
   color: var(--astra-ink-soft);
@@ -237,14 +260,15 @@ article :is(h1, h2, h3, h4, h5, h6),
 /* the leading status glyph in the meta line (◐ active) carries the analysis hue */
 .astra-doc-meta__glyph { color: var(--astra-c-analysis); }
 
-/* section labels (the uppercase kicker used across cards + page) */
+/* section labels (the uppercase kicker used across cards + page) —
+   Alegreya caps in Slate Blue, as in the brand's "POSITION PAPER" kicker */
 .astra-section-label {
-  font-family: var(--astra-sans);
-  font-size: 10px;
-  font-weight: 500;
+  font-family: var(--astra-label);
+  font-size: 11px;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: var(--astra-muted);
+  color: var(--astra-kicker);
   margin: 0 0 0.5rem;
 }
 
@@ -264,7 +288,7 @@ hr.astra-rule {
 .astra-ref {
   --astra-kind: var(--astra-ink-soft);
   font-family: inherit;
-  font-weight: 600;                 /* EB Garamond SemiBold, as in the mocks */
+  font-weight: 600;                 /* a semibold run inside the Newsreader prose */
   color: var(--astra-link);         /* uniform warm-gold link */
   text-decoration: underline;
   text-decoration-thickness: 1px;
@@ -341,7 +365,7 @@ hr.astra-rule {
 }
 
 .astra-card__kind {
-  font-family: var(--astra-sans);
+  font-family: var(--astra-label);
   font-size: 10px;
   font-weight: 500;
   text-transform: uppercase;
@@ -360,7 +384,7 @@ hr.astra-rule {
 }
 
 .astra-card__title {
-  font-family: var(--astra-serif);
+  font-family: var(--astra-label); /* Alegreya — the brand's subheading face */
   font-weight: 600;
   font-size: 20px;
   line-height: 1.25;
@@ -376,14 +400,14 @@ hr.astra-rule {
 
 /* small muted unit appended to a value/title (e.g. "Mpc", "km/s") */
 .astra-card__unit {
-  font-family: var(--astra-sans);
+  font-family: var(--astra-label);
   font-size: 0.7em;
   color: var(--astra-muted);
   margin-left: 0.25em;
 }
 
 .astra-card__section {
-  font-family: var(--astra-sans);
+  font-family: var(--astra-label);
   font-size: 10px;
   font-weight: 500;
   text-transform: uppercase;
@@ -393,7 +417,7 @@ hr.astra-rule {
 }
 
 .astra-card__meta {
-  font-family: var(--astra-sans);
+  font-family: var(--astra-label);
   font-size: 12px;
   color: var(--astra-muted);
   margin-top: 0.9rem;
@@ -508,7 +532,7 @@ hr.astra-rule {
 }
 
 .astra-prov__label {
-  font-family: var(--astra-sans);
+  font-family: var(--astra-label);
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -535,7 +559,7 @@ hr.astra-rule {
 .astra-decision__head {
   list-style: none;
   cursor: pointer;
-  font-family: var(--astra-sans);
+  font-family: var(--astra-label);
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
@@ -549,7 +573,7 @@ hr.astra-rule {
 .astra-decision > summary::before { content: var(--astra-glyph); }
 
 .astra-decision__title {
-  font-family: var(--astra-serif);
+  font-family: var(--astra-label);
   font-weight: 600;
   font-size: 19px;
   color: var(--astra-ink);
@@ -563,7 +587,7 @@ hr.astra-rule {
   border-radius: 7px;
   overflow: hidden;
   margin: 0.4rem 0 0.9rem;
-  font-family: var(--astra-sans);
+  font-family: var(--astra-label);
   font-size: 12px;
 }
 .astra-decision__toggle button {
@@ -592,7 +616,7 @@ hr.astra-rule {
 
 /* muted footer meta line (default selection · option count) */
 .astra-decision__meta {
-  font-family: var(--astra-sans);
+  font-family: var(--astra-label);
   font-size: 11px;
   color: var(--astra-muted);
   letter-spacing: 0.08em;
@@ -633,7 +657,7 @@ hr.astra-rule {
 }
 
 .astra-option__label {
-  font-family: var(--astra-serif);
+  font-family: var(--astra-label);
   font-weight: 500;
   font-size: 16px;
   color: var(--astra-ink);
@@ -653,7 +677,7 @@ hr.astra-rule {
 }
 
 .astra-option__backed {
-  font-family: var(--astra-sans);
+  font-family: var(--astra-label);
   font-size: 11px;
   color: var(--astra-muted);
   margin-top: 0.3rem;
@@ -698,7 +722,7 @@ hr.astra-rule {
 
 .astra-output figcaption,
 .astra-output__caption {
-  font-family: var(--astra-sans);
+  font-family: var(--astra-label);
   font-size: 13px;
   color: var(--astra-muted);
   margin-top: 0.5rem;
@@ -720,7 +744,7 @@ hr.astra-rule {
   list-style: none;
   cursor: pointer;
   padding: 0.5rem 0.75rem;
-  font-family: var(--astra-sans);
+  font-family: var(--astra-label);
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
@@ -779,7 +803,7 @@ hr.astra-rule {
   align-items: baseline;
   gap: 0.4em;
   flex-wrap: wrap;
-  font-family: var(--astra-serif);
+  font-family: var(--astra-label);
 }
 .astra-metric__value {
   font-size: 2.6rem;
@@ -801,7 +825,7 @@ hr.astra-rule {
 .astra-metric__uncertainty::before { content: "\00B1 "; } /* ± */
 .astra-metric__label {
   flex-basis: 100%;
-  font-family: var(--astra-sans);
+  font-family: var(--astra-label);
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -829,7 +853,7 @@ hr.astra-rule {
   color: var(--astra-kind);
 }
 .astra-finding__kind {
-  font-family: var(--astra-sans);
+  font-family: var(--astra-label);
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
@@ -841,7 +865,7 @@ hr.astra-rule {
 .astra-finding__kind::before { content: var(--astra-glyph); }
 
 .astra-finding__claim {
-  font-family: var(--astra-serif);
+  font-family: var(--astra-label);
   font-weight: 500;
   font-size: 19px;
   line-height: 1.35;
@@ -859,7 +883,7 @@ hr.astra-rule {
   display: inline-flex;
   align-items: center;
   gap: 0.3em;
-  font-family: var(--astra-sans);
+  font-family: var(--astra-label);
   font-size: 11px;
   letter-spacing: 0.04em;
   color: var(--astra-kind);
@@ -887,7 +911,7 @@ hr.astra-rule {
 
 .astra-prior-insight > .admonition-title,
 .astra-prior-insight__kind {
-  font-family: var(--astra-sans);
+  font-family: var(--astra-label);
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
@@ -900,7 +924,7 @@ hr.astra-rule {
 .astra-prior-insight__kind::before { content: var(--astra-glyph); }
 
 .astra-insight__claim {
-  font-family: var(--astra-serif);
+  font-family: var(--astra-label);
   font-weight: 500;
   font-size: 18px;
   line-height: 1.4;
@@ -910,7 +934,7 @@ hr.astra-rule {
 
 /* citation chrome: DOI + provenance */
 .astra-cite {
-  font-family: var(--astra-sans);
+  font-family: var(--astra-label);
   font-size: 12px;
   color: var(--astra-muted);
   display: flex;
@@ -931,7 +955,7 @@ hr.astra-rule {
 
 /* micro-label preceding the DOI in a citation ("SOURCE") */
 .astra-cite__label {
-  font-family: var(--astra-sans);
+  font-family: var(--astra-label);
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
@@ -960,7 +984,7 @@ hr.astra-rule {
 .astra-outputs {
   width: 100%;
   border-collapse: collapse;
-  font-family: var(--astra-sans);
+  font-family: var(--astra-label);
   font-size: 13px;
   margin: 1.5rem 0;
 }
@@ -1048,7 +1072,7 @@ hr.astra-rule {
 }
 
 .astra-subanalysis__kind {
-  font-family: var(--astra-sans);
+  font-family: var(--astra-label);
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
@@ -1061,7 +1085,7 @@ hr.astra-rule {
 .astra-subanalysis__kind::before { content: var(--astra-glyph); }
 
 .astra-subanalysis__name {
-  font-family: var(--astra-serif);
+  font-family: var(--astra-label);
   font-weight: 600;
   font-size: 18px;
   color: var(--astra-ink);
@@ -1087,7 +1111,7 @@ hr.astra-rule {
 }
 
 .astra-subanalysis__counts {
-  font-family: var(--astra-sans);
+  font-family: var(--astra-label);
   font-size: 12px;
   color: var(--astra-muted);
   display: flex;
@@ -1120,7 +1144,9 @@ hr.astra-rule {
 }
 
 /* -----------------------------------------------------------------------------
-   13. Dark mode — warm near-black parchment
+   13. Dark mode — brand Charcoal (#221F20), as on the guidelines' dark pages:
+   parchment ink and Antique Gold accents on charcoal, kind hues lifted just
+   enough to hold contrast.
    Keyed on `html.dark`, NOT `prefers-color-scheme`: book-theme's dark mode is
    class-based (theme cookie, falling back to a pre-hydration script that maps
    the OS preference onto the class — `html.dark` is the single source of
@@ -1128,28 +1154,30 @@ hr.astra-rule {
    (0,1,1) outranks the `:root` (0,1,0) light defaults above.
    -------------------------------------------------------------------------- */
 html.dark {
-  --astra-paper: #15120D;
-  --astra-surface: #1D1A14;
-  --astra-surface-2: #211D16;
+  --astra-paper: #221F20;     /* Charcoal */
+  --astra-surface: #2A2728;
+  --astra-surface-2: #312D2E;
 
-  --astra-ink: #EDE7DA;
-  --astra-ink-soft: #C9C1B1;
-  --astra-muted: #948C7C;
-  --astra-faint: #6A6353;
+  --astra-ink: #F1EFE9;       /* Darker Parchment, as ink */
+  --astra-ink-soft: #B4BDCD;  /* Blue Ink, lifted */
+  --astra-muted: #9C9085;     /* Mushroom Cap, lifted */
+  --astra-faint: #6E6660;
 
-  --astra-rule: #322D24;
-  --astra-rule-strong: #423B2F;
+  --astra-rule: #3B3738;
+  --astra-rule-strong: #4C4747;
 
-  --astra-accent: #D9A94E;
-  --astra-link: #D9A94E;
-  --astra-accent-soft: rgba(217, 169, 78, 0.16);
+  --astra-accent: #C2924A;    /* Antique Gold, lifted for contrast */
+  --astra-link: #C2924A;
+  --astra-accent-soft: rgba(194, 146, 74, 0.16);
 
-  --astra-c-decision: #D9A94E; /* gold  */
-  --astra-c-finding: #5FB3AE;  /* teal  */
-  --astra-c-insight: #C49AAA;  /* mauve */
-  --astra-c-analysis: #5FB3AE; /* teal  */
-  --astra-c-output: #A593C9;   /* violet */
-  --astra-c-value: #5FB3AE;
+  --astra-kicker: #7FA8B5;    /* Slate Blue, lifted */
+
+  --astra-c-decision: #C2924A; /* Antique Gold   */
+  --astra-c-finding: #5FA199;  /* Vert de Gris   */
+  --astra-c-insight: #C97F66;  /* Wax Red        */
+  --astra-c-analysis: #6FA0AE; /* Slate Blue     */
+  --astra-c-output: #93A1BC;   /* Blue Ink       */
+  --astra-c-value: #6FA0AE;
 
   --astra-shadow: 0 6px 18px rgba(0, 0, 0, .45);
 }
