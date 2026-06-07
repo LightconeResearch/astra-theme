@@ -161,9 +161,11 @@ const InsightCard: React.FC<{ entry: SerializedInsight }> = ({ entry }) => {
           <AstraCite doi={entry.doi} />
         </div>
       ) : null}
+      {/* The DOI is intentionally NOT repeated here: the cite row above already
+          shows the resolved source link when entry.doi is present. */}
       <CardChrome.MetaFooter>
         {entry.scope ? `${entry.scope} · ` : ''}
-        {entry.doi ? entry.doi : `prior insight · ${entry.id}`}
+        {`prior insight · ${entry.id}`}
       </CardChrome.MetaFooter>
     </>
   );
