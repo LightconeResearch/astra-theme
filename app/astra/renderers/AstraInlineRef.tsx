@@ -73,7 +73,8 @@ function tokenSpan(node: GenericNode): React.ReactNode {
  * Per-kind card bodies
  * ------------------------------------------------------------------ */
 
-const DecisionCard: React.FC<{ entry: SerializedDecision }> = ({ entry }) => {
+/** Exported for reuse: the provenance drawer's decision refs hover this card. */
+export const DecisionCard: React.FC<{ entry: SerializedDecision }> = ({ entry }) => {
   const optionIds = Object.keys(entry.options ?? {});
   const optionCount = optionIds.length;
   const selected = entry.selected;

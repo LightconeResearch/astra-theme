@@ -15,8 +15,18 @@
 import * as React from 'react';
 import type { GenericNode } from 'myst-common';
 import { MyST } from 'myst-to-react';
-import { useEntryByIdentifier, parseCarrierId } from '../store/useAstraStore';
-import type { SerializedOutput } from '@astra-spec/store-types';
+import {
+  useAstraStore,
+  useEntryByIdentifier,
+  parseCarrierId,
+} from '../store/useAstraStore';
+import { PreviewCard } from '../card/PreviewCard';
+import { DecisionCard } from './AstraInlineRef';
+import type {
+  SerializedOutput,
+  SerializedProvenanceDecision,
+  SerializedRootInput,
+} from '@astra-spec/store-types';
 
 /** The output subtypes carried as `astra-output--<subtype>` modifier classes. */
 type OutputSubtype = 'figure' | 'table' | 'metric' | 'unknown';
@@ -47,72 +57,85 @@ function fmtScalar(v: number | string | undefined): string | undefined {
 }
 
 /* ------------------------------------------------------------------ *
- * Provenance drawer: inputs → recipe(command/container) → artifact.
- * Rendered as a native <details> so the CSS marker rotation works.
- * Returns null when the entry has nothing provenance-worthy to show.
+ * Provenance drawer — "what affects this result":
+ *   DECISIONS    every decision on the chain (direct or `via <scope>`),
+ *                as live decision refs (hover card when the decision is in
+ *                the page store) with the selected option spelled out
+ *   SOURCE DATA  analysis-level input files at the chain's roots
+ * The recipe command line and artifact path are intentionally not shown
+ * (decided via the design-mirror Proposals page, June 2026).
+ * Falls back to the direct ids when the store predates the transitive
+ * fields. Rendered as a native <details> so the CSS marker rotation works.
  * ------------------------------------------------------------------ */
+
+/** Anchor for a decision carrier: same page when direct, scope page when via. */
+function decisionHref(d: SerializedProvenanceDecision): string {
+  const anchor = `#decision-${d.id}`;
+  if (!d.via) return anchor;
+  return d.via === 'root' ? `/${anchor}` : `/${d.via.split('.').join('/')}${anchor}`;
+}
+
+const ProvDecisionRef: React.FC<{ d: SerializedProvenanceDecision }> = ({ d }) => {
+  const store = useAstraStore();
+  const entry = store?.decisions?.[d.id];
+  const token = (
+    <a className="astra-ref astra-ref--decision" href={decisionHref(d)}>
+      {d.label ?? d.id}
+    </a>
+  );
+  // Live ref: hover card when the decision is joinable in the page store.
+  return entry ? (
+    <PreviewCard kind="decision" trigger={token}>
+      <DecisionCard entry={entry} />
+    </PreviewCard>
+  ) : (
+    token
+  );
+};
+
 const ProvenanceDrawer: React.FC<{ output: SerializedOutput }> = ({ output }) => {
-  const inputs = (output.inputs ?? []).filter((i) => i != null && i !== '');
-  const decisions = (output.decisions ?? []).filter((d) => d != null && d !== '');
-  const command = output.recipe?.command;
-  const container = output.recipe?.container;
-  const artifact = output.resolved_path;
+  // Prefer the transitive fields; degrade to the direct ids for old stores.
+  const decisions: SerializedProvenanceDecision[] =
+    output.decisions_transitive ?? (output.decisions ?? []).map((id) => ({ id }));
+  const roots: SerializedRootInput[] =
+    output.inputs_root ?? (output.inputs ?? []).map((id) => ({ id }));
 
-  const hasContent =
-    inputs.length > 0 ||
-    decisions.length > 0 ||
-    Boolean(command) ||
-    Boolean(container) ||
-    Boolean(artifact);
-
-  if (!hasContent) return null;
+  if (decisions.length === 0 && roots.length === 0) return null;
 
   return (
     <details className="astra-output__provenance">
       <summary>Provenance</summary>
 
-      {inputs.length > 0 ? (
-        <div className="astra-output__prov-row">
-          <span className="astra-card__section">Inputs</span>{' '}
-          {inputs.map((id, i) => (
-            <React.Fragment key={id}>
-              {i > 0 ? ' · ' : null}
-              <code className="astra-id">{id}</code>
-            </React.Fragment>
-          ))}
-        </div>
-      ) : null}
-
       {decisions.length > 0 ? (
-        <div className="astra-output__prov-row">
-          <span className="astra-card__section">Decisions</span>{' '}
-          {decisions.map((id, i) => (
-            <React.Fragment key={id}>
-              {i > 0 ? ' · ' : null}
-              <code className="astra-id">{id}</code>
-            </React.Fragment>
-          ))}
-        </div>
+        <>
+          <div className="astra-card__section">
+            Decisions ({decisions.length})
+          </div>
+          <ul className="astra-output__prov-decisions">
+            {decisions.map((d) => (
+              <li key={d.id} className="astra-output__prov-row">
+                <ProvDecisionRef d={d} />
+                {d.via ? <span className="astra-prov-via">via {d.via}</span> : null}
+                {d.selection ? (
+                  <span className="astra-prov-selection">{d.selection}</span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </>
       ) : null}
 
-      {command ? (
-        <pre className="astra-output__recipe" aria-label="recipe command">
-          {command}
-        </pre>
-      ) : null}
-
-      {container ? (
-        <div className="astra-output__prov-row">
-          <span className="astra-card__section">Container</span>{' '}
-          <code className="astra-id">{container}</code>
-        </div>
-      ) : null}
-
-      {artifact ? (
-        <div className="astra-output__prov-row">
-          <span className="astra-card__section">Artifact</span>{' '}
-          <code className="astra-id">{artifact}</code>
-        </div>
+      {roots.length > 0 ? (
+        <>
+          <div className="astra-card__section">Source data ({roots.length})</div>
+          <div className="astra-output__prov-row">
+            {roots.map((r) => (
+              <code key={r.id} className="astra-flow__node" title={r.label ?? r.id}>
+                {r.id}
+              </code>
+            ))}
+          </div>
+        </>
       ) : null}
     </details>
   );

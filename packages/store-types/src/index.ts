@@ -34,6 +34,22 @@ export interface TableData {
   rows: (string | number)[][];
 }
 
+/** One decision on an output's transitive provenance chain. */
+export interface SerializedProvenanceDecision {
+  id: string;
+  label?: string;
+  /** Selected option label (or id) under the active universe. */
+  selection?: string;
+  /** Root-relative scope the decision lives in, when not the page's own. */
+  via?: string;
+}
+
+/** One analysis-level source input at the root of a provenance chain. */
+export interface SerializedRootInput {
+  id: string;
+  label?: string;
+}
+
 export interface SerializedOutput {
   id: string;
   label?: string;
@@ -52,6 +68,10 @@ export interface SerializedOutput {
   table_data?: TableData;
   /** Inlined value for metric outputs whose result file parses as JSON. */
   metric?: SerializedMetric;
+  /** Analysis-level source inputs at the roots of the provenance chain. */
+  inputs_root?: SerializedRootInput[];
+  /** Every decision affecting this output, direct or via another scope. */
+  decisions_transitive?: SerializedProvenanceDecision[];
 }
 
 export interface SerializedInput {
