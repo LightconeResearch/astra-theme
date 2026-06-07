@@ -7,12 +7,8 @@ export type { PreviewCardProps } from './PreviewCard';
 
 export { KindLabel, Title, Desc, SectionLabel, MetaFooter } from './CardChrome';
 
-export { DataFlow, ProvenanceGraph, PosteriorSketch } from './diagrams';
-export type {
-  DataFlowProps,
-  ProvenanceGraphProps,
-  PosteriorSketchProps,
-} from './diagrams';
+export { DataFlow, ProvenanceGraph } from './diagrams';
+export type { DataFlowProps, ProvenanceGraphProps } from './diagrams';
 
 /**
  * Namespace import convenience: `import { CardChrome } from '../card'` then

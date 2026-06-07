@@ -26,7 +26,7 @@ import type { GenericNode } from 'myst-common';
 import { MyST } from 'myst-to-react';
 import { useAstraEntry } from '../store/useAstraStore';
 import { PreviewCard } from '../card/PreviewCard';
-import { CardChrome, PosteriorSketch, DataFlow } from '../card';
+import { CardChrome, DataFlow } from '../card';
 import { AstraCite } from '../cite';
 import type {
   AstraKind,
@@ -80,11 +80,6 @@ const DecisionCard: React.FC<{ entry: SerializedDecision }> = ({ entry }) => {
   const selectedLabel =
     (selected != null ? entry.options?.[selected] : undefined) ?? selected ?? '';
 
-  // Labels for the contour sketch (one ring per option, selected emphasised).
-  const optionLabels = optionIds.map((oid) => entry.options?.[oid] ?? oid);
-  const selectedSketchLabel =
-    selected != null ? entry.options?.[selected] ?? selected : undefined;
-
   return (
     <>
       <CardChrome.KindLabel kind="decision" />
@@ -116,10 +111,6 @@ const DecisionCard: React.FC<{ entry: SerializedDecision }> = ({ entry }) => {
               );
             })}
           </ul>
-          <PosteriorSketch
-            options={optionLabels}
-            selected={selectedSketchLabel}
-          />
         </>
       ) : null}
 
