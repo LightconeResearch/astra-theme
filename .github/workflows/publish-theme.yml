@@ -1,30 +1,36 @@
 name: Publish theme
 
-# Builds the theme and pushes the runnable artifact (template.yml + server.js +
-# package*.json + build/ + public/) to the deploy repo, mirroring the release
-# tag. The deploy repo is what users point `site.template:` at — the build/ and
-# public/ dirs are gitignored here, so they only ever exist in the published one.
+# Tag-driven release. Pushing a tag like `v0.0.1` is the ONLY action needed:
+# the tag is the source of truth for the version. This workflow stamps that
+# version into package.json + template.yml, builds the theme, pushes the
+# runnable artifact (template.yml + server.js + package*.json + build/ + public/)
+# to the deploy repo mirroring the tag, attaches a zip to a GitHub Release, and
+# commits the version bump back to main.
 #
-# Setup required once:
+# One-time setup:
 #   - Create the deploy repo (Eiffl/astra-theme) — empty is fine.
 #   - Add a repo secret DEPLOY_TOKEN: a fine-grained PAT with Contents: read/write
 #     on Eiffl/astra-theme.
+#
+# Cut a release:
+#   git tag v0.0.1 && git push origin v0.0.1
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - "v*"
   workflow_dispatch:
     inputs:
       tag:
-        description: "Version tag to publish (e.g. v0.1.0). Must already exist as a git tag."
+        description: "Existing version tag to (re)publish, e.g. v0.0.1"
         required: true
 
 permissions:
-  contents: write # upload the .zip asset back onto the triggering release
+  contents: write # commit the version bump to main + create the Release
 
 env:
   DEPLOY_REPO: Eiffl/astra-theme
-  VERSION: ${{ github.event.release.tag_name || inputs.tag }}
+  VERSION: ${{ github.event.inputs.tag || github.ref_name }}
 
 jobs:
   publish:
@@ -33,7 +39,7 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
         with:
-          ref: ${{ env.VERSION }} # build the exact tagged commit, not the branch head
+          ref: ${{ env.VERSION }} # build the exact tagged commit
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -41,20 +47,16 @@ jobs:
           node-version: 20
           cache: npm
 
-      - name: Verify tag matches manifest version
-        run: |
-          set -euo pipefail
-          tag_version="${VERSION#v}" # strip a leading "v": v0.1.0 -> 0.1.0
-          manifest_version="$(grep -E '^version:' template.yml | head -1 | sed -E 's/^version:[[:space:]]*//; s/["'\'' ]//g')"
-          pkg_version="$(node -p "require('./package.json').version")"
-          echo "tag=${tag_version} template.yml=${manifest_version} package.json=${pkg_version}"
-          if [ "${manifest_version}" != "${tag_version}" ] || [ "${pkg_version}" != "${tag_version}" ]; then
-            echo "::error::Release tag '${VERSION}' must match template.yml version '${manifest_version}' and package.json version '${pkg_version}'. Bump the manifests or fix the tag, then re-run."
-            exit 1
-          fi
-
       - name: Install dependencies
         run: npm ci
+
+      - name: Stamp version from tag
+        run: |
+          set -euo pipefail
+          v="${VERSION#v}" # strip leading "v": v0.0.1 -> 0.0.1
+          npm version "$v" --no-git-tag-version --allow-same-version # package.json + package-lock.json
+          sed -i -E "s/^version:.*/version: $v/" template.yml
+          echo "Stamped version $v"
 
       - name: Build theme
         run: npm run build # → build/ + public/ (runs prod:copy, thebe, css, remix build)
@@ -112,8 +114,16 @@ jobs:
           set -euo pipefail
           ( cd dist-publish && zip -qr "../astra-theme-${VERSION}.zip" . )
 
-      - name: Attach zip to release
-        if: github.event_name == 'release'
+      - name: Create release with zip asset
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ env.VERSION }}
           files: astra-theme-${{ env.VERSION }}.zip
+
+      - name: Commit version bump to main
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json template.yml
+          git diff --staged --quiet || (git commit -m "chore: bump version to ${VERSION#v}" && git push origin HEAD:main)
