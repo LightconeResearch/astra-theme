@@ -1,6 +1,6 @@
 {
   "name": "@astra-spec/astra-theme",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A rich MyST web theme for ASTRA analyses — the presentation half of the @astra-spec/mystra pair. Extends @myst-theme/book.",
   "license": "BSD-3-Clause",
   "private": true,
