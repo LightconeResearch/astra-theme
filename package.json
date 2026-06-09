@@ -40,9 +40,9 @@
     "@myst-theme/search-minisearch": "^1.3.1",
     "@myst-theme/site": "^1.3.1",
     "@myst-theme/styles": "^1.3.1",
-    "@remix-run/express": "~1.17.0",
-    "@remix-run/node": "~1.17.0",
-    "@remix-run/react": "~1.17.0",
+    "@remix-run/express": "~1.19.0",
+    "@remix-run/node": "~1.19.0",
+    "@remix-run/react": "~1.19.0",
     "classnames": "^2.3.2",
     "compression": "^1.7.4",
     "express": "^4.19.2",
@@ -59,7 +59,7 @@
     "thebe-core": "^0.5.0"
   },
   "devDependencies": {
-    "@remix-run/dev": "~1.17.0",
+    "@remix-run/dev": "~1.19.0",
     "@tailwindcss/typography": "^0.5.9",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
