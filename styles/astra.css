@@ -416,26 +416,6 @@ hr.astra-rule {
   margin: 0.9rem 0 0.4rem;
 }
 
-.astra-card__meta {
-  font-family: var(--astra-label);
-  font-size: 12px;
-  color: var(--astra-muted);
-  margin-top: 0.9rem;
-  padding-top: 0.7rem;
-  border-top: 1px solid var(--astra-rule);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35em 1em;
-  align-items: center;
-}
-
-.astra-card__meta code,
-.astra-card__meta .astra-id {
-  font-family: var(--astra-mono);
-  font-size: 11px;
-  color: var(--astra-muted);
-}
-
 /* kind modifiers set the accent the kind label + glyph + diagrams use */
 .astra-card--decision      { --astra-kind: var(--astra-c-decision); --astra-glyph: "\25C7"; }
 .astra-card--prior_insight { --astra-kind: var(--astra-c-insight);  --astra-glyph: "\25C8"; }

@@ -78,8 +78,6 @@ export const DecisionCard: React.FC<{ entry: SerializedDecision }> = ({ entry })
   const optionIds = Object.keys(entry.options ?? {});
   const optionCount = optionIds.length;
   const selected = entry.selected;
-  const selectedLabel =
-    (selected != null ? entry.options?.[selected] : undefined) ?? selected ?? '';
 
   return (
     <>
@@ -114,13 +112,6 @@ export const DecisionCard: React.FC<{ entry: SerializedDecision }> = ({ entry })
           </ul>
         </>
       ) : null}
-
-      <CardChrome.MetaFooter>
-        {selectedLabel ? `default: ${selectedLabel}` : 'no default'}
-        {optionCount > 0
-          ? ` · ${optionCount} option${optionCount === 1 ? '' : 's'}`
-          : ''}
-      </CardChrome.MetaFooter>
     </>
   );
 };
@@ -142,7 +133,6 @@ const FindingCard: React.FC<{ entry: SerializedFinding }> = ({ entry }) => {
           <span className="astra-finding__notes">{entry.notes}</span>
         </CardChrome.Desc>
       ) : null}
-      <CardChrome.MetaFooter>{`finding · ${entry.id}`}</CardChrome.MetaFooter>
     </>
   );
 };
@@ -164,10 +154,6 @@ const InsightCard: React.FC<{ entry: SerializedInsight }> = ({ entry }) => {
       ) : null}
       {/* The DOI is intentionally NOT repeated here: the cite row above already
           shows the resolved source link when entry.doi is present. */}
-      <CardChrome.MetaFooter>
-        {entry.scope ? `${entry.scope} · ` : ''}
-        {`prior insight · ${entry.id}`}
-      </CardChrome.MetaFooter>
     </>
   );
 };
@@ -183,10 +169,6 @@ const AnalysisCard: React.FC<{ entry: SerializedSubAnalysis }> = ({ entry }) => 
         <CardChrome.Desc>{entry.summary}</CardChrome.Desc>
       ) : null}
       {flowNodes.length > 1 ? <DataFlow nodes={flowNodes} /> : null}
-      <CardChrome.MetaFooter>
-        {`${entry.decisions} decision${entry.decisions === 1 ? '' : 's'} · ` +
-          `${entry.outputs} output${entry.outputs === 1 ? '' : 's'}`}
-      </CardChrome.MetaFooter>
     </>
   );
 };
@@ -225,11 +207,6 @@ const OutputCard: React.FC<{ entry: SerializedOutput }> = ({ entry }) => {
           <DataFlow nodes={provNodes} />
         </>
       ) : null}
-
-      <CardChrome.MetaFooter>
-        {entry.type ? `${entry.type} · ` : ''}
-        {`output · ${entry.id}`}
-      </CardChrome.MetaFooter>
     </>
   );
 };

@@ -5,7 +5,7 @@
 export { PreviewCard, default as PreviewCardDefault } from './PreviewCard';
 export type { PreviewCardProps } from './PreviewCard';
 
-export { KindLabel, Title, Desc, SectionLabel, MetaFooter } from './CardChrome';
+export { KindLabel, Title, Desc, SectionLabel } from './CardChrome';
 
 export { DataFlow, ProvenanceGraph } from './diagrams';
 export type { DataFlowProps, ProvenanceGraphProps } from './diagrams';
@@ -15,5 +15,5 @@ export type { DataFlowProps, ProvenanceGraphProps } from './diagrams';
  * `<CardChrome.Title>…</CardChrome.Title>` etc., matching the import
  * convention in the renderer files.
  */
-import { KindLabel, Title, Desc, SectionLabel, MetaFooter } from './CardChrome';
-export const CardChrome = { KindLabel, Title, Desc, SectionLabel, MetaFooter };
+import { KindLabel, Title, Desc, SectionLabel } from './CardChrome';
+export const CardChrome = { KindLabel, Title, Desc, SectionLabel };

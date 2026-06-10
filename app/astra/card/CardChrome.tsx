@@ -41,9 +41,3 @@ export const SectionLabel: React.FC<{ children: React.ReactNode }> = ({ children
   if (children == null || children === '') return null;
   return <div className="astra-card__section">{children}</div>;
 };
-
-/** The muted footer row of a card (ids, counts, paths). */
-export const MetaFooter: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  if (children == null || children === '') return null;
-  return <div className="astra-card__meta">{children}</div>;
-};

@@ -178,7 +178,7 @@ describe('AstraValue', () => {
     children: [{ type: 'text', value: '0.811' }],
   };
 
-  it('wraps the number in a PreviewCard trigger and exposes provenance on focus', () => {
+  it('wraps the number in a PreviewCard trigger and exposes the description on focus', () => {
     const { container } = renderWithProviders(
       <AstraValue node={node} />,
       makeStore(),
@@ -190,10 +190,8 @@ describe('AstraValue', () => {
 
     // The floating card body is portaled in only when the trigger is focused.
     fireEvent.focus(trigger!);
-    // Provenance line built from the joined output's label + column.
-    expect(
-      screen.getByText(/sigma8 metric · column value/),
-    ).toBeInTheDocument();
+    // Card body shows the joined output's description (no meta footer).
+    expect(screen.getByText(/The recovered sigma8/)).toBeInTheDocument();
   });
 
   it('renders the bare number span when the output is missing', () => {

@@ -20,7 +20,7 @@ import type { GenericNode } from 'myst-common';
 import { MyST } from 'myst-to-react';
 import { useAstraEntry } from '../store/useAstraStore';
 import { PreviewCard } from '../card/PreviewCard';
-import { KindLabel, Title, Desc, SectionLabel, MetaFooter } from '../card';
+import { KindLabel, Title, Desc } from '../card';
 import type { InlineAstra, SerializedOutput } from '@astra-spec/store-types';
 
 /** Pull the inline `data.astra` payload off the node, tolerating absence. */
@@ -63,15 +63,7 @@ export const AstraValue: React.FC<AstraValueProps> = ({ node }) => {
     return valueSpan;
   }
 
-  // Build the provenance line: "product · column <col> · <filter>".
-  const productLabel =
-    entry.label || astra.product || entry.id || id || 'output';
   const description = entry.description;
-
-  const provParts: string[] = [productLabel];
-  if (astra.col) provParts.push(`column ${astra.col}`);
-  if (astra.filter) provParts.push(String(astra.filter));
-  const provenance = provParts.join(' · ');
 
   // Surface the underlying metric unit when this value came from a metric output.
   const unit = entry.metric?.unit ?? entry.metric?.units;
@@ -90,8 +82,6 @@ export const AstraValue: React.FC<AstraValueProps> = ({ node }) => {
             </span>
           </Title>
           {description ? <Desc>{description}</Desc> : null}
-          <SectionLabel>PROVENANCE</SectionLabel>
-          <MetaFooter>{provenance}</MetaFooter>
         </>
       }
     />
