@@ -18,9 +18,10 @@
 import * as React from 'react';
 import type { GenericNode } from 'myst-common';
 import { MyST } from 'myst-to-react';
-import type { SerializedDecision } from '@astra-spec/store-types';
+import type { SerializedDecision, SerializedInsight } from '@astra-spec/store-types';
 import { useAstraStore, useEntryByIdentifier } from '../store/useAstraStore';
 import { decisionEvidenceInsights } from '../store/decisionEvidence';
+import { InsightRef, useInsightDisplayName } from '../card';
 import { AstraCite } from '../cite';
 import { labelFor } from '../glyphs';
 
@@ -40,6 +41,28 @@ function isDecision(entry: unknown): entry is SerializedDecision {
     'options' in (entry as Record<string, unknown>)
   );
 }
+
+/**
+ * One Evidence-view row: hoverable insight reference (opens the full insight
+ * card), the claim as a plain-language note (skipped when the display name
+ * already fell back to it), and the resolved citation.
+ */
+const EvidenceItem: React.FC<{ ins: SerializedInsight }> = ({ ins }) => {
+  const name = useInsightDisplayName(ins);
+  return (
+    <li className="astra-evidence__item">
+      <InsightRef entry={ins} tag="prior insight" />
+      {ins.claim && ins.claim !== name ? (
+        <div className="astra-evidence__note">{ins.claim}</div>
+      ) : null}
+      {ins.doi ? (
+        <div className="astra-cite">
+          <AstraCite doi={ins.doi} />
+        </div>
+      ) : null}
+    </li>
+  );
+};
 
 export const AstraDecision: React.FC<{ node: GenericNode }> = ({ node }) => {
   const entry = useEntryByIdentifier(node.identifier);
@@ -140,27 +163,11 @@ export const AstraDecision: React.FC<{ node: GenericNode }> = ({ node }) => {
       ) : null}
 
       {/* Evidence view — the prior insights the options cite, in plain
-          language: human label, the claim, and the resolved citation. */}
+          language: hoverable name, the claim, and the resolved citation. */}
       {view === 'evidence' ? (
         <ul className="astra-evidence">
           {evidence.map((ins) => (
-            <li key={ins.id} className="astra-evidence__item">
-              <div className="astra-evidence__title">
-                <span className="astra-evidence__glyph--insight" aria-hidden="true">
-                  ◈
-                </span>
-                <span>{ins.label ?? ins.id}</span>
-                <span className="astra-evidence__tag">prior insight</span>
-              </div>
-              {ins.claim ? (
-                <div className="astra-evidence__note">{ins.claim}</div>
-              ) : null}
-              {ins.doi ? (
-                <div className="astra-cite">
-                  <AstraCite doi={ins.doi} />
-                </div>
-              ) : null}
-            </li>
+            <EvidenceItem key={ins.id} ins={ins} />
           ))}
         </ul>
       ) : null}

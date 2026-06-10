@@ -452,6 +452,21 @@ hr.astra-rule {
   font-weight: 400;
   color: var(--astra-muted);
 }
+/* hoverable evidence names share the inline-ref affordance language: warm-
+   gold underline, accent-soft wash on hover (the row opens a nested card) */
+.astra-ref-trigger .astra-evidence__name {
+  color: var(--astra-link);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, var(--astra-link) 45%, transparent);
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.astra-ref-trigger:hover .astra-evidence__name,
+.astra-ref-trigger:focus-visible .astra-evidence__name {
+  background: var(--astra-accent-soft);
+  text-decoration-color: var(--astra-link);
+}
 .astra-evidence__note {
   font-family: var(--astra-serif);
   font-size: 13px;

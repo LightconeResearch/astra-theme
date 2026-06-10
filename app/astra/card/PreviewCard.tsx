@@ -15,6 +15,10 @@ import {
   safePolygon,
   FloatingPortal,
   FloatingArrow,
+  FloatingNode,
+  FloatingTree,
+  useFloatingNodeId,
+  useFloatingParentNodeId,
 } from '@floating-ui/react';
 
 export interface PreviewCardProps {
@@ -35,12 +39,19 @@ const GAP = 6;
  * `astra-card astra-card--<kind>` is portaled into the document and positioned
  * with offset/flip/shift + a small arrow. Fully keyboard accessible (focus to
  * open, Escape / blur to dismiss) and announced as a tooltip.
+ *
+ * Cards NEST: a card body may contain further PreviewCard triggers (e.g. the
+ * decision card's SUPPORTED BY insight chips). Each card registers in a
+ * floating-ui FloatingTree (the outermost one creates it), so hovering a child
+ * card keeps every ancestor card open instead of unmounting the chain.
  */
-export const PreviewCard: React.FC<PreviewCardProps> = ({ trigger, children, kind }) => {
+const PreviewCardInner: React.FC<PreviewCardProps> = ({ trigger, children, kind }) => {
   const [open, setOpen] = React.useState(false);
   const arrowRef = React.useRef<SVGSVGElement>(null);
+  const nodeId = useFloatingNodeId();
 
   const { refs, floatingStyles, context, placement } = useFloating({
+    nodeId,
     open,
     onOpenChange: setOpen,
     placement: 'top',
@@ -84,33 +95,51 @@ export const PreviewCard: React.FC<PreviewCardProps> = ({ trigger, children, kin
       >
         {trigger}
       </span>
-      {isMounted && (
-        <FloatingPortal>
-          <div
-            ref={refs.setFloating}
-            style={floatingStyles}
-            className="astra-card-portal"
-            data-placement={placement}
-            {...getFloatingProps()}
-          >
+      <FloatingNode id={nodeId}>
+        {isMounted && (
+          <FloatingPortal>
             <div
-              className={`astra-card astra-card--${kind}`}
-              style={transitionStyles}
+              ref={refs.setFloating}
+              style={floatingStyles}
+              className="astra-card-portal"
+              data-placement={placement}
+              {...getFloatingProps()}
             >
-              {children}
-              <FloatingArrow
-                ref={arrowRef}
-                context={context}
-                className="astra-card__arrow"
-                height={ARROW_HEIGHT}
-                width={ARROW_HEIGHT * 2}
-              />
+              <div
+                className={`astra-card astra-card--${kind}`}
+                style={transitionStyles}
+              >
+                {children}
+                <FloatingArrow
+                  ref={arrowRef}
+                  context={context}
+                  className="astra-card__arrow"
+                  height={ARROW_HEIGHT}
+                  width={ARROW_HEIGHT * 2}
+                />
+              </div>
             </div>
-          </div>
-        </FloatingPortal>
-      )}
+          </FloatingPortal>
+        )}
+      </FloatingNode>
     </>
   );
+};
+
+/**
+ * Public entry: the outermost card creates the FloatingTree; nested cards
+ * (rendered inside another card's floating body) attach to the existing tree.
+ */
+export const PreviewCard: React.FC<PreviewCardProps> = (props) => {
+  const parentId = useFloatingParentNodeId();
+  if (parentId === null) {
+    return (
+      <FloatingTree>
+        <PreviewCardInner {...props} />
+      </FloatingTree>
+    );
+  }
+  return <PreviewCardInner {...props} />;
 };
 
 export default PreviewCard;

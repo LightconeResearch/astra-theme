@@ -173,6 +173,35 @@ describe('AstraInlineRef', () => {
     expect(screen.getByText('KiDS S8 low')).toBeInTheDocument();
   });
 
+  it('insight chips are recursively hoverable: focusing one opens the insight card', () => {
+    const { container } = renderWithProviders(
+      <AstraInlineRef node={node} />,
+      makeStore(),
+    );
+    fireEvent.focus(container.querySelector('.astra-ref-trigger')!);
+    // The chip itself is a nested PreviewCard trigger inside the floating card.
+    const chipTrigger = document
+      .querySelector('.astra-evidence .astra-ref-trigger')!;
+    fireEvent.focus(chipTrigger);
+    // The nested insight card portals in with the full claim…
+    expect(screen.getByText('KiDS reported a lower S8.')).toBeInTheDocument();
+    // …while the parent decision card stays mounted (FloatingTree).
+    expect(screen.getByText('SUPPORTED BY')).toBeInTheDocument();
+  });
+
+  it('falls back to the claim for insight chips authored without a label', () => {
+    const store = makeStore();
+    delete store.prior_insights.kids_s8_low.label;
+    const { container } = renderWithProviders(
+      <AstraInlineRef node={node} />,
+      store,
+    );
+    fireEvent.focus(container.querySelector('.astra-ref-trigger')!);
+    // No label and no DOI → the chip shows the claim, never the raw id.
+    expect(screen.getByText('KiDS reported a lower S8.')).toBeInTheDocument();
+    expect(screen.queryByText('kids_s8_low')).not.toBeInTheDocument();
+  });
+
   it('shows the finding card evidence: artifact thumb, label, and quote', () => {
     const findingNode: GenericNode = {
       type: 'span',
@@ -195,6 +224,26 @@ describe('AstraInlineRef', () => {
     expect(
       document.querySelector('.astra-evidence__thumb img[src="/results/shear_plot.png"]'),
     ).toBeInTheDocument();
+  });
+
+  it('finding evidence artifacts are recursively hoverable: focusing opens the output card', () => {
+    const findingNode: GenericNode = {
+      type: 'span',
+      class: 'astra-ref astra-ref--finding',
+      data: { astra: { kind: 'finding', id: 's8_consistent' } },
+      children: [{ type: 'text', value: 'the S8 finding' }],
+    };
+    const { container } = renderWithProviders(
+      <AstraInlineRef node={findingNode} />,
+      makeStore(),
+    );
+    fireEvent.focus(container.querySelector('.astra-ref-trigger')!);
+    const artifactTrigger = document
+      .querySelector('.astra-evidence .astra-ref-trigger')!;
+    fireEvent.focus(artifactTrigger);
+    // The nested output card portals in (kind label + a second title instance).
+    expect(screen.getByText('OUTPUT')).toBeInTheDocument();
+    expect(screen.getAllByText('Shear correlation plot').length).toBeGreaterThan(1);
   });
 
   it('renders the bare token (no card) for the value kind which it does not card', () => {

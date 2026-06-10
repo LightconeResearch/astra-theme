@@ -27,7 +27,7 @@ import { MyST } from 'myst-to-react';
 import { useAstraEntry, useAstraStore } from '../store/useAstraStore';
 import { decisionEvidenceInsights } from '../store/decisionEvidence';
 import { PreviewCard } from '../card/PreviewCard';
-import { CardChrome, DataFlow } from '../card';
+import { CardChrome, DataFlow, InsightCard, InsightRef } from '../card';
 import { AstraCite } from '../cite';
 import type {
   AstraKind,
@@ -125,12 +125,7 @@ export const DecisionCard: React.FC<{ entry: SerializedDecision }> = ({ entry })
           <ul className="astra-evidence astra-evidence--compact">
             {supporting.slice(0, MAX_SUPPORTING).map((ins) => (
               <li key={ins.id} className="astra-evidence__item">
-                <div className="astra-evidence__title">
-                  <span className="astra-evidence__glyph--insight" aria-hidden="true">
-                    ◈
-                  </span>
-                  <span>{ins.label ?? ins.id}</span>
-                </div>
+                <InsightRef entry={ins} />
               </li>
             ))}
             {supporting.length > MAX_SUPPORTING ? (
@@ -175,6 +170,19 @@ const FindingCard: React.FC<{ entry: SerializedFinding }> = ({ entry }) => {
               const artifact = ev.artifact ? store?.outputs?.[ev.artifact] : undefined;
               const thumb =
                 artifact?.type === 'figure' ? artifact.resolved_path : undefined;
+              const titleRow = ev.artifact ? (
+                <span className="astra-evidence__title">
+                  <span className="astra-evidence__glyph--output" aria-hidden="true">
+                    ◆
+                  </span>
+                  <span className={artifact ? 'astra-evidence__name' : undefined}>
+                    {artifact?.label ?? ev.artifact}
+                  </span>
+                  {artifact?.type ? (
+                    <span className="astra-evidence__tag">{artifact.type}</span>
+                  ) : null}
+                </span>
+              ) : null;
               return (
                 <li key={ev.artifact ?? ev.doi ?? i} className="astra-evidence__item">
                   {thumb ? (
@@ -186,17 +194,15 @@ const FindingCard: React.FC<{ entry: SerializedFinding }> = ({ entry }) => {
                       />
                     </div>
                   ) : null}
-                  {ev.artifact ? (
-                    <div className="astra-evidence__title">
-                      <span className="astra-evidence__glyph--output" aria-hidden="true">
-                        ◆
-                      </span>
-                      <span>{artifact?.label ?? ev.artifact}</span>
-                      {artifact?.type ? (
-                        <span className="astra-evidence__tag">{artifact.type}</span>
-                      ) : null}
-                    </div>
-                  ) : null}
+                  {/* Recursively hoverable: a resolved artifact opens its own
+                      output card; an unresolved id stays a plain row. */}
+                  {titleRow && artifact ? (
+                    <PreviewCard kind="output" trigger={titleRow}>
+                      <OutputCard entry={artifact} />
+                    </PreviewCard>
+                  ) : (
+                    titleRow
+                  )}
                   {ev.quote ? (
                     <div className="astra-evidence__quote">{ev.quote}</div>
                   ) : null}
@@ -211,27 +217,6 @@ const FindingCard: React.FC<{ entry: SerializedFinding }> = ({ entry }) => {
           </ul>
         </>
       ) : null}
-    </>
-  );
-};
-
-const InsightCard: React.FC<{ entry: SerializedInsight }> = ({ entry }) => {
-  const title = entry.label ?? entry.id;
-  return (
-    <>
-      <CardChrome.KindLabel kind="prior_insight" />
-      <CardChrome.Title>{title}</CardChrome.Title>
-      {entry.claim ? <CardChrome.Desc>{entry.claim}</CardChrome.Desc> : null}
-      {entry.quote ? (
-        <div className="astra-quote">{entry.quote}</div>
-      ) : null}
-      {entry.doi ? (
-        <div className="astra-cite">
-          <AstraCite doi={entry.doi} />
-        </div>
-      ) : null}
-      {/* The DOI is intentionally NOT repeated here: the cite row above already
-          shows the resolved source link when entry.doi is present. */}
     </>
   );
 };

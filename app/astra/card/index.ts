@@ -7,6 +7,8 @@ export type { PreviewCardProps } from './PreviewCard';
 
 export { KindLabel, Title, Desc, SectionLabel } from './CardChrome';
 
+export { InsightCard, InsightRef, useInsightDisplayName } from './InsightCard';
+
 export { DataFlow, ProvenanceGraph } from './diagrams';
 export type { DataFlowProps, ProvenanceGraphProps } from './diagrams';
 
