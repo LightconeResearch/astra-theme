@@ -88,7 +88,11 @@ parts:
     description: Custom content displayed at the end of the top navbar
     required: false
 build:
-  install: npm ci --ignore-scripts
+  # --legacy-peer-deps must be inline here: the publish workflow ships only the
+  # `files:` set below, so the repo's .npmrc never reaches consumers, and the
+  # lockfile (generated under legacy-peer-deps) omits auto-installed peers
+  # like mapbox-gl/webpack — plain `npm ci` then fails with EUSAGE.
+  install: npm ci --ignore-scripts --legacy-peer-deps
   start: npm run start
 files:
   - server.js
