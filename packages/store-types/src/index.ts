@@ -91,6 +91,21 @@ export interface SerializedDecision {
   selected?: string;
   /** All option ids → their labels. */
   options: Record<string, string | undefined>;
+  /**
+   * Prior-insight ids cited by each option (`options.<id>.insights` in
+   * astra.yaml) — the evidence backing the choice. Only present when at least
+   * one option cites an insight; the theme joins the `prior_insights` table.
+   */
+  option_insights?: Record<string, string[]>;
+}
+
+/** One serialized evidence entry (artifact-, DOI-, or quote-based). */
+export interface SerializedEvidence {
+  /** Output id of the artifact backing this evidence (joins `outputs`). */
+  artifact?: string;
+  doi?: string;
+  /** The exact-quote selector text, when present. */
+  quote?: string;
 }
 
 export interface SerializedFinding {
@@ -99,6 +114,8 @@ export interface SerializedFinding {
   claim?: string;
   notes?: string;
   scope?: string;
+  /** The finding's evidence list (artifact ids join the `outputs` table). */
+  evidence?: SerializedEvidence[];
 }
 
 export interface SerializedInsight {

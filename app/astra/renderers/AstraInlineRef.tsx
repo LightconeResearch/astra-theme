@@ -24,7 +24,8 @@
 import * as React from 'react';
 import type { GenericNode } from 'myst-common';
 import { MyST } from 'myst-to-react';
-import { useAstraEntry } from '../store/useAstraStore';
+import { useAstraEntry, useAstraStore } from '../store/useAstraStore';
+import { decisionEvidenceInsights } from '../store/decisionEvidence';
 import { PreviewCard } from '../card/PreviewCard';
 import { CardChrome, DataFlow } from '../card';
 import { AstraCite } from '../cite';
@@ -73,11 +74,16 @@ function tokenSpan(node: GenericNode): React.ReactNode {
  * Per-kind card bodies
  * ------------------------------------------------------------------ */
 
+/** Compact cards cap the SUPPORTED BY list; the panel shows the full set. */
+const MAX_SUPPORTING = 3;
+
 /** Exported for reuse: the provenance drawer's decision refs hover this card. */
 export const DecisionCard: React.FC<{ entry: SerializedDecision }> = ({ entry }) => {
+  const store = useAstraStore();
   const optionIds = Object.keys(entry.options ?? {});
   const optionCount = optionIds.length;
   const selected = entry.selected;
+  const supporting = decisionEvidenceInsights(entry, store);
 
   return (
     <>
@@ -112,12 +118,37 @@ export const DecisionCard: React.FC<{ entry: SerializedDecision }> = ({ entry })
           </ul>
         </>
       ) : null}
+
+      {supporting.length > 0 ? (
+        <>
+          <CardChrome.SectionLabel>SUPPORTED BY</CardChrome.SectionLabel>
+          <ul className="astra-evidence astra-evidence--compact">
+            {supporting.slice(0, MAX_SUPPORTING).map((ins) => (
+              <li key={ins.id} className="astra-evidence__item">
+                <div className="astra-evidence__title">
+                  <span className="astra-evidence__glyph--insight" aria-hidden="true">
+                    ◈
+                  </span>
+                  <span>{ins.label ?? ins.id}</span>
+                </div>
+              </li>
+            ))}
+            {supporting.length > MAX_SUPPORTING ? (
+              <li className="astra-evidence__more">
+                + {supporting.length - MAX_SUPPORTING} more in the decision panel
+              </li>
+            ) : null}
+          </ul>
+        </>
+      ) : null}
     </>
   );
 };
 
 const FindingCard: React.FC<{ entry: SerializedFinding }> = ({ entry }) => {
+  const store = useAstraStore();
   const title = entry.label ?? entry.id;
+  const evidence = entry.evidence ?? [];
   return (
     <>
       <CardChrome.KindLabel kind="finding" />
@@ -132,6 +163,53 @@ const FindingCard: React.FC<{ entry: SerializedFinding }> = ({ entry }) => {
         <CardChrome.Desc>
           <span className="astra-finding__notes">{entry.notes}</span>
         </CardChrome.Desc>
+      ) : null}
+
+      {/* The outputs (and quotes/citations) the finding cites as evidence.
+          Figure artifacts get a thumbnail; everything else a labelled row. */}
+      {evidence.length > 0 ? (
+        <>
+          <CardChrome.SectionLabel>EVIDENCE</CardChrome.SectionLabel>
+          <ul className="astra-evidence">
+            {evidence.map((ev, i) => {
+              const artifact = ev.artifact ? store?.outputs?.[ev.artifact] : undefined;
+              const thumb =
+                artifact?.type === 'figure' ? artifact.resolved_path : undefined;
+              return (
+                <li key={ev.artifact ?? ev.doi ?? i} className="astra-evidence__item">
+                  {thumb ? (
+                    <div className="astra-evidence__thumb">
+                      <img
+                        src={thumb}
+                        alt={artifact?.label ?? ev.artifact}
+                        loading="lazy"
+                      />
+                    </div>
+                  ) : null}
+                  {ev.artifact ? (
+                    <div className="astra-evidence__title">
+                      <span className="astra-evidence__glyph--output" aria-hidden="true">
+                        ◆
+                      </span>
+                      <span>{artifact?.label ?? ev.artifact}</span>
+                      {artifact?.type ? (
+                        <span className="astra-evidence__tag">{artifact.type}</span>
+                      ) : null}
+                    </div>
+                  ) : null}
+                  {ev.quote ? (
+                    <div className="astra-evidence__quote">{ev.quote}</div>
+                  ) : null}
+                  {ev.doi ? (
+                    <div className="astra-cite">
+                      <AstraCite doi={ev.doi} />
+                    </div>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        </>
       ) : null}
     </>
   );

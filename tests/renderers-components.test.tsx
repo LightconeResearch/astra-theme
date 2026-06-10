@@ -58,6 +58,22 @@ describe('AstraDecision', () => {
     // The node's own children are rendered instead.
     expect(screen.getByText('Covariance source heading')).toBeInTheDocument();
   });
+
+  it('shows the Evidence view with the insights cited by the options', () => {
+    renderWithProviders(<AstraDecision node={node} />, makeStore());
+    // The third segment renders because cov_source.option_insights resolves.
+    const tab = screen.getByRole('tab', { name: 'Evidence' });
+    fireEvent.click(tab);
+    expect(screen.getByText('KiDS S8 low')).toBeInTheDocument();
+    expect(screen.getByText('KiDS reported a lower S8.')).toBeInTheDocument();
+  });
+
+  it('omits the Evidence segment when no option cites an insight', () => {
+    const store = makeStore();
+    delete store.decisions.cov_source.option_insights;
+    renderWithProviders(<AstraDecision node={node} />, store);
+    expect(screen.queryByRole('tab', { name: 'Evidence' })).not.toBeInTheDocument();
+  });
 });
 
 /* --------------------------------------------------------------- *
@@ -83,7 +99,7 @@ describe('AstraFinding', () => {
     expect(
       container.querySelector('.astra-finding__claim'),
     ).toBeInTheDocument();
-    expect(screen.getByText('Baseline universe.')).toBeInTheDocument();
+    expect(screen.getByText('All tomographic bins.')).toBeInTheDocument();
     expect(
       screen.getByText(/Consistency holds across both binning/),
     ).toBeInTheDocument();
@@ -145,6 +161,40 @@ describe('AstraInlineRef', () => {
     const span = container.querySelector('span.astra-ref.astra-ref--decision');
     expect(span).toBeInTheDocument();
     expect(span).toHaveTextContent('covariance source');
+  });
+
+  it('shows the SUPPORTED BY insights on the decision hover card', () => {
+    const { container } = renderWithProviders(
+      <AstraInlineRef node={node} />,
+      makeStore(),
+    );
+    fireEvent.focus(container.querySelector('.astra-ref-trigger')!);
+    expect(screen.getByText('SUPPORTED BY')).toBeInTheDocument();
+    expect(screen.getByText('KiDS S8 low')).toBeInTheDocument();
+  });
+
+  it('shows the finding card evidence: artifact thumb, label, and quote', () => {
+    const findingNode: GenericNode = {
+      type: 'span',
+      class: 'astra-ref astra-ref--finding',
+      data: { astra: { kind: 'finding', id: 's8_consistent' } },
+      children: [{ type: 'text', value: 'the S8 finding' }],
+    };
+    const { container } = renderWithProviders(
+      <AstraInlineRef node={findingNode} />,
+      makeStore(),
+    );
+    fireEvent.focus(container.querySelector('.astra-ref-trigger')!);
+    expect(screen.getByText('EVIDENCE')).toBeInTheDocument();
+    // Joined output label + type tag, the quote, and the figure thumbnail.
+    expect(screen.getByText('Shear correlation plot')).toBeInTheDocument();
+    expect(screen.getByText('figure')).toBeInTheDocument();
+    expect(
+      screen.getByText('The recovered band sits on the Planck prediction.'),
+    ).toBeInTheDocument();
+    expect(
+      document.querySelector('.astra-evidence__thumb img[src="/results/shear_plot.png"]'),
+    ).toBeInTheDocument();
   });
 
   it('renders the bare token (no card) for the value kind which it does not card', () => {

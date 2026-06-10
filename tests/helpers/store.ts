@@ -19,6 +19,7 @@ export function makeStore(): ResolvedStore {
         id: 'shear_plot',
         label: 'Shear correlation plot',
         type: 'figure',
+        resolved_path: '/results/shear_plot.png',
       },
     },
     decisions: {
@@ -28,6 +29,7 @@ export function makeStore(): ResolvedStore {
         rationale: 'Analytic covariance is fastest and validated here.',
         selected: 'analytic',
         options: { analytic: 'Analytic', jackknife: 'Jackknife' },
+        option_insights: { analytic: ['kids_s8_low'] },
       },
     },
     findings: {
@@ -36,7 +38,13 @@ export function makeStore(): ResolvedStore {
         label: 'S8 consistent with Planck',
         claim: 'The recovered S8 is consistent with the Planck 2018 value.',
         notes: 'Consistency holds across both binning choices.',
-        scope: 'Baseline universe.',
+        scope: 'All tomographic bins.',
+        evidence: [
+          {
+            artifact: 'shear_plot',
+            quote: 'The recovered band sits on the Planck prediction.',
+          },
+        ],
       },
     },
     prior_insights: {

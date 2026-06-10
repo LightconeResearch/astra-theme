@@ -5,9 +5,11 @@
  * and an `identifier` of the form `decision-<id>`; the decision body follows as
  * sibling nodes. This component joins that id to the per-page store's
  * `decisions` table and renders the rich Vellum "decision panel" entirely from
- * the store entry: a kind label + title, a segmented narrative|options toggle,
- * the rationale prose (narrative) or the option list (options), and a muted
- * footer summarising the default selection and option count.
+ * the store entry: a kind label + title, a segmented narrative|options|evidence
+ * toggle, the rationale prose (narrative), the option list (options), or the
+ * prior insights cited by the options (evidence — segment only shown when at
+ * least one option cites an insight), and a muted footer summarising the
+ * default selection and option count.
  *
  * Graceful degradation (CONTRACT §"degrade gracefully"): if the store entry is
  * missing we fall back to the node's own stock children (`<MyST>` over the
@@ -17,12 +19,14 @@ import * as React from 'react';
 import type { GenericNode } from 'myst-common';
 import { MyST } from 'myst-to-react';
 import type { SerializedDecision } from '@astra-spec/store-types';
-import { useEntryByIdentifier } from '../store/useAstraStore';
+import { useAstraStore, useEntryByIdentifier } from '../store/useAstraStore';
+import { decisionEvidenceInsights } from '../store/decisionEvidence';
+import { AstraCite } from '../cite';
 import { labelFor } from '../glyphs';
 
 const KIND = 'decision' as const;
 
-type DecisionView = 'narrative' | 'options';
+type DecisionView = 'narrative' | 'options' | 'evidence';
 
 /**
  * Type guard: a store entry is a `SerializedDecision` when it exposes an
@@ -39,6 +43,7 @@ function isDecision(entry: unknown): entry is SerializedDecision {
 
 export const AstraDecision: React.FC<{ node: GenericNode }> = ({ node }) => {
   const entry = useEntryByIdentifier(node.identifier);
+  const store = useAstraStore();
   const [view, setView] = React.useState<DecisionView>('narrative');
 
   // Preserve whatever astra-* classes the carrier already declares so the
@@ -57,6 +62,9 @@ export const AstraDecision: React.FC<{ node: GenericNode }> = ({ node }) => {
   const optionCount = optionIds.length;
   const selectedLabel =
     (selected != null ? options[selected] : undefined) ?? selected ?? '—';
+  // The prior insights cited by the options — shown under the Evidence segment
+  // (the segment itself only renders when at least one insight resolves).
+  const evidence = decisionEvidenceInsights(entry, store);
 
   return (
     <details className={rootClass} data-kind={KIND} open>
@@ -90,6 +98,18 @@ export const AstraDecision: React.FC<{ node: GenericNode }> = ({ node }) => {
         >
           Options
         </button>
+        {evidence.length > 0 ? (
+          <button
+            type="button"
+            role="tab"
+            aria-selected={view === 'evidence'}
+            className={view === 'evidence' ? 'is-active' : undefined}
+            data-view="evidence"
+            onClick={() => setView('evidence')}
+          >
+            Evidence
+          </button>
+        ) : null}
       </div>
 
       {/* Narrative view — rationale prose. */}
@@ -116,6 +136,32 @@ export const AstraDecision: React.FC<{ node: GenericNode }> = ({ node }) => {
               </li>
             );
           })}
+        </ul>
+      ) : null}
+
+      {/* Evidence view — the prior insights the options cite, in plain
+          language: human label, the claim, and the resolved citation. */}
+      {view === 'evidence' ? (
+        <ul className="astra-evidence">
+          {evidence.map((ins) => (
+            <li key={ins.id} className="astra-evidence__item">
+              <div className="astra-evidence__title">
+                <span className="astra-evidence__glyph--insight" aria-hidden="true">
+                  ◈
+                </span>
+                <span>{ins.label ?? ins.id}</span>
+                <span className="astra-evidence__tag">prior insight</span>
+              </div>
+              {ins.claim ? (
+                <div className="astra-evidence__note">{ins.claim}</div>
+              ) : null}
+              {ins.doi ? (
+                <div className="astra-cite">
+                  <AstraCite doi={ins.doi} />
+                </div>
+              ) : null}
+            </li>
+          ))}
         </ul>
       ) : null}
 

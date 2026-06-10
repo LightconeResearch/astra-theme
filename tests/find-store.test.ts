@@ -62,4 +62,43 @@ describe('findAstraStore', () => {
     };
     expect(findAstraStore(tree(carrier))).toBeUndefined();
   });
+
+  it('joins astra-assets image urls back onto output resolved_path', () => {
+    const withOutput = {
+      ...emptyStore(),
+      outputs: {
+        plot: {
+          id: 'plot',
+          type: 'figure',
+          resolved_path: 'results/baseline/plot/plot.png',
+        },
+      },
+    };
+    const carrier: GenericNode = {
+      type: 'div',
+      identifier: 'astra-store',
+      data: { astra: withOutput },
+    };
+    const assets: GenericNode = {
+      type: 'div',
+      class: 'astra-assets',
+      children: [
+        {
+          type: 'image',
+          url: '/myst_assets_folder/plot-abc123.png',
+          data: { astraAsset: 'plot' },
+        },
+        // unknown ids are ignored, not invented
+        { type: 'image', url: '/x.png', data: { astraAsset: 'missing' } },
+      ],
+    };
+    const found = findAstraStore([tree(carrier), assets]);
+    expect(found?.outputs.plot.resolved_path).toBe(
+      '/myst_assets_folder/plot-abc123.png',
+    );
+    // copy-on-write: the carrier-held store object is untouched
+    expect(withOutput.outputs.plot.resolved_path).toBe(
+      'results/baseline/plot/plot.png',
+    );
+  });
 });

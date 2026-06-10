@@ -416,6 +416,72 @@ hr.astra-rule {
   margin: 0.9rem 0 0.4rem;
 }
 
+/* evidence rows — the decision panel's Evidence view and the cards'
+   SUPPORTED BY / EVIDENCE sections. Each item: optional artifact thumb, a
+   title row (kind glyph + human label + type tag), and an optional
+   plain-language note or evidence quote. */
+.astra-evidence {
+  list-style: none;
+  margin: 0.15rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.astra-evidence__item {
+  background: var(--astra-surface-2);
+  border-radius: var(--astra-radius);
+  padding: 8px 12px;
+}
+.astra-evidence__title {
+  font-family: var(--astra-label);
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--astra-ink);
+  display: flex;
+  align-items: baseline;
+  gap: 0.5em;
+}
+.astra-evidence--compact .astra-evidence__item { padding: 5px 10px; }
+.astra-evidence--compact .astra-evidence__title { font-size: 13px; }
+.astra-evidence__glyph--insight { color: var(--astra-c-insight); font-size: 0.85em; }
+.astra-evidence__glyph--output  { color: var(--astra-c-output);  font-size: 0.85em; }
+.astra-evidence__tag {
+  font-family: var(--astra-label);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--astra-muted);
+}
+.astra-evidence__note {
+  font-family: var(--astra-serif);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--astra-ink-soft);
+  margin-top: 2px;
+}
+.astra-evidence__quote {
+  font-family: var(--astra-serif);
+  font-style: italic;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--astra-muted);
+  margin-top: 2px;
+}
+.astra-evidence__quote::before { content: "\201C"; }
+.astra-evidence__quote::after  { content: "\201D"; }
+.astra-evidence__thumb { margin: 2px 0 6px; }
+.astra-evidence__thumb img {
+  display: block;
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid var(--astra-rule);
+}
+.astra-evidence__more {
+  font-family: var(--astra-label);
+  font-size: 11px;
+  color: var(--astra-muted);
+}
+
 /* kind modifiers set the accent the kind label + glyph + diagrams use */
 .astra-card--decision      { --astra-kind: var(--astra-c-decision); --astra-glyph: "\25C7"; }
 .astra-card--prior_insight { --astra-kind: var(--astra-c-insight);  --astra-glyph: "\25C8"; }
