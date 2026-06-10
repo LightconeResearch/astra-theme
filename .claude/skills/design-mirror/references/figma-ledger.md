@@ -87,7 +87,7 @@ hues (see `styles/astra.css` §13). Every variable carries WEB code syntax `var(
 | Figma component | Code | CSS |
 |---|---|---|
 | Block Card (set: Kind=Finding / Prior Insight / Sub-analysis) | `AstraFinding.tsx` / `AstraPriorInsight.tsx` / `AstraSubanalysis.tsx` | `.astra-finding*` / `.astra-prior-insight*` / `.astra-subanalysis*` |
-| Decision Panel (set: View=Narrative / Options) | `AstraDecision.tsx` | `.astra-decision*`, `.astra-options*` |
+| Decision Panel (set: View=Narrative / Options / Evidence) | `AstraDecision.tsx` | `.astra-decision*`, `.astra-options*`, `.astra-evidence*` |
 | Preview Card (set: Kind=Decision / Finding / Prior Insight / Sub-analysis / Output / Value) | `card/PreviewCard.tsx` + bodies in `AstraInlineRef.tsx`, `AstraValue.tsx` | `.astra-card*` |
 | Inline Ref (set: 6 kinds) | `AstraInlineRef.tsx` | `.astra-ref*` |
 | Output Block / Figure · / Metric | `AstraOutput.tsx` | `.astra-output*`, `.astra-metric*` |
