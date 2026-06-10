@@ -197,9 +197,32 @@ describe('AstraInlineRef', () => {
       store,
     );
     fireEvent.focus(container.querySelector('.astra-ref-trigger')!);
-    // No label and no DOI → the chip shows the claim, never the raw id.
+    // No label → the chip shows the claim's opening, never the raw id.
     expect(screen.getByText('KiDS reported a lower S8.')).toBeInTheDocument();
     expect(screen.queryByText('kids_s8_low')).not.toBeInTheDocument();
+  });
+
+  it('clips long unlabelled claims to their opening; hover shows the entirety', () => {
+    const store = makeStore();
+    const long =
+      'KiDS reported a lower S8 than Planck across all tomographic bins, a tension ' +
+      'that persists under both binning choices and survey footprints';
+    store.prior_insights.kids_s8_low = {
+      id: 'kids_s8_low',
+      claim: long,
+    };
+    const { container } = renderWithProviders(
+      <AstraInlineRef node={node} />,
+      store,
+    );
+    fireEvent.focus(container.querySelector('.astra-ref-trigger')!);
+    // The chip carries a clipped opening (ellipsis), not the raw id.
+    const name = document.querySelector('.astra-evidence__name')!;
+    expect(name.textContent).toMatch(/^KiDS reported a lower S8 than Planck/);
+    expect(name.textContent).toMatch(/…$/);
+    // Focusing the chip opens the insight card with the full claim.
+    fireEvent.focus(document.querySelector('.astra-evidence .astra-ref-trigger')!);
+    expect(screen.getByText(long)).toBeInTheDocument();
   });
 
   it('shows the finding card evidence: artifact thumb, label, and quote', () => {

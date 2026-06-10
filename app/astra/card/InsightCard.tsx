@@ -4,8 +4,12 @@
  *
  * Display name: insights authored without a `label` used to surface their raw
  * id (e.g. `spline_broadband_fiducial`), which carries no meaning for the
- * reader. `useInsightDisplayName` falls back through label → the resolved
- * citation text ("Chen et al., 2024") → the claim → the id.
+ * reader. References fall back through label → the start of the claim →
+ * the resolved citation text → the id. The claim excerpt comes BEFORE the
+ * citation because several insights often cite the same paper — a row of
+ * identical "Chen et al. (2024)" chips reads as a duplicated quote, while
+ * each claim opening is unique. The hover card shows the claim in its
+ * entirety (titled by label or citation, where one exists).
  *
  * `InsightRef` is the hoverable reference row (◈ + name): the trigger of a
  * nested PreviewCard whose body is the full InsightCard. PreviewCard's
@@ -33,15 +37,35 @@ export function citeNodeText(node: GenericNode | undefined): string | undefined 
   return text || undefined;
 }
 
-/** Reader-meaningful name: label → resolved citation text → claim → id. */
+/**
+ * The opening of a claim, clipped for one-line reference rows: the first
+ * sentence when it is short enough, else a word-boundary cut with an ellipsis.
+ */
+export function claimExcerpt(claim: string | undefined): string | undefined {
+  if (!claim) return undefined;
+  const text = claim.trim().replace(/\s+/g, ' ');
+  if (!text) return undefined;
+  const sentence = text.match(/^.{10,90}?[.!?](?=\s|$)/)?.[0];
+  if (sentence) return sentence;
+  if (text.length <= 90) return text;
+  return text.slice(0, 80).replace(/\s+\S*$/, '') + '…';
+}
+
+/** Reference-row name: label → claim excerpt → resolved citation text → id. */
 export function useInsightDisplayName(entry: SerializedInsight): string {
   const citeNode = useCiteNodeForDoi(entry.doi);
-  return entry.label ?? citeNodeText(citeNode) ?? entry.claim ?? entry.id;
+  return (
+    entry.label ?? claimExcerpt(entry.claim) ?? citeNodeText(citeNode) ?? entry.id
+  );
 }
 
 /** The full prior-insight hover-card body. */
 export const InsightCard: React.FC<{ entry: SerializedInsight }> = ({ entry }) => {
-  const title = useInsightDisplayName(entry);
+  const citeNode = useCiteNodeForDoi(entry.doi);
+  // Card title prefers the citation over a claim excerpt: the claim renders in
+  // full below, so an excerpt title would just repeat its opening words.
+  const title =
+    entry.label ?? citeNodeText(citeNode) ?? claimExcerpt(entry.claim) ?? entry.id;
   return (
     <>
       <KindLabel kind="prior_insight" />

@@ -21,7 +21,7 @@ import { MyST } from 'myst-to-react';
 import type { SerializedDecision, SerializedInsight } from '@astra-spec/store-types';
 import { useAstraStore, useEntryByIdentifier } from '../store/useAstraStore';
 import { decisionEvidenceInsights } from '../store/decisionEvidence';
-import { InsightRef, useInsightDisplayName } from '../card';
+import { InsightRef } from '../card';
 import { AstraCite } from '../cite';
 import { labelFor } from '../glyphs';
 
@@ -44,15 +44,15 @@ function isDecision(entry: unknown): entry is SerializedDecision {
 
 /**
  * One Evidence-view row: hoverable insight reference (opens the full insight
- * card), the claim as a plain-language note (skipped when the display name
- * already fell back to it), and the resolved citation.
+ * card), the claim as a plain-language note (only when the row is named by an
+ * authored label — an unlabelled row is already named by the claim's opening,
+ * and the hover card shows it in its entirety), and the resolved citation.
  */
 const EvidenceItem: React.FC<{ ins: SerializedInsight }> = ({ ins }) => {
-  const name = useInsightDisplayName(ins);
   return (
     <li className="astra-evidence__item">
       <InsightRef entry={ins} tag="prior insight" />
-      {ins.claim && ins.claim !== name ? (
+      {ins.label && ins.claim ? (
         <div className="astra-evidence__note">{ins.claim}</div>
       ) : null}
       {ins.doi ? (
