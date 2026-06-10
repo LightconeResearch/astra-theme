@@ -25,18 +25,24 @@ import { AstraInlineRef } from '~/astra/renderers/AstraInlineRef';
 const DOI = '10.1051/0004-6361/202039070';
 
 /** A cite node as the MyST DOI transform leaves it in the page AST. */
-function makeCiteNode(): GenericNode {
+function makeCiteNode(kind: 'narrative' | 'parenthetical' = 'narrative'): GenericNode {
   return {
     type: 'cite',
-    kind: 'narrative',
+    kind,
     label: 'Asgari_2021',
     identifier: `https://doi.org/${DOI}`,
-    children: [{ type: 'text', value: 'Asgari et al. (2021)' }],
+    children: [
+      {
+        type: 'text',
+        value: kind === 'narrative' ? 'Asgari et al. (2021)' : 'Asgari et al., 2021',
+      },
+    ],
   };
 }
 
 /** Page references as ArticlePage provides them (cite table + page AST). */
-function makeReferences(citeNode: GenericNode = makeCiteNode()): References {
+function makeReferences(...citeNodes: GenericNode[]): References {
+  if (citeNodes.length === 0) citeNodes = [makeCiteNode()];
   return {
     cite: {
       order: ['Asgari_2021'],
@@ -51,7 +57,7 @@ function makeReferences(citeNode: GenericNode = makeCiteNode()): References {
     },
     article: {
       type: 'root',
-      children: [{ type: 'paragraph', children: [citeNode] }],
+      children: [{ type: 'paragraph', children: citeNodes }],
     },
   } as References;
 }
@@ -71,10 +77,12 @@ function makeStoreWithDoi() {
  * Pure join helpers
  * --------------------------------------------------------------- */
 describe('buildDoiCiteIndex / normalizeDoi', () => {
-  it('indexes resolved cite nodes by normalized DOI', () => {
-    const citeNode = makeCiteNode();
-    const index = buildDoiCiteIndex(makeReferences(citeNode));
-    expect(index.get(normalizeDoi(DOI)!)).toBe(citeNode);
+  it('indexes resolved cite nodes by normalized DOI, one slot per kind', () => {
+    const narrative = makeCiteNode();
+    const parenthetical = makeCiteNode('parenthetical');
+    const index = buildDoiCiteIndex(makeReferences(narrative, parenthetical));
+    expect(index.get(normalizeDoi(DOI)!)?.narrative).toBe(narrative);
+    expect(index.get(normalizeDoi(DOI)!)?.parenthetical).toBe(parenthetical);
     // Tolerant of URL / doi:-prefixed / case-varying store strings.
     expect(normalizeDoi(`https://doi.org/${DOI}`)).toBe(normalizeDoi(DOI));
     expect(normalizeDoi(`doi: ${DOI.toUpperCase()}`)).toBe(normalizeDoi(DOI));
@@ -85,7 +93,7 @@ describe('buildDoiCiteIndex / normalizeDoi', () => {
     const refs = makeReferences(citeNode);
     delete (refs.cite!.data.Asgari_2021 as { doi?: string }).doi;
     const index = buildDoiCiteIndex(refs);
-    expect(index.get(normalizeDoi(DOI)!)).toBe(citeNode);
+    expect(index.get(normalizeDoi(DOI)!)?.narrative).toBe(citeNode);
   });
 
   it('returns an empty index without references and skips errored cites', () => {
@@ -157,8 +165,10 @@ describe('citation resolution in insight surfaces', () => {
     const trigger = container.querySelector('.astra-ref-trigger');
     expect(trigger).toBeInTheDocument();
     fireEvent.focus(trigger!);
-    // The portaled card resolves the DOI through the same cite pipeline.
-    expect(screen.getByText('Asgari et al. (2021)')).toBeInTheDocument();
+    // The portaled card resolves the DOI through the same cite pipeline. (The
+    // auto-appended inline citation matches the same text — scope to the card.)
+    const card = document.querySelector('.astra-card .astra-cite');
+    expect(card).toHaveTextContent('Asgari et al. (2021)');
   });
 
   it('overlay degrades to the raw DOI link when the page has no citation', () => {
@@ -172,5 +182,39 @@ describe('citation resolution in insight surfaces', () => {
     expect(card).toBeTruthy();
     const link = card!.querySelector('a');
     expect(link).toHaveAttribute('href', `https://doi.org/${DOI}`);
+  });
+
+  it('auto-appends the parenthetical citation after inline prior-insight tokens', () => {
+    const { container } = renderWithProviders(
+      <AstraInlineRef node={inlineNode} />,
+      makeStoreWithDoi(),
+      makeReferences(makeCiteNode(), makeCiteNode('parenthetical')),
+    );
+    // Without any hover/focus: token + " (Asgari et al., 2021)" in prose.
+    const citation = container.querySelector('.astra-ref-citation');
+    expect(citation).toBeTruthy();
+    expect(citation!.textContent).toBe(' (Asgari et al., 2021)');
+    // The citation sits OUTSIDE the hover trigger (own link, own hover).
+    expect(citation!.closest('.astra-ref-trigger')).toBeNull();
+  });
+
+  it('auto-citation falls back to the narrative form, bare, when no parenthetical cite resolved', () => {
+    const { container } = renderWithProviders(
+      <AstraInlineRef node={inlineNode} />,
+      makeStoreWithDoi(),
+      makeReferences(), // narrative only (older bundles)
+    );
+    const citation = container.querySelector('.astra-ref-citation');
+    // Narrative form already carries its own parens — no doubling.
+    expect(citation!.textContent).toBe(' Asgari et al. (2021)');
+  });
+
+  it('appends no citation when the insight has no DOI', () => {
+    const { container } = renderWithProviders(
+      <AstraInlineRef node={inlineNode} />,
+      makeStore(), // kids_s8_low without doi
+      makeReferences(),
+    );
+    expect(container.querySelector('.astra-ref-citation')).toBeNull();
   });
 });

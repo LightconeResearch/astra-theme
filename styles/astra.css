@@ -320,6 +320,11 @@ hr.astra-rule {
   text-decoration-color: var(--astra-link);
 }
 
+/* the auto-appended "(Chen et al., 2024)" after inline prior-insight tokens */
+.astra-ref-citation {
+  white-space: nowrap;
+}
+
 /* per-kind glyph + colour */
 .astra-ref--decision      { --astra-kind: var(--astra-c-decision); --astra-glyph: "\25C7"; } /* ◇ */
 .astra-ref--prior_insight { --astra-kind: var(--astra-c-insight);  --astra-glyph: "\25C8"; } /* ◈ */

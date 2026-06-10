@@ -323,10 +323,26 @@ export const AstraInlineRef: React.FC<{ node: GenericNode }> = ({ node }) => {
     return <>{token}</>;
   }
 
+  // Prior insights are literature claims: when the insight carries a DOI the
+  // resolved citation is appended inline — "…consistent α's (Chen et al.,
+  // 2024)" — exactly as a manually-cited sentence would read. The citation is
+  // a SIBLING of the hover trigger: it keeps its own bibliography link/hover
+  // while the gold token keeps the insight card.
+  const insightDoi =
+    kind === 'prior_insight' ? (entry as SerializedInsight).doi : undefined;
+
   return (
-    <PreviewCard kind={kind} trigger={token}>
-      {body}
-    </PreviewCard>
+    <>
+      <PreviewCard kind={kind} trigger={token}>
+        {body}
+      </PreviewCard>
+      {insightDoi ? (
+        <span className="astra-ref-citation">
+          {' '}
+          <AstraCite doi={insightDoi} parenthetical />
+        </span>
+      ) : null}
+    </>
   );
 };
 
