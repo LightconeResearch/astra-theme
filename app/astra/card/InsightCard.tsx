@@ -8,8 +8,8 @@
  * the resolved citation text → the id. The claim excerpt comes BEFORE the
  * citation because several insights often cite the same paper — a row of
  * identical "Chen et al. (2024)" chips reads as a duplicated quote, while
- * each claim opening is unique. The hover card shows the claim in its
- * entirety (titled by label or citation, where one exists).
+ * each claim opening is unique. The hover card is untitled and shows the
+ * claim in its entirety.
  *
  * `InsightRef` is the hoverable reference row (◈ + name): the trigger of a
  * nested PreviewCard whose body is the full InsightCard. PreviewCard's
@@ -19,7 +19,7 @@ import * as React from 'react';
 import type { GenericNode } from 'myst-common';
 import type { SerializedInsight } from '@astra-spec/store-types';
 import { AstraCite, useCiteNodeForDoi } from '../cite';
-import { KindLabel, Title, Desc } from './CardChrome';
+import { KindLabel, Desc } from './CardChrome';
 import { PreviewCard } from './PreviewCard';
 
 /** Concatenated text content of a resolved cite node ("Chen et al., 2024"). */
@@ -59,19 +59,12 @@ export function useInsightDisplayName(entry: SerializedInsight): string {
   );
 }
 
-/** The full prior-insight hover-card body. */
+/** The full prior-insight hover-card body (untitled: the claim leads). */
 export const InsightCard: React.FC<{ entry: SerializedInsight }> = ({ entry }) => {
-  const citeNode = useCiteNodeForDoi(entry.doi);
-  // Card title prefers the citation over a claim excerpt: the claim renders in
-  // full below, so an excerpt title would just repeat its opening words.
-  const title =
-    entry.label ?? citeNodeText(citeNode) ?? claimExcerpt(entry.claim) ?? entry.id;
   return (
     <>
       <KindLabel kind="prior_insight" />
-      <Title>{title}</Title>
-      {/* Skip the claim when the title already fell back to it. */}
-      {entry.claim && entry.claim !== title ? <Desc>{entry.claim}</Desc> : null}
+      {entry.claim ? <Desc>{entry.claim}</Desc> : null}
       {entry.quote ? <div className="astra-quote">{entry.quote}</div> : null}
       {entry.doi ? (
         <div className="astra-cite">
