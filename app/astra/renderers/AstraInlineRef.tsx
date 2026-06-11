@@ -309,7 +309,8 @@ export const AstraInlineRef: React.FC<{ node: GenericNode }> = ({ node }) => {
   const id = inline?.id;
 
   // Always call the hook (stable order); it returns undefined on any miss.
-  const entry = useAstraEntry(kind, id);
+  // The path key resolves cross-scope refs (entries merged from sub-analyses).
+  const entry = useAstraEntry(kind, id, inline?.path);
 
   const token = tokenSpan(node);
 

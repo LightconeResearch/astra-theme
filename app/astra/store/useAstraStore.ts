@@ -42,16 +42,23 @@ export type AstraEntry =
 /**
  * Resolve one store entry by inline `kind` + `id`. Returns `undefined` when the
  * store, the table, or the entry is missing so the caller degrades gracefully.
+ *
+ * Cross-scope refs (`reconstruction.convention` cited from the index page) are
+ * keyed in the store by their full dotted `path`, not the leaf `id` — the
+ * plugin merges referenced sub-analysis entries in under that key. Try the
+ * path first so a same-named local entry can't shadow the referenced one.
  */
 export function useAstraEntry(
   kind: AstraKind | undefined,
   id: string | undefined,
+  path?: string,
 ): AstraEntry | undefined {
   const store = useAstraStore();
   if (!store || !kind || !id) return undefined;
   const table = KIND_TO_TABLE[kind];
   if (!table) return undefined;
-  return (store[table] as Record<string, AstraEntry>)[id];
+  const entries = store[table] as Record<string, AstraEntry>;
+  return (path !== undefined ? entries[path] : undefined) ?? entries[id];
 }
 
 /** Block carrier-identifier prefix → store table. */

@@ -50,7 +50,8 @@ export const AstraValue: React.FC<AstraValueProps> = ({ node }) => {
   const id = astra.id;
 
   // Join the value to its source product/output (kind 'value' -> outputs table).
-  const entry = useAstraEntry('output', id) as SerializedOutput | undefined;
+  // The path key resolves cross-scope products (merged from sub-analyses).
+  const entry = useAstraEntry('output', id, astra.path) as SerializedOutput | undefined;
 
   // The visible number is always the node's own children — rendered through the
   // stock pipeline so any inline markup inside it survives.
