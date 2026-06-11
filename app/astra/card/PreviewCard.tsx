@@ -3,6 +3,7 @@ import {
   useFloating,
   useHover,
   useFocus,
+  useClientPoint,
   useDismiss,
   useRole,
   useInteractions,
@@ -50,10 +51,22 @@ const PreviewCardInner: React.FC<PreviewCardProps> = ({ trigger, children, kind 
   const arrowRef = React.useRef<SVGSVGElement>(null);
   const nodeId = useFloatingNodeId();
 
+  // The pointer's x over the trigger, sampled continuously while hovering and
+  // FROZEN into `pinnedX` at the moment the card opens — the card appears at
+  // the cursor but does not follow it afterwards. A null pin (keyboard-focus
+  // open) makes useClientPoint fall back to the token's own rect.
+  const cursorXRef = React.useRef<number | null>(null);
+  const [pinnedX, setPinnedX] = React.useState<number | null>(null);
+
   const { refs, floatingStyles, context, placement } = useFloating({
     nodeId,
     open,
-    onOpenChange: setOpen,
+    onOpenChange(nextOpen, event) {
+      if (nextOpen) {
+        setPinnedX(event instanceof MouseEvent ? cursorXRef.current : null);
+      }
+      setOpen(nextOpen);
+    },
     placement: 'top',
     whileElementsMounted: autoUpdate,
     middleware: [
@@ -70,12 +83,19 @@ const PreviewCardInner: React.FC<PreviewCardProps> = ({ trigger, children, kind 
     move: false,
   });
   const focus = useFocus(context);
+  // Anchor the card at the pointer's x rather than the token's center: long
+  // references (and wrapped ones) otherwise open the card far from the cursor.
+  // axis 'x' keeps the vertical anchor on the text line so flip/shift and the
+  // arrow behave as before. Passing an explicit `x` (the frozen pin) disables
+  // useClientPoint's follow-the-mouse listener — the card holds still.
+  const clientPoint = useClientPoint(context, { axis: 'x', x: pinnedX });
   const dismiss = useDismiss(context);
   const role = useRole(context, { role: 'tooltip' });
 
   const { getReferenceProps, getFloatingProps } = useInteractions([
     hover,
     focus,
+    clientPoint,
     dismiss,
     role,
   ]);
@@ -91,7 +111,14 @@ const PreviewCardInner: React.FC<PreviewCardProps> = ({ trigger, children, kind 
         ref={refs.setReference}
         tabIndex={0}
         className="astra-ref-trigger"
-        {...getReferenceProps()}
+        {...getReferenceProps({
+          onMouseEnter: (e) => {
+            cursorXRef.current = e.clientX;
+          },
+          onMouseMove: (e) => {
+            cursorXRef.current = e.clientX;
+          },
+        })}
       >
         {trigger}
       </span>
