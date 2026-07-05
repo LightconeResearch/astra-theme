@@ -63,6 +63,11 @@ export const ASTRA_RENDERERS: NodeRenderers = {
   div: {
     'div[class*="astra-decision"]': AstraDecision,
     'div[class*="astra-finding"]': AstraFinding,
+    // Metric (and unproduced) output embeds arrive on a `div` carrier since
+    // MySTRA#13 — produced metrics join `store.metric` and render the big
+    // stat; unproduced ones keep their nested "Pending Output" fallback but
+    // gain the provenance drawer and a resolvable anchor.
+    'div[class*="astra-output"]': AstraOutput,
   },
   heading: {
     'heading[class*="astra-decision"]': AstraDecision,
