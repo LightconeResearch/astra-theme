@@ -1,19 +1,24 @@
-name: Publish theme
+name: Publish themes
 
-# Tag-driven release. Pushing a tag like `v0.0.1` is the ONLY action needed:
-# the tag is the source of truth for the version. This workflow stamps that
-# version into package.json + template.yml, builds the theme, pushes the
-# runnable artifact (template.yml + server.js + package*.json + build/ + public/)
-# to the deploy repo mirroring the tag, attaches a zip to a GitHub Release, and
-# commits the version bump back to main.
+# Tag-driven release. Pushing a tag like `v0.0.8` is the ONLY action needed:
+# the tag is the source of truth for the version. For each theme (article,
+# book) this workflow stamps that version, builds the theme, assembles a
+# runnable artifact (template.yml + server.js + minimal runtime package.json +
+# lockfile + build/ + public/), pushes it to the theme's deploy repo mirroring
+# the tag, and attaches a zip to a GitHub Release. A final job commits the
+# version bump back to main.
+#
+# The published package.json is a MINIMAL runtime manifest: the Remix build
+# bundles every app/library dependency into build/, so consumers only install
+# the small express server stack — no patches, no legacy-peer-deps.
 #
 # One-time setup:
-#   - Create the deploy repo (Eiffl/astra-theme) — empty is fine.
-#   - Add a repo secret DEPLOY_TOKEN: a fine-grained PAT with Contents: read/write
-#     on Eiffl/astra-theme.
+#   - Create the deploy repos (empty is fine) listed in the matrix below.
+#   - Add a repo secret DEPLOY_TOKEN: a fine-grained PAT with Contents:
+#     read/write on BOTH deploy repos.
 #
 # Cut a release:
-#   git tag v0.0.1 && git push origin v0.0.1
+#   git tag v0.0.8 && git push origin v0.0.8
 
 on:
   push:
@@ -22,19 +27,26 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Existing version tag to (re)publish, e.g. v0.0.1"
+        description: "Existing version tag to (re)publish, e.g. v0.0.8"
         required: true
 
 permissions:
   contents: write # commit the version bump to main + create the Release
 
 env:
-  DEPLOY_REPO: Eiffl/astra-theme
   VERSION: ${{ github.event.inputs.tag || github.ref_name }}
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - theme: book
+            deploy_repo: Eiffl/astra-theme
+          - theme: article
+            deploy_repo: Eiffl/astra-article-theme
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -53,29 +65,55 @@ jobs:
       - name: Stamp version from tag
         run: |
           set -euo pipefail
-          v="${VERSION#v}" # strip leading "v": v0.0.1 -> 0.0.1
-          npm version "$v" --no-git-tag-version --allow-same-version # package.json + package-lock.json
-          sed -i -E "s/^version:.*/version: $v/" template.yml
+          v="${VERSION#v}" # strip leading "v": v0.0.8 -> 0.0.8
+          # Themes + overlay + root move in lockstep; store-types versions independently
+          # (it mirrors the MySTRA plugin's store contract).
+          npm version "$v" --no-git-tag-version --allow-same-version \
+            --include-workspace-root -w packages/astra -w themes/article -w themes/book
+          sed -i -E "s/^version:.*/version: $v/" themes/${{ matrix.theme }}/template.yml
           echo "Stamped version $v"
 
       - name: Build theme
-        run: npm run build # → build/ + public/ (runs prod:copy, thebe, css, remix build)
+        run: npm run build:${{ matrix.theme }} # → themes/<theme>/{build,public}
 
       - name: Assemble publish tree
         run: |
           set -euo pipefail
-          test -d build && test -d public || { echo "build/ or public/ missing — build failed"; exit 1; }
+          theme="themes/${{ matrix.theme }}"
+          test -d "$theme/build" && test -d "$theme/public" || { echo "build/ or public/ missing — build failed"; exit 1; }
           rm -rf dist-publish
           mkdir -p dist-publish
           # exactly the set declared in template.yml `files:`, plus the manifest + legal
-          cp template.yml server.js package.json package-lock.json dist-publish/
-          cp -r build public dist-publish/
+          cp "$theme/template.yml" server.js dist-publish/
+          cp -r "$theme/build" "$theme/public" dist-publish/
           for f in LICENSE NOTICE; do [ -f "$f" ] && cp "$f" dist-publish/; done
+          # Minimal runtime manifest: only what server.js requires — the Remix
+          # build already bundles everything else. Versions are copied from the
+          # theme's package.json so they are the ranges the build was tested with.
+          node - "$theme" <<'EOF'
+          const fs = require('fs');
+          const themeDir = process.argv[2];
+          const theme = JSON.parse(fs.readFileSync(`${themeDir}/package.json`, 'utf8'));
+          const RUNTIME_DEPS = ['@remix-run/express', '@remix-run/node', 'compression', 'express', 'get-port', 'morgan'];
+          const pkg = {
+            name: theme.name,
+            version: theme.version,
+            description: theme.description,
+            license: theme.license,
+            private: true,
+            scripts: { start: 'node ./server.js' },
+            dependencies: Object.fromEntries(RUNTIME_DEPS.map((d) => [d, theme.dependencies[d]])),
+            engines: theme.engines,
+          };
+          fs.writeFileSync('dist-publish/package.json', JSON.stringify(pkg, null, 2) + '\n');
+          EOF
+          # Lockfile for the runtime manifest so template.yml's `npm ci` works.
+          (cd dist-publish && npm install --package-lock-only --ignore-scripts)
           cat > dist-publish/README.md <<EOF
-          # astra-theme (published build)
+          # astra ${{ matrix.theme }} theme (published build)
 
-          This repository holds the **build artifacts** for the
-          [astra-theme](https://github.com/LightconeResearch/astra-theme) MyST web theme.
+          This repository holds the **build artifacts** for the ${{ matrix.theme }} flavor of
+          [astra-theme](https://github.com/LightconeResearch/astra-theme), a MyST web theme.
           It is generated by CI — do not edit by hand. Open issues and PRs against the
           source repo.
 
@@ -83,7 +121,7 @@ jobs:
 
           \`\`\`yaml
           site:
-            template: https://github.com/${DEPLOY_REPO}
+            template: https://github.com/${{ matrix.deploy_repo }}
           \`\`\`
 
           Published from \`${VERSION}\`.
@@ -102,7 +140,7 @@ jobs:
           git add -A
           git commit -q -m "Publish ${VERSION}"
           git branch -M main
-          git remote add origin "https://x-access-token:${DEPLOY_TOKEN}@github.com/${DEPLOY_REPO}.git"
+          git remote add origin "https://x-access-token:${DEPLOY_TOKEN}@github.com/${{ matrix.deploy_repo }}.git"
           # main is a clean mirror of the latest build (no accumulating binary history);
           # each version is preserved as its own tag so users can pin.
           git push -f origin main
@@ -112,18 +150,37 @@ jobs:
       - name: Package zip
         run: |
           set -euo pipefail
-          ( cd dist-publish && zip -qr "../astra-theme-${VERSION}.zip" . )
+          ( cd dist-publish && zip -qr "../astra-${{ matrix.theme }}-theme-${VERSION}.zip" . )
 
       - name: Create release with zip asset
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.VERSION }}
-          files: astra-theme-${{ env.VERSION }}.zip
+          files: astra-${{ matrix.theme }}-theme-${{ env.VERSION }}.zip
+
+  bump-version:
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
       - name: Commit version bump to main
         run: |
           set -euo pipefail
+          v="${VERSION#v}"
+          npm version "$v" --no-git-tag-version --allow-same-version \
+            --include-workspace-root -w packages/astra -w themes/article -w themes/book
+          sed -i -E "s/^version:.*/version: $v/" themes/*/template.yml
+          npm install --package-lock-only --ignore-scripts # sync workspace versions into the lockfile
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json package-lock.json template.yml
-          git diff --staged --quiet || (git commit -m "chore: bump version to ${VERSION#v}" && git push origin HEAD:main)
+          git add package.json package-lock.json packages/astra/package.json themes/*/package.json themes/*/template.yml
+          git diff --staged --quiet || (git commit -m "chore: bump version to $v" && git push origin HEAD:main)

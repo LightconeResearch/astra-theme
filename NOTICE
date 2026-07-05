@@ -7,33 +7,34 @@ This product includes software from the MyST Theme project
 (https://github.com/jupyter-book/myst-theme), Copyright (c) Curvenote Inc.,
 licensed under the MIT License.
 
-astra-theme is a fork of the @myst-theme/book site theme. The following files in
-this repository are derived from @myst-theme/book (with local modifications —
-ASTRA integration, deduplication, and performance cleanups) and remain under
-the MIT License:
+The themes in this repository are forks of the @myst-theme site themes:
+themes/book derives from @myst-theme/book and themes/article derives from
+@myst-theme/article (both vendored at v1.3.1, with local modifications — ASTRA
+integration, deduplication, and performance cleanups). The following files
+remain under the MIT License:
 
-  app/root.tsx
-  app/entry.client.tsx
-  app/entry.server.tsx
-  app/types.ts
-  app/routes/**
-  app/components/**
-  app/utils/**
-  styles/app.css
-  styles/grid-system.css
+  themes/*/app/root.tsx
+  themes/*/app/entry.client.tsx
+  themes/*/app/entry.server.tsx
+  themes/*/app/types.ts
+  themes/*/app/routes/**
+  themes/*/app/components/**
+  themes/*/app/utils/**
+  themes/*/styles/**
   server.js
-  remix.config.prod.js, remix.config.dev.js
-  tailwind.config.js, tsconfig.json, remix.env.d.ts, .eslintrc.js
+  themes/*/remix.config.prod.js, themes/*/remix.config.dev.js
+  themes/*/tailwind.config.js, themes/*/tsconfig.json, themes/*/remix.env.d.ts,
+  .eslintrc.js
 
-The theme also depends on the published @myst-theme/* npm packages
+The themes also depend on the published @myst-theme/* npm packages
 (@myst-theme/site, @myst-theme/providers, myst-to-react, etc.), each under their
 own licenses (MIT), resolved at install time.
 
-The ASTRA-specific code — app/astra/**, styles/astra.css, packages/store-types,
-and this repository's configuration and documentation — is original work under
-the BSD 3-Clause License.
+The ASTRA-specific code — packages/astra/** (the ASTRA overlay, including
+styles/astra.css), packages/store-types, and this repository's configuration
+and documentation — is original work under the BSD 3-Clause License.
 
-MIT License (for the vendored @myst-theme/book files):
+MIT License (for the vendored @myst-theme files):
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
