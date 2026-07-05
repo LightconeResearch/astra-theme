@@ -4,7 +4,7 @@
  * by the stylesheet (`--astra-glyph` / `--astra-kind` on the `astra-*` kind
  * modifier classes), so the components only ever render the text label.
  */
-export const KIND_LABELS: Record<string, string> = {
+const KIND_LABELS: Record<string, string> = {
   decision: 'DECISION',
   prior_insight: 'PRIOR INSIGHT',
   finding: 'FINDING',

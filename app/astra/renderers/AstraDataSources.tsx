@@ -48,6 +48,9 @@ function registryOf(node: GenericNode): Registry | undefined {
   return undefined;
 }
 
+/** Carrier-id prefix + anchor target per registry. */
+const PREFIX: Record<Registry, string> = { inputs: 'input', outputs: 'output' };
+
 /**
  * Normalised view of one registry row, abstracting input vs output so the table
  * body is rendered once. `source` is the most specific provenance-ish field
@@ -65,12 +68,18 @@ interface Row {
 function rowsFor(store: ResolvedStore, registry: Registry): Row[] {
   if (registry === 'inputs') {
     return Object.values(store.inputs ?? {}).map((e: SerializedInput) => ({
-      ...e,
+      id: e.id,
+      label: e.label,
+      type: e.type,
+      description: e.description,
       source: e.source ?? e.from,
     }));
   }
   return Object.values(store.outputs ?? {}).map((e: SerializedOutput) => ({
-    ...e,
+    id: e.id,
+    label: e.label,
+    type: e.type,
+    description: e.description,
     source: e.recipe?.command ?? e.resolved_path ?? e.from,
   }));
 }
@@ -97,8 +106,7 @@ export const AstraDataSources: React.FC<{ node: GenericNode }> = ({ node }) => {
     return <MyST ast={node.children} />;
   }
 
-  // Carrier-id anchor prefix ('input'/'output') is the registry name, singular.
-  const prefix = registry.slice(0, -1);
+  const prefix = PREFIX[registry];
   const heading = registry === 'inputs' ? 'Inputs' : 'Outputs';
   const firstCol = registry === 'inputs' ? 'Input' : 'Output';
 

@@ -8,8 +8,8 @@
  *
  * Block renderers carry an `identifier` like `<prefix>-<id>`; use
  * `parseCarrierId` + `PREFIX_TO_TABLE` to turn that into a table lookup. Inline
- * renderers carry `node.data.astra.{kind,id}`; use `KIND_TO_TABLE` (re-exported
- * from `@astra-spec/store-types`).
+ * renderers carry `node.data.astra.{kind,id}`; use `KIND_TO_TABLE` from
+ * `@astra-spec/store-types`.
  */
 import { useContext } from 'react';
 import type {
@@ -19,8 +19,6 @@ import type {
 } from '@astra-spec/store-types';
 import { KIND_TO_TABLE } from '@astra-spec/store-types';
 import { AstraStoreContext } from './AstraStoreProvider';
-
-export { KIND_TO_TABLE };
 
 /** The per-page resolved store, or `undefined` when none was emitted. */
 export function useAstraStore(): ResolvedStore | undefined {
