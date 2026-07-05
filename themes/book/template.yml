@@ -1,5 +1,5 @@
 jtex: v1
-title: ASTRA Theme
+title: ASTRA Book Theme
 description: >-
   Rich MyST web theme for ASTRA analyses — the presentation half of the
   @astra-spec pair. Extends @myst-theme/book with glyph-tagged inline references
@@ -88,11 +88,9 @@ parts:
     description: Custom content displayed at the end of the top navbar
     required: false
 build:
-  # --legacy-peer-deps must be inline here: the publish workflow ships only the
-  # `files:` set below, so the repo's .npmrc never reaches consumers, and the
-  # lockfile (generated under legacy-peer-deps) omits auto-installed peers
-  # like mapbox-gl/webpack — plain `npm ci` then fails with EUSAGE.
-  install: npm ci --ignore-scripts --legacy-peer-deps
+  # The published artifact ships a minimal runtime package.json (server deps
+  # only — the Remix build bundles everything else), so a plain npm ci works.
+  install: npm ci --ignore-scripts
   start: npm run start
 files:
   - server.js

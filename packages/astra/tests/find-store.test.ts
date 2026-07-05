@@ -3,7 +3,7 @@
  * data.astra in a page mdast. Tolerates any tree shape; undefined when absent.
  */
 import { describe, it, expect } from 'vitest';
-import { findAstraStore } from '~/astra/store/AstraStoreProvider';
+import { findAstraStore } from '../src/store/AstraStoreProvider';
 import type { GenericNode } from 'myst-common';
 import { emptyStore } from './helpers/store';
 

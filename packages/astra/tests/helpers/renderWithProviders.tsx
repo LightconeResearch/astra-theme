@@ -17,8 +17,8 @@ import { SourceFileKind } from 'myst-spec-ext';
 import type { References } from 'myst-common';
 import { DEFAULT_RENDERERS } from 'myst-to-react';
 import type { ResolvedStore } from '@astra-spec/store-types';
-import { ASTRA_RENDERERS } from '~/astra/renderers';
-import { AstraStoreProvider } from '~/astra/store/AstraStoreProvider';
+import { ASTRA_RENDERERS } from '../../src/renderers';
+import { AstraStoreProvider } from '../../src/store/AstraStoreProvider';
 
 const RENDERERS = mergeRenderers([DEFAULT_RENDERERS, ASTRA_RENDERERS]);
 

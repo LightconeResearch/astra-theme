@@ -28,8 +28,8 @@ import {
 } from '@myst-theme/jupyter';
 import { MyST } from 'myst-to-react';
 import { FrontmatterBlock } from '@myst-theme/frontmatter';
-import { useTemplateOptions } from '~/utils/useTemplateOptions';
-import { AstraStoreProvider } from '~/astra';
+import { AstraStoreProvider, useTemplateOptions } from '@astra-spec/theme-astra';
+import type { TemplateOptions } from '../types.js';
 
 export const ArticlePage = React.memo(function ({
   article,
@@ -45,7 +45,7 @@ export const ArticlePage = React.memo(function ({
   const top = useThemeTop();
 
   const { hide_title_block, hide_footer_links, hide_outline, outline_maxdepth, hide_authors } =
-    useTemplateOptions(article.frontmatter);
+    useTemplateOptions<TemplateOptions>(article.frontmatter);
   const downloads = combineDownloads(manifest?.downloads, article.frontmatter);
   // copyNode deep-copies the whole article AST; memoize so re-renders (theme
   // top, media query, compute options) keep stable identities and <MyST> /

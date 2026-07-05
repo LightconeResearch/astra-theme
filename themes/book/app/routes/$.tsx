@@ -33,8 +33,8 @@ import { ArticlePage } from '../components/ArticlePage.js';
 import { Footer } from '../components/Footer.js';
 import { Banner } from '../components/Banner.js';
 import { SidebarFooter } from '../components/SidebarFooter.js';
-import type { ManifestProject } from '../types.js';
-import { useTemplateOptions } from '~/utils/useTemplateOptions';
+import type { ManifestProject, TemplateOptions } from '../types.js';
+import { useTemplateOptions } from '@astra-spec/theme-astra';
 import { useRouteError, isRouteErrorResponse } from '@remix-run/react';
 
 export const meta: V2_MetaFunction<typeof loader> = ({ data, matches, location }) => {
@@ -167,7 +167,7 @@ export default function Page() {
   const { container } = useOutlineHeight();
   const data = useLoaderData() as { page: PageLoader; project: ManifestProject };
   const baseurl = useBaseurl();
-  const { hide_toc, hide_search, hide_footer_links } = useTemplateOptions(data.page.frontmatter);
+  const { hide_toc, hide_search, hide_footer_links } = useTemplateOptions<TemplateOptions>(data.page.frontmatter);
   return (
     <ArticlePageAndNavigation
       hide_toc={hide_toc}

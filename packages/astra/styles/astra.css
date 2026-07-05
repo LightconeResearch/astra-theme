@@ -12,7 +12,7 @@
    -----------
    - Every token is a CSS custom property on :root, prefixed --astra-.
    - Every class below is part of the theme's internal contract: the renderers in
-     app/astra/ emit these classes, this file styles them.
+     packages/astra/src/ emit these classes, this file styles them.
    - Restrained, print-like. Hairline rules over heavy borders, no loud colour.
    ========================================================================== */
 

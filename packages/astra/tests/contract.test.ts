@@ -6,7 +6,7 @@
  *
  * CARRIER-TYPE NOTE: the fixture uses the CONTRACT-stated carrier types
  * (`details` for decision, `container.astra-inputs` for the input registry) per
- * contract.md's "Known carrier-type discrepancy". app/astra/renderers.ts keys
+ * contract.md's "Known carrier-type discrepancy". packages/astra/src/renderers.ts keys
  * decision/finding on `heading` and the input registry on `table`. These tests
  * assert the CURRENT renderer behaviour (heading-keyed decision routes to
  * AstraDecision; the fixture's `details` carrier does NOT) and document the gap.
@@ -16,13 +16,13 @@ import type { GenericNode } from 'myst-common';
 import { DEFAULT_RENDERERS, selectRenderer } from 'myst-to-react';
 import { mergeRenderers } from '@myst-theme/providers';
 import fixture from './fixtures/cosmic-shear.content.json';
-import { findAstraStore } from '~/astra/store/AstraStoreProvider';
-import { parseCarrierId, PREFIX_TO_TABLE } from '~/astra/store/useAstraStore';
+import { findAstraStore } from '../src/store/AstraStoreProvider';
+import { parseCarrierId, PREFIX_TO_TABLE } from '../src/store/useAstraStore';
 import { KIND_TO_TABLE } from '@astra-spec/store-types';
-import { ASTRA_RENDERERS } from '~/astra/renderers';
-import { AstraInlineRef } from '~/astra/renderers/AstraInlineRef';
-import { AstraValue } from '~/astra/renderers/AstraValue';
-import { AstraDecision } from '~/astra/renderers/AstraDecision';
+import { ASTRA_RENDERERS } from '../src/renderers';
+import { AstraInlineRef } from '../src/renderers/AstraInlineRef';
+import { AstraValue } from '../src/renderers/AstraValue';
+import { AstraDecision } from '../src/renderers/AstraDecision';
 
 const mdast = fixture.mdast as unknown as GenericNode;
 

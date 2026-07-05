@@ -1,12 +1,12 @@
 /**
- * Pure store-join helpers from app/astra/store/useAstraStore.ts.
+ * Pure store-join helpers from packages/astra/src/store/useAstraStore.ts.
  * These are the theme's id→table join primitives; no React tree needed.
  */
 import { describe, it, expect } from 'vitest';
 import {
   parseCarrierId,
   PREFIX_TO_TABLE,
-} from '~/astra/store/useAstraStore';
+} from '../src/store/useAstraStore';
 import { KIND_TO_TABLE } from '@astra-spec/store-types';
 
 describe('parseCarrierId', () => {

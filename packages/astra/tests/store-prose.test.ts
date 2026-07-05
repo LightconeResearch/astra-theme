@@ -4,7 +4,7 @@
  * cards render them through this parser so KaTeX / inline-code apply.
  */
 import { describe, it, expect } from 'vitest';
-import { parseStoreProse } from '~/astra/storeProse';
+import { parseStoreProse } from '../src/storeProse';
 
 describe('parseStoreProse', () => {
   it('passes plain text through as a single text node', () => {

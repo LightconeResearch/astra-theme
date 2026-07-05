@@ -13,10 +13,10 @@ import type { GenericNode } from 'myst-common';
 import { renderWithProviders } from './helpers/renderWithProviders';
 import { makeStore, emptyStore } from './helpers/store';
 
-import { AstraDecision } from '~/astra/renderers/AstraDecision';
-import { AstraFinding } from '~/astra/renderers/AstraFinding';
-import { AstraInlineRef } from '~/astra/renderers/AstraInlineRef';
-import { AstraValue } from '~/astra/renderers/AstraValue';
+import { AstraDecision } from '../src/renderers/AstraDecision';
+import { AstraFinding } from '../src/renderers/AstraFinding';
+import { AstraInlineRef } from '../src/renderers/AstraInlineRef';
+import { AstraValue } from '../src/renderers/AstraValue';
 
 /* --------------------------------------------------------------- *
  * AstraDecision (heading carrier, joined by identifier)

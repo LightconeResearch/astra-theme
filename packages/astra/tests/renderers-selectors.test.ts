@@ -1,5 +1,5 @@
 /**
- * ASTRA_RENDERERS selector map (app/astra/renderers.ts).
+ * ASTRA_RENDERERS selector map (packages/astra/src/renderers.ts).
  *
  * MyST keys renderers by node TYPE, then within a type matches `unist-util-select`
  * CSS selectors in REVERSED order (last match wins), with a `base` fallback.
@@ -15,15 +15,15 @@ import { matches } from 'unist-util-select';
 import type { GenericNode } from 'myst-common';
 import { DEFAULT_RENDERERS } from 'myst-to-react';
 import { mergeRenderers } from '@myst-theme/providers';
-import { ASTRA_RENDERERS } from '~/astra/renderers';
-import { AstraInlineRef } from '~/astra/renderers/AstraInlineRef';
-import { AstraValue } from '~/astra/renderers/AstraValue';
-import { AstraDecision } from '~/astra/renderers/AstraDecision';
-import { AstraFinding } from '~/astra/renderers/AstraFinding';
-import { AstraOutput } from '~/astra/renderers/AstraOutput';
-import { AstraPriorInsight } from '~/astra/renderers/AstraPriorInsight';
-import { AstraDataSources } from '~/astra/renderers/AstraDataSources';
-import { AstraSubanalysis } from '~/astra/renderers/AstraSubanalysis';
+import { ASTRA_RENDERERS } from '../src/renderers';
+import { AstraInlineRef } from '../src/renderers/AstraInlineRef';
+import { AstraValue } from '../src/renderers/AstraValue';
+import { AstraDecision } from '../src/renderers/AstraDecision';
+import { AstraFinding } from '../src/renderers/AstraFinding';
+import { AstraOutput } from '../src/renderers/AstraOutput';
+import { AstraPriorInsight } from '../src/renderers/AstraPriorInsight';
+import { AstraDataSources } from '../src/renderers/AstraDataSources';
+import { AstraSubanalysis } from '../src/renderers/AstraSubanalysis';
 
 const REF = 'span[class*="astra-ref"]';
 const VALUE = 'span[class*="astra-ref--value"]';

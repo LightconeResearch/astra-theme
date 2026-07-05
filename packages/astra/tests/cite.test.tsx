@@ -18,9 +18,9 @@ import type { GenericNode, References } from 'myst-common';
 import { renderWithProviders } from './helpers/renderWithProviders';
 import { makeStore } from './helpers/store';
 
-import { AstraCite, buildDoiCiteIndex, normalizeDoi } from '~/astra/cite';
-import { AstraPriorInsight } from '~/astra/renderers/AstraPriorInsight';
-import { AstraInlineRef } from '~/astra/renderers/AstraInlineRef';
+import { AstraCite, buildDoiCiteIndex, normalizeDoi } from '../src/cite';
+import { AstraPriorInsight } from '../src/renderers/AstraPriorInsight';
+import { AstraInlineRef } from '../src/renderers/AstraInlineRef';
 
 const DOI = '10.1051/0004-6361/202039070';
 

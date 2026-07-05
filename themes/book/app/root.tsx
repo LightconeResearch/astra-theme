@@ -27,9 +27,9 @@ import { useCallback } from 'react';
 
 // ── ASTRA overlay (the only ASTRA-aware code in the theme) ──────────────────
 // Merged LAST so its class-selector renderers win for `astra-*` nodes; every
-// other node falls back to the stock book-theme renderer. See app/astra/.
-import { ASTRA_RENDERERS } from '~/astra';
-import astraStyles from '../styles/astra.css';
+// other node falls back to the stock book-theme renderer. See packages/astra.
+import { ASTRA_RENDERERS } from '@astra-spec/theme-astra';
+import astraStyles from '@astra-spec/theme-astra/styles/astra.css';
 
 const RENDERERS: NodeRenderers = mergeRenderers([
   defaultRenderers,
