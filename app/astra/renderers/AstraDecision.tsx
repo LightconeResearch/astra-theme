@@ -91,6 +91,8 @@ export const AstraDecision: React.FC<{ node: GenericNode }> = ({ node }) => {
   // The prior insights cited by the options — shown under the Evidence segment
   // (the segment itself only renders when at least one insight resolves).
   const evidence = decisionEvidenceInsights(entry, store);
+  const views: DecisionView[] =
+    evidence.length > 0 ? ['narrative', 'options', 'evidence'] : ['narrative', 'options'];
 
   return (
     <details className={rootClass} data-kind={KIND} open>
@@ -100,42 +102,23 @@ export const AstraDecision: React.FC<{ node: GenericNode }> = ({ node }) => {
       <summary className="astra-decision__head">{labelFor(KIND)}</summary>
       {label ? <div className="astra-decision__title">{label}</div> : null}
 
-      {/* Segmented narrative | options toggle (default: narrative). The plain
-          <button> children inside `.astra-decision__toggle` get the CSS
-          descendant-button styling. */}
+      {/* Segmented narrative | options [| evidence] toggle (default: narrative).
+          The plain <button> children inside `.astra-decision__toggle` get the
+          CSS descendant-button styling. */}
       <div className="astra-decision__toggle" role="tablist" aria-label="Decision view">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={view === 'narrative'}
-          className={view === 'narrative' ? 'is-active' : undefined}
-          data-view="narrative"
-          onClick={() => setView('narrative')}
-        >
-          Narrative
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={view === 'options'}
-          className={view === 'options' ? 'is-active' : undefined}
-          data-view="options"
-          onClick={() => setView('options')}
-        >
-          Options
-        </button>
-        {evidence.length > 0 ? (
+        {views.map((v) => (
           <button
+            key={v}
             type="button"
             role="tab"
-            aria-selected={view === 'evidence'}
-            className={view === 'evidence' ? 'is-active' : undefined}
-            data-view="evidence"
-            onClick={() => setView('evidence')}
+            aria-selected={view === v}
+            className={view === v ? 'is-active' : undefined}
+            data-view={v}
+            onClick={() => setView(v)}
           >
-            Evidence
+            {v[0].toUpperCase() + v.slice(1)}
           </button>
-        ) : null}
+        ))}
       </div>
 
       {/* Narrative view — rationale prose. */}

@@ -64,32 +64,24 @@ interface Row {
   source?: string;
 }
 
-function inputRow(e: SerializedInput): Row {
-  return {
-    id: e.id,
-    label: e.label,
-    type: e.type,
-    description: e.description,
-    source: e.source ?? e.from,
-  };
-}
-
-function outputRow(e: SerializedOutput): Row {
-  return {
+/** Pull the ordered rows for a registry from the store (empty array on miss). */
+function rowsFor(store: ResolvedStore, registry: Registry): Row[] {
+  if (registry === 'inputs') {
+    return Object.values(store.inputs ?? {}).map((e: SerializedInput) => ({
+      id: e.id,
+      label: e.label,
+      type: e.type,
+      description: e.description,
+      source: e.source ?? e.from,
+    }));
+  }
+  return Object.values(store.outputs ?? {}).map((e: SerializedOutput) => ({
     id: e.id,
     label: e.label,
     type: e.type,
     description: e.description,
     source: e.recipe?.command ?? e.resolved_path ?? e.from,
-  };
-}
-
-/** Pull the ordered rows for a registry from the store (empty array on miss). */
-function rowsFor(store: ResolvedStore, registry: Registry): Row[] {
-  if (registry === 'inputs') {
-    return Object.values(store.inputs ?? {}).map(inputRow);
-  }
-  return Object.values(store.outputs ?? {}).map(outputRow);
+  }));
 }
 
 /** Maps a registry + entry type to a `.astra-type-glyph--<modifier>` suffix. */

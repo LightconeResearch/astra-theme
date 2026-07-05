@@ -65,32 +65,24 @@ export const AstraValue: React.FC<AstraValueProps> = ({ node }) => {
     return valueSpan;
   }
 
-  const description = entry.description;
-
   // Surface the underlying metric unit when this value came from a metric output.
   const unit = entry.metric?.unit ?? entry.metric?.units;
 
   return (
-    <PreviewCard
-      kind="value"
-      trigger={valueSpan}
-      children={
-        <>
-          <KindLabel kind="output" />
-          <Title>
-            <span className="astra-ref astra-ref--value">
-              {number}
-              {unit ? <span className="astra-card__unit"> {unit}</span> : null}
-            </span>
-          </Title>
-          {description ? (
-            <Desc>
-              <StoreProse text={description} />
-            </Desc>
-          ) : null}
-        </>
-      }
-    />
+    <PreviewCard kind="value" trigger={valueSpan}>
+      <KindLabel kind="output" />
+      <Title>
+        <span className="astra-ref astra-ref--value">
+          {number}
+          {unit ? <span className="astra-card__unit"> {unit}</span> : null}
+        </span>
+      </Title>
+      {entry.description ? (
+        <Desc>
+          <StoreProse text={entry.description} />
+        </Desc>
+      ) : null}
+    </PreviewCard>
   );
 };
 

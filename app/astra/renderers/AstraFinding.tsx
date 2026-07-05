@@ -23,19 +23,17 @@ import type { SerializedFinding } from '@astra-spec/store-types';
 /**
  * Decide whether this finding is in `:compact:` form (no notes). The plugin may
  * surface the directive option in a few neutral ways depending on stock-node
- * shape, so we look in all of them and degrade to `false`.
+ * shape — a modifier class, a `data.compact` / `data.astra.compact` flag, or a
+ * plain node property — so we look in all of them and degrade to `false`.
  */
 function isCompact(node: GenericNode): boolean {
-  const cls = typeof node.class === 'string' ? node.class : '';
-  if (/\bastra-finding--compact\b/.test(cls)) return true;
-  const data = (node.data ?? {}) as Record<string, unknown>;
-  if (data.compact === true) return true;
-  // Some pipelines stash directive options under `node.data.astra`.
-  const astra = data.astra as Record<string, unknown> | undefined;
-  if (astra && astra.compact === true) return true;
-  // Or directly as a node property (e.g. boolean directive flag).
-  if ((node as Record<string, unknown>).compact === true) return true;
-  return false;
+  const data = (node.data ?? {}) as { compact?: unknown; astra?: { compact?: unknown } };
+  return (
+    /\bastra-finding--compact\b/.test(typeof node.class === 'string' ? node.class : '') ||
+    data.compact === true ||
+    data.astra?.compact === true ||
+    (node as Record<string, unknown>).compact === true
+  );
 }
 
 export interface AstraFindingProps {

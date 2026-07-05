@@ -517,10 +517,8 @@ hr.astra-rule {
 .astra-card--value         { --astra-kind: var(--astra-c-value);    --astra-glyph: ""; }
 
 /* -----------------------------------------------------------------------------
-   5. Card diagrams
+   5. Card diagrams — data flow: a row of mono boxes joined by arrows
    -------------------------------------------------------------------------- */
-
-/* 5a. Data flow — row of mono boxes joined by arrows */
 .astra-flow {
   display: flex;
   align-items: stretch;
@@ -544,12 +542,6 @@ hr.astra-rule {
   text-overflow: ellipsis;
 }
 
-.astra-flow__node--accent {
-  color: var(--astra-kind);
-  border-color: var(--astra-kind);
-  background: color-mix(in srgb, var(--astra-kind) 12%, var(--astra-surface));
-}
-
 .astra-flow__arrow {
   display: inline-flex;
   align-items: center;
@@ -558,58 +550,6 @@ hr.astra-rule {
   font-size: 12px;
 }
 .astra-flow__arrow::before { content: "\25B8"; } /* ▸ */
-
-/* 5b. Provenance graph — nodes stacked with hairline connectors */
-.astra-prov {
-  position: relative;
-  margin: 0.4rem 0 0.2rem;
-  padding-left: 0.75rem;
-}
-
-.astra-prov__node {
-  position: relative;
-  font-family: var(--astra-mono);
-  font-size: 12px;
-  color: var(--astra-ink-soft);
-  padding: 0.25em 0 0.25em 0.9rem;
-}
-
-.astra-prov__node::before {
-  /* node dot */
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.7em;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--astra-surface);
-  border: 1.5px solid var(--astra-kind);
-}
-
-.astra-prov__node:not(:last-child)::after {
-  /* connector down to next node */
-  content: "";
-  position: absolute;
-  left: 2.5px;
-  top: 1.25em;
-  bottom: -0.25em;
-  width: 1px;
-  background: var(--astra-rule-strong);
-}
-
-.astra-prov__node--artifact::before {
-  background: var(--astra-kind);
-}
-
-.astra-prov__label {
-  font-family: var(--astra-label);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--astra-muted);
-  display: block;
-}
 
 /* -----------------------------------------------------------------------------
    6. Decision panel (block)
@@ -1215,27 +1155,7 @@ hr.astra-rule {
 }
 
 /* -----------------------------------------------------------------------------
-   12. Preview card popover (floating-ui wrapper)
-   -------------------------------------------------------------------------- */
-.astra-preview {
-  /* floating-ui sets position/top/left inline; we own appearance */
-  outline: none;
-}
-.astra-preview[hidden] { display: none; }
-
-.astra-preview__arrow {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  background: var(--astra-surface);
-  border: 1px solid var(--astra-rule);
-  border-top: 0;
-  border-left: 0;
-  transform: rotate(45deg);
-}
-
-/* -----------------------------------------------------------------------------
-   13. Dark mode — brand Charcoal (#221F20), as on the guidelines' dark pages:
+   12. Dark mode — brand Charcoal (#221F20), as on the guidelines' dark pages:
    parchment ink and Antique Gold accents on charcoal, kind hues lifted just
    enough to hold contrast.
    Keyed on `html.dark`, NOT `prefers-color-scheme`: book-theme's dark mode is

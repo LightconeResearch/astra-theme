@@ -24,7 +24,7 @@ import { PreviewCard } from './PreviewCard';
 import { StoreProse } from '../storeProse';
 
 /** Concatenated text content of a resolved cite node ("Chen et al., 2024"). */
-export function citeNodeText(node: GenericNode | undefined): string | undefined {
+function citeNodeText(node: GenericNode | undefined): string | undefined {
   if (!node) return undefined;
   const parts: string[] = [];
   const stack: GenericNode[] = [node];
@@ -42,7 +42,7 @@ export function citeNodeText(node: GenericNode | undefined): string | undefined 
  * The opening of a claim, clipped for one-line reference rows: the first
  * sentence when it is short enough, else a word-boundary cut with an ellipsis.
  */
-export function claimExcerpt(claim: string | undefined): string | undefined {
+function claimExcerpt(claim: string | undefined): string | undefined {
   if (!claim) return undefined;
   const text = claim.trim().replace(/\s+/g, ' ');
   if (!text) return undefined;
@@ -53,7 +53,7 @@ export function claimExcerpt(claim: string | undefined): string | undefined {
 }
 
 /** Reference-row name: label → claim excerpt → resolved citation text → id. */
-export function useInsightDisplayName(entry: SerializedInsight): string {
+function useInsightDisplayName(entry: SerializedInsight): string {
   const citeNode = useCiteNodeForDoi(entry.doi);
   return (
     entry.label ?? claimExcerpt(entry.claim) ?? citeNodeText(citeNode) ?? entry.id
