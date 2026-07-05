@@ -2,15 +2,15 @@
  * Barrel for the shared card primitives + diagram sub-views used by both the
  * inline-token preview cards and the block renderers.
  */
-export { PreviewCard, default as PreviewCardDefault } from './PreviewCard';
+export { PreviewCard } from './PreviewCard';
 export type { PreviewCardProps } from './PreviewCard';
 
 export { KindLabel, Title, Desc, SectionLabel } from './CardChrome';
 
-export { InsightCard, InsightRef, useInsightDisplayName } from './InsightCard';
+export { InsightCard, InsightRef } from './InsightCard';
 
-export { DataFlow, ProvenanceGraph } from './diagrams';
-export type { DataFlowProps, ProvenanceGraphProps } from './diagrams';
+export { DataFlow } from './diagrams';
+export type { DataFlowProps } from './diagrams';
 
 /**
  * Namespace import convenience: `import { CardChrome } from '../card'` then

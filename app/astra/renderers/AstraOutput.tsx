@@ -15,11 +15,7 @@
 import * as React from 'react';
 import type { GenericNode } from 'myst-common';
 import { MyST } from 'myst-to-react';
-import {
-  useAstraStore,
-  useEntryByIdentifier,
-  parseCarrierId,
-} from '../store/useAstraStore';
+import { useAstraStore, useEntryByIdentifier } from '../store/useAstraStore';
 import { PreviewCard } from '../card/PreviewCard';
 import { DecisionCard } from './AstraInlineRef';
 import { StoreProse } from '../storeProse';
@@ -293,6 +289,3 @@ function isOutput(entry: unknown): entry is SerializedOutput {
 }
 
 export default AstraOutput;
-
-// Re-export the carrier-id parser for callers that want the raw {prefix,id}.
-export { parseCarrierId };

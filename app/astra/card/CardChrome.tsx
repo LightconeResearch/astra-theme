@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { glyphFor, labelFor } from '../glyphs';
+import { labelFor } from '../glyphs';
 
 /**
  * The kind row of a card: the glyph is supplied by CSS via the kind element's
@@ -11,16 +11,13 @@ import { glyphFor, labelFor } from '../glyphs';
  * renderers placed inside `.astra-finding` / `.astra-subanalysis` etc. pass
  * their block's own kind class (e.g. `astra-finding__kind`) via `className` so
  * the block's `::before` glyph + accent applies instead of the card one.
- *
- * The `value` kind has no label and no glyph, so this renders nothing for it.
  */
 export const KindLabel: React.FC<{ kind: string; className?: string }> = ({
   kind,
   className = 'astra-card__kind',
 }) => {
-  const glyph = glyphFor(kind);
   const label = labelFor(kind);
-  if (!label && !glyph) return null;
+  if (!label) return null;
   return <div className={className}>{label}</div>;
 };
 

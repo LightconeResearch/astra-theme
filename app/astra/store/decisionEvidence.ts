@@ -18,22 +18,14 @@ export function decisionEvidenceInsights(
   decision: SerializedDecision,
   store: ResolvedStore | undefined,
 ): SerializedInsight[] {
-  const byOption = decision.option_insights ?? {};
-  const ordered: string[] = [];
-  if (decision.selected && byOption[decision.selected]) {
-    ordered.push(...byOption[decision.selected]);
-  }
-  for (const [optId, ids] of Object.entries(byOption)) {
-    if (optId === decision.selected) continue;
-    ordered.push(...(ids ?? []));
-  }
-  const seen = new Set<string>();
-  const out: SerializedInsight[] = [];
-  for (const id of ordered) {
-    if (seen.has(id)) continue;
-    seen.add(id);
-    const ins = store?.prior_insights?.[id];
-    if (ins) out.push(ins);
-  }
-  return out;
+  const { selected, option_insights: byOption = {} } = decision;
+  const ordered = [
+    ...(selected ? byOption[selected] ?? [] : []),
+    ...Object.entries(byOption)
+      .filter(([optId]) => optId !== selected)
+      .flatMap(([, ids]) => ids ?? []),
+  ];
+  return [...new Set(ordered)]
+    .map((id) => store?.prior_insights?.[id])
+    .filter((ins): ins is SerializedInsight => ins != null);
 }
