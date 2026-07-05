@@ -68,6 +68,14 @@ export const AstraValue: React.FC<AstraValueProps> = ({ node }) => {
   // Surface the underlying metric unit when this value came from a metric output.
   const unit = entry.metric?.unit ?? entry.metric?.units;
 
+  // The selection that produced THIS number — the plugin stamps the role's
+  // `col=` / `where=` options (and the product label) onto the span, so the
+  // card can say which cell of which product it is, not just repeat the
+  // product's caption (which is identical for every value pulled from it).
+  const col = astra.col;
+  const where = astra.filter;
+  const product = entry.label ?? astra.product;
+
   return (
     <PreviewCard kind="value" trigger={valueSpan}>
       <KindLabel kind="output" />
@@ -77,6 +85,15 @@ export const AstraValue: React.FC<AstraValueProps> = ({ node }) => {
           {unit ? <span className="astra-card__unit"> {unit}</span> : null}
         </span>
       </Title>
+      {col || where || product ? (
+        <div className="astra-value__selection">
+          {col ? <code className="astra-value__col">{col}</code> : null}
+          {where ? <span className="astra-value__where">{where}</span> : null}
+          {product ? (
+            <span className="astra-value__product">from {product}</span>
+          ) : null}
+        </div>
+      ) : null}
       {entry.description ? (
         <Desc>
           <StoreProse text={entry.description} />

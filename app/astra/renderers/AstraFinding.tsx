@@ -56,7 +56,7 @@ export function AstraFinding({ node }: AstraFindingProps): React.ReactElement {
   // Graceful degradation: no joined entry -> render the node's stock children.
   if (!entry) {
     return (
-      <div className={rootClass}>
+      <div className={rootClass} id={node.identifier}>
         <MyST ast={node.children} />
       </div>
     );
@@ -66,7 +66,9 @@ export function AstraFinding({ node }: AstraFindingProps): React.ReactElement {
   const claim = entry.claim ?? entry.label;
 
   return (
-    <div className={rootClass}>
+    // The carrier's `finding-<id>` identifier becomes the anchor id so
+    // cross-page `#finding-<id>` links resolve to the placed card.
+    <div className={rootClass} id={node.identifier}>
       <KindLabel kind="finding" className="astra-finding__kind" />
 
       {claim ? (

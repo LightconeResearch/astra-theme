@@ -51,12 +51,19 @@ export const ASTRA_RENDERERS: NodeRenderers = {
     'paragraph[class*="astra-output"]': AstraOutput,
   },
 
-  // Decision + finding blocks — the plugin stamps `astra-decision` /
-  // `astra-finding` on a `heading` carrier (verified against the real build).
+  // Decision + finding blocks. Since MySTRA#11 the plugin emits a `div`
+  // carrier with the whole neutral fallback nested inside (replacing the
+  // carrier replaces the fallback — no double render); plugin releases
+  // ≤ v0.0.5 stamped the classes on a bare `heading` carrier with the
+  // fallback as siblings, so both buckets stay registered for back-compat.
   // The component body (rationale/options, claim/notes/scope) comes from the
-  // store entry keyed by the heading identifier, not the heading's children.
+  // store entry keyed by the carrier identifier, not the carrier's children.
   // (An option heading (`astra-option`) intentionally has no override: a
   // single placed option reads fine as the stock heading + prose.)
+  div: {
+    'div[class*="astra-decision"]': AstraDecision,
+    'div[class*="astra-finding"]': AstraFinding,
+  },
   heading: {
     'heading[class*="astra-decision"]': AstraDecision,
     'heading[class*="astra-finding"]': AstraFinding,

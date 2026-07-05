@@ -74,8 +74,14 @@ export const AstraDecision: React.FC<{ node: GenericNode }> = ({ node }) => {
 
   // Preserve whatever astra-* classes the carrier already declares so the
   // stylesheet's `.astra-decision` (and any future modifiers) still apply, and
-  // self-set the kind modifier that plumbs the per-kind accent var.
-  const rootClass = ['astra-decision', node.class].filter(Boolean).join(' ');
+  // self-set the kind modifier that plumbs the per-kind accent var. The Set
+  // dedupes against the carrier's own `astra-decision`.
+  const rootClass = Array.from(
+    new Set([
+      'astra-decision',
+      ...String(node.class ?? '').split(/\s+/).filter(Boolean),
+    ]),
+  ).join(' ');
 
   // ── Graceful fallback ──────────────────────────────────────────────────────
   // No store, no table, or no matching id → render the stock details children.
@@ -95,7 +101,10 @@ export const AstraDecision: React.FC<{ node: GenericNode }> = ({ node }) => {
     evidence.length > 0 ? ['narrative', 'options', 'evidence'] : ['narrative', 'options'];
 
   return (
-    <details className={rootClass} data-kind={KIND} open>
+    // The carrier's `decision-<id>` identifier becomes the anchor id — the
+    // provenance drawer links to `/<scope>#decision-<id>` and cross-page
+    // MyST anchors rely on it.
+    <details className={rootClass} data-kind={KIND} id={node.identifier} open>
       {/* The native <summary> is the kind row: it carries the uppercase sans
           styling and supplies the ◇ glyph via `.astra-decision > summary::before`.
           The title sits below it. */}
@@ -121,16 +130,16 @@ export const AstraDecision: React.FC<{ node: GenericNode }> = ({ node }) => {
         ))}
       </div>
 
-      {/* Narrative view — rationale prose. */}
-      {view === 'narrative' ? (
+      {/* Narrative view — rationale prose. A missing rationale renders an
+          empty view (the footer still names the default): since MySTRA#11 the
+          carrier's children are the ENTIRE neutral fallback (heading +
+          dropdown), so rendering them here would nest a second copy of the
+          decision inside the rich panel. */}
+      {view === 'narrative' && rationale ? (
         <div className="astra-decision__rationale">
-          {rationale ? (
-            <p>
-              <StoreProse text={rationale} />
-            </p>
-          ) : (
-            <MyST ast={node.children} />
-          )}
+          <p>
+            <StoreProse text={rationale} />
+          </p>
         </div>
       ) : null}
 

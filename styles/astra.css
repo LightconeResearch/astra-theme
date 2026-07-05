@@ -352,9 +352,26 @@ hr.astra-rule {
 .astra-ref--value:hover { text-decoration-color: var(--astra-c-value); }
 .astra-ref--value::before { content: none; }
 
+/* A navigable ref token (sub-analysis → its page): the inner span already
+   carries the full ref styling, so the anchor itself stays invisible. */
+.astra-ref-anchor,
+.astra-ref-anchor:hover {
+  text-decoration: none;
+  color: inherit;
+}
+
 /* -----------------------------------------------------------------------------
    4. Card chrome (shared by the floating preview + placed cards)
    -------------------------------------------------------------------------- */
+
+/* The floating-ui portal wrapper is the positioned element, so the stacking
+   order must live HERE (a z-index on the static .astra-card inside it is
+   ignored) — it has to beat the book theme's sticky TOC (z-10) and the fixed
+   rail (z-40), or open cards render clipped underneath them. */
+.astra-card-portal {
+  z-index: 60;
+}
+
 .astra-card {
   --astra-kind: var(--astra-accent);
   width: var(--astra-card-w);
@@ -370,7 +387,23 @@ hr.astra-rule {
   color: var(--astra-ink);
   font-size: 15px;
   line-height: 1.5;
-  z-index: 60;
+  /* Height cap set by PreviewCard's `size` middleware (viewport-available
+     space); the inner scroll layer absorbs the overflow. Unset for placed
+     (non-floating) cards, where the var never gets defined. */
+  max-height: var(--astra-card-max-h, none);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Scrollable body of a floating card: overflow lives one layer inside the
+   card so the protruding arrow is never clipped. `min-height: 0` lets the
+   flex child actually shrink below its content height. */
+.astra-card__scroll {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--astra-faint) transparent;
 }
 
 .astra-card__kind {
@@ -413,6 +446,34 @@ hr.astra-rule {
   font-size: 0.7em;
   color: var(--astra-muted);
   margin-left: 0.25em;
+}
+
+/* the selection line in a value card: which column/row of which product the
+   interpolated number came from ("alpha1_std · tracer=elg1, recon=Pre · from
+   BAO dilation parameters") */
+.astra-value__selection {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5em;
+  margin: -0.35rem 0 0.6rem;
+  font-family: var(--astra-label);
+  font-size: 12px;
+  color: var(--astra-muted);
+}
+.astra-value__col,
+.astra-value__where {
+  font-family: var(--astra-mono);
+  font-size: 11px;
+  color: var(--astra-ink-soft);
+}
+.astra-value__col {
+  background: var(--astra-surface-2);
+  padding: 0.1em 0.4em;
+  border-radius: 3px;
+}
+.astra-value__product {
+  font-style: italic;
 }
 
 .astra-card__section {
@@ -554,6 +615,19 @@ hr.astra-rule {
 /* -----------------------------------------------------------------------------
    6. Decision panel (block)
    -------------------------------------------------------------------------- */
+
+/* BACK-COMPAT with plugin releases ≤ v0.0.5 (MySTRA#9): those emitted the
+   neutral fallback ("<label> — selected: <option>" dropdown) as a SIBLING of
+   the decision carrier, so once the rich panel rendered the reader saw the
+   decision twice. Hide the stock dropdown only when it directly follows a
+   rendered panel — on store-less pages the panel doesn't render (the fallback
+   branch emits no .astra-decision element) and the dropdown stays visible.
+   From MySTRA#11 on the fallback is nested inside the carrier and this
+   selector matches nothing; drop it when pre-#11 plugins no longer matter. */
+details.astra-decision + details.myst-dropdown {
+  display: none;
+}
+
 .astra-decision {
   --astra-kind: var(--astra-c-decision);
   --astra-glyph: "\25C7";
@@ -705,12 +779,17 @@ hr.astra-rule {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--astra-kind) 16%, transparent);
 }
 
-/* excluded option — muted, soft strikethrough affordance */
+/* Non-selected option — dimmed, NOT struck through: alternatives are usually
+   legitimate sensitivity variants (MultiGrid, polynomial broadband), and a
+   strikethrough reads as "wrong/invalid". Reserve the strike for options the
+   author explicitly excluded (an `excluded_reason` is present). */
 .astra-option--excluded {
   opacity: 0.72;
 }
 .astra-option--excluded .astra-option__label {
   color: var(--astra-muted);
+}
+.astra-option--excluded:has(.astra-option__reason) .astra-option__label {
   text-decoration: line-through;
   text-decoration-color: var(--astra-faint);
   text-decoration-thickness: 1px;
@@ -1011,6 +1090,17 @@ hr.astra-rule {
 /* -----------------------------------------------------------------------------
    10. Registry tables (inputs / outputs)
    -------------------------------------------------------------------------- */
+/* Wide registries (long mono ids, source paths) scroll inside the article
+   column — without this the table pushes the page into horizontal panning. */
+.astra-registry-scroll {
+  overflow-x: auto;
+  margin: 1.5rem 0;
+}
+.astra-registry-scroll > .astra-inputs,
+.astra-registry-scroll > .astra-outputs {
+  margin: 0;
+}
+
 .astra-inputs,
 .astra-outputs {
   width: 100%;
@@ -1064,6 +1154,18 @@ hr.astra-rule {
   font-family: var(--astra-mono);
   font-size: 12px;
   color: var(--astra-ink);
+}
+
+/* The source/recipe line under a registry description: its own dimmed line
+   (not run-on with the prose), wrapping anywhere so an unbreakable
+   /global/cfs/… path cannot widen the column. */
+.astra-ds__source {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 11px;
+  color: var(--astra-muted);
+  word-break: break-all;
+  max-width: 60ch;
 }
 
 /* per-type glyph in front of an id/label */
@@ -1191,4 +1293,33 @@ html.dark {
   --astra-c-value: #6FA0AE;
 
   --astra-shadow: 0 6px 18px rgba(0, 0, 0, .45);
+}
+
+/* Transparent-background figure PNGs (matplotlib default) are unreadable on
+   charcoal — dark axis labels vanish. Give artifact images a paper backdrop
+   in dark mode; images that already carry a white background are unchanged
+   visually. Applies to placed figures, hover-card thumbnails, and finding
+   evidence thumbs. */
+html.dark .astra-output img,
+html.dark .astra-output__thumb img,
+html.dark .astra-evidence__thumb img {
+  background: #FBF9F4;
+  border-radius: 3px;
+}
+
+/* -----------------------------------------------------------------------------
+   14. Site-chrome fixes
+   -------------------------------------------------------------------------- */
+
+/* The brand wordmark renders at a fixed h-9, which is ~260px wide — wider
+   than a phone viewport allows once the search button joins it, so the whole
+   page pans horizontally. Let the logo scale down on small screens. */
+@media (max-width: 640px) {
+  .myst-home-link img {
+    max-width: 44vw;
+    height: auto;
+  }
+  .myst-top-nav-bar > div:first-child {
+    min-width: 0;
+  }
 }

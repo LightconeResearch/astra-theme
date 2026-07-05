@@ -111,7 +111,11 @@ export const AstraDataSources: React.FC<{ node: GenericNode }> = ({ node }) => {
   const firstCol = registry === 'inputs' ? 'Input' : 'Output';
 
   return (
-    <table className={cls || `astra-${registry}`}>
+    // The wrapper keeps a wide registry (long mono ids + source paths)
+    // scrolling inside the article column instead of panning the whole page —
+    // stock MyST tables get the same treatment from the book theme.
+    <div className="astra-registry-scroll">
+      <table className={cls || `astra-${registry}`}>
       <caption>{heading}</caption>
       <thead>
         <tr>
@@ -155,7 +159,8 @@ export const AstraDataSources: React.FC<{ node: GenericNode }> = ({ node }) => {
           );
         })}
       </tbody>
-    </table>
+      </table>
+    </div>
   );
 };
 

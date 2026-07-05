@@ -234,19 +234,35 @@ const FindingCard: React.FC<{ entry: SerializedFinding }> = ({ entry }) => {
   );
 };
 
+/** Pluralize a count for the sub-analysis footer ("1 decision · 8 outputs"). */
+function plural(n: number, one: string): string {
+  return `${n} ${n === 1 ? one : `${one}s`}`;
+}
+
 const AnalysisCard: React.FC<{ entry: SerializedSubAnalysis }> = ({ entry }) => {
   const title = entry.name ?? entry.id;
-  const flowNodes = clean([entry.name, entry.summary ? 'summary' : undefined]);
   return (
     <>
       <CardChrome.KindLabel kind="analysis" />
-      <CardChrome.Title>{title}</CardChrome.Title>
+      <CardChrome.Title>
+        {entry.url ? (
+          <a className="astra-subanalysis__link" href={entry.url}>
+            {title}
+          </a>
+        ) : (
+          title
+        )}
+      </CardChrome.Title>
       {entry.summary ? (
         <CardChrome.Desc>
           <StoreProse text={entry.summary} />
         </CardChrome.Desc>
       ) : null}
-      {flowNodes.length > 1 ? <DataFlow nodes={flowNodes} /> : null}
+      {/* Same counts footer as the placed nav card — the hover card should
+          tell the reader something the token's own word didn't. */}
+      <div className="astra-subanalysis__counts">
+        {plural(entry.decisions, 'decision')} · {plural(entry.outputs, 'output')}
+      </div>
     </>
   );
 };
@@ -365,6 +381,20 @@ export const AstraInlineRef: React.FC<{ node: GenericNode }> = ({ node }) => {
     return <>{token}</>;
   }
 
+  // A sub-analysis token is a real navigation target — its page URL is in the
+  // store — so make the click do what the pointer cursor promises. The link
+  // wraps the token INSIDE the hover trigger: hover still previews, click
+  // navigates. Other kinds have no canonical page and stay hover-only.
+  const analysisUrl =
+    kind === 'analysis' ? (entry as SerializedSubAnalysis).url : undefined;
+  const trigger = analysisUrl ? (
+    <a className="astra-ref-anchor" href={analysisUrl}>
+      {token}
+    </a>
+  ) : (
+    token
+  );
+
   // Prior insights are literature claims: when the insight carries a DOI the
   // resolved citation is appended inline — "…consistent α's (Chen et al.,
   // 2024)" — exactly as a manually-cited sentence would read. The citation is
@@ -375,7 +405,7 @@ export const AstraInlineRef: React.FC<{ node: GenericNode }> = ({ node }) => {
 
   return (
     <>
-      <PreviewCard kind={kind} trigger={token}>
+      <PreviewCard kind={kind} trigger={trigger}>
         {body}
       </PreviewCard>
       {insightDoi ? (

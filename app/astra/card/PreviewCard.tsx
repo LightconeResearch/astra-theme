@@ -12,6 +12,7 @@ import {
   offset,
   flip,
   shift,
+  size,
   arrow,
   safePolygon,
   FloatingPortal,
@@ -73,6 +74,21 @@ const PreviewCardInner: React.FC<PreviewCardProps> = ({ trigger, children, kind 
       offset(ARROW_HEIGHT + GAP),
       flip({ padding: 8 }),
       shift({ padding: 8 }),
+      // Cap the card at the space actually available between the trigger and
+      // the viewport edge — a long decision rationale otherwise pushes the
+      // card's top off-screen where it can't be read or reached (hovering
+      // away closes the card). The cap lands on a CSS var so the card's inner
+      // scroll region (`.astra-card__scroll`) absorbs the overflow while the
+      // arrow stays pinned to the card edge.
+      size({
+        padding: 12,
+        apply({ availableHeight, elements }) {
+          elements.floating.style.setProperty(
+            '--astra-card-max-h',
+            `${Math.max(180, availableHeight)}px`,
+          );
+        },
+      }),
       arrow({ element: arrowRef, padding: 8 }),
     ],
   });
@@ -136,7 +152,10 @@ const PreviewCardInner: React.FC<PreviewCardProps> = ({ trigger, children, kind 
                 className={`astra-card astra-card--${kind}`}
                 style={transitionStyles}
               >
-                {children}
+                {/* The scroll region is a separate layer so a size-capped card
+                    scrolls its body while the arrow (which protrudes past the
+                    card edge) is never clipped by the overflow. */}
+                <div className="astra-card__scroll">{children}</div>
                 <FloatingArrow
                   ref={arrowRef}
                   context={context}
