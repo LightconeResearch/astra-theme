@@ -15,7 +15,7 @@
     "build:thebe": "copy-thebe-assets ./public",
     "build": "npm run prod:copy && npm run build:thebe && npm run build:css && remix build",
     "dev": "npm run dev:copy && npm run build:thebe && npm run build:css && remix dev",
-    "start": "node ../../server.js",
+    "start": "node ./server.js",
     "typecheck": "tsc --noEmit --skipLibCheck",
     "clean": "rm -rf public/build build app/styles/app.css remix.config.js"
   },

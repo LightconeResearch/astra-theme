@@ -1,7 +1,7 @@
 {
   "name": "@astra-spec/astra-theme",
   "version": "0.0.7",
-  "description": "Rich MyST web themes for ASTRA analyses — the presentation half of the @astra-spec/mystra pair. One repo, two templates: an article theme (extends @myst-theme/article) and a book theme (extends @myst-theme/book), both layering the shared ASTRA overlay (packages/astra).",
+  "description": "Rich MyST web themes for ASTRA analyses \u2014 the presentation half of the @astra-spec/mystra pair. One repo, two templates: an article theme (extends @myst-theme/article) and a book theme (extends @myst-theme/book), both layering the shared ASTRA overlay (packages/astra).",
   "license": "BSD-3-Clause",
   "private": true,
   "engines": {
@@ -23,7 +23,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "clean": "npm run clean --workspaces --if-present",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package && mkdir -p themes/article/node_modules themes/book/node_modules"
   },
   "devDependencies": {
     "@remix-run/dev": "~1.19.0",
@@ -45,7 +45,8 @@
     "vitest": "^2.1.9"
   },
   "comments": {
-    "overrides": "Force a single React 19 across the whole tree — jupyterlab/thebe deps pull React 18, which would bundle multiple React copies into the server build and break SSR hooks. Mirrors @myst-theme upstream."
+    "overrides": "Force a single React 19 across the whole tree \u2014 jupyterlab/thebe deps pull React 18, which would bundle multiple React copies into the server build and break SSR hooks. Mirrors @myst-theme upstream.",
+    "postinstall": "The empty themes/*/node_modules dirs make a built local checkout directly usable as site.template: myst skips its template install step when node_modules exists (deps are hoisted to the repo root)."
   },
   "overrides": {
     "react": "^19.2.4",

@@ -84,7 +84,7 @@ jobs:
           rm -rf dist-publish
           mkdir -p dist-publish
           # exactly the set declared in template.yml `files:`, plus the manifest + legal
-          cp "$theme/template.yml" server.js dist-publish/
+          cp "$theme/template.yml" "$theme/server.js" dist-publish/
           cp -r "$theme/build" "$theme/public" dist-publish/
           for f in LICENSE NOTICE; do [ -f "$f" ] && cp "$f" dist-publish/; done
           # Minimal runtime manifest: only what server.js requires — the Remix
@@ -107,7 +107,7 @@ jobs:
           };
           fs.writeFileSync('dist-publish/package.json', JSON.stringify(pkg, null, 2) + '\n');
           EOF
-          # Lockfile for the runtime manifest so template.yml's `npm ci` works.
+          # Lockfile so the deploy repo is reproducibly runnable standalone (npm ci).
           (cd dist-publish && npm install --package-lock-only --ignore-scripts)
           cat > dist-publish/README.md <<EOF
           # astra ${{ matrix.theme }} theme (published build)

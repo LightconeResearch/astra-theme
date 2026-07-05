@@ -21,7 +21,7 @@ remain under the MIT License:
   themes/*/app/components/**
   themes/*/app/utils/**
   themes/*/styles/**
-  server.js
+  themes/*/server.js
   themes/*/remix.config.prod.js, themes/*/remix.config.dev.js
   themes/*/tailwind.config.js, themes/*/tsconfig.json, themes/*/remix.env.d.ts,
   .eslintrc.js

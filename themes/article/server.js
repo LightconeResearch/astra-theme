@@ -1,8 +1,8 @@
-// Production server shared by both astra MyST site templates (themes/article,
-// themes/book). Serves the compiled Remix build (build/ + public/, resolved
-// from the working directory) over Express — this is what `myst start` runs
-// (template.yml → build.start → npm start). In the published artifacts CI
-// copies this file next to each theme's build output.
+// Production server for this astra MyST site template. Serves the compiled
+// Remix build (build/ + public/, resolved from the working directory) over
+// Express — this is what `myst start` runs (template.yml → build.start →
+// npm start → node ./server.js). Kept byte-identical in themes/article and
+// themes/book.
 const path = require('path');
 const express = require('express');
 const getPort = require('get-port');

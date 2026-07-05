@@ -73,11 +73,14 @@ options:
     id: style
     description: Local path to an extra CSS file (layered on top of the ASTRA stylesheet)
 build:
-  install: npm ci --ignore-scripts
+  # The published artifact ships a minimal runtime package.json (server deps
+  # only — the Remix build bundles everything else), so a plain npm install
+  # works with or without a lockfile. That also lets `site.template` point at
+  # a local source checkout of this theme (build it first: npm run build).
+  install: npm install --ignore-scripts
   start: npm run start
 files:
   - server.js
   - package.json
-  - package-lock.json
   - public/**/*
   - build/**/*
