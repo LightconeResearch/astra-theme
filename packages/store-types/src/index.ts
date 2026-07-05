@@ -156,13 +156,22 @@ export interface ResolvedStore {
 
 // ── Inline-reference vocabulary ─────────────────────────────────────────────
 
-/** The kinds an inline `{astra:*}` role can carry on `node.data.astra`. */
+/**
+ * The kinds an inline `{astra}` / `{astra:*}` role can carry on
+ * `node.data.astra` (the unified-path grammar's inline vocabulary).
+ * `option`, `evidence` and `universe` have no store table of their own —
+ * refs of those kinds degrade to the plain labelled token.
+ */
 export type AstraKind =
   | 'decision'
   | 'output'
   | 'finding'
   | 'prior_insight'
   | 'analysis'
+  | 'input'
+  | 'option'
+  | 'evidence'
+  | 'universe'
   | 'value';
 
 /** Keys of the `ResolvedStore` tables a join can target. */
@@ -177,13 +186,16 @@ export type StoreTable =
 /**
  * Maps an inline `AstraKind` to its `ResolvedStore` table key.
  * `value` joins the `outputs` table (a value is a projection of an output).
+ * Kinds without a store table (`option`, `evidence`, `universe`) are absent:
+ * lookups return `undefined` and the caller degrades to the bare token.
  */
-export const KIND_TO_TABLE: Record<AstraKind, StoreTable> = {
+export const KIND_TO_TABLE: Partial<Record<AstraKind, StoreTable>> = {
   decision: 'decisions',
   output: 'outputs',
   finding: 'findings',
   prior_insight: 'prior_insights',
   analysis: 'subanalyses',
+  input: 'inputs',
   value: 'outputs',
 };
 

@@ -19,6 +19,7 @@ import type { SerializedInsight } from '@astra-spec/store-types';
 import { useEntryByIdentifier } from '../store/useAstraStore';
 import { labelFor } from '../glyphs';
 import { AstraCite } from '../cite';
+import { StoreProse } from '../storeProse';
 
 export const AstraPriorInsight: React.FC<{ node: GenericNode }> = ({ node }) => {
   const entry = useEntryByIdentifier(node.identifier) as
@@ -47,14 +48,26 @@ export const AstraPriorInsight: React.FC<{ node: GenericNode }> = ({ node }) => 
     <aside className={className || 'astra-prior-insight'}>
       <div className="astra-prior-insight__kind">
         {labelFor('prior_insight')}
-        {scope ? <span className="astra-scope-chip">{scope}</span> : null}
+        {scope ? (
+          <span className="astra-scope-chip">
+            <StoreProse text={scope} />
+          </span>
+        ) : null}
       </div>
 
       {label ? <div className="astra-card__title">{label}</div> : null}
 
-      {claim ? <div className="astra-insight__claim">{claim}</div> : null}
+      {claim ? (
+        <div className="astra-insight__claim">
+          <StoreProse text={claim} />
+        </div>
+      ) : null}
 
-      {quote ? <blockquote className="astra-quote">{quote}</blockquote> : null}
+      {quote ? (
+        <blockquote className="astra-quote">
+          <StoreProse text={quote} />
+        </blockquote>
+      ) : null}
 
       {doi ? (
         <div className="astra-cite">

@@ -22,6 +22,7 @@ import * as React from 'react';
 import type { GenericNode } from 'myst-common';
 import { MyST } from 'myst-to-react';
 import { useAstraStore } from '../store/useAstraStore';
+import { StoreProse } from '../storeProse';
 import type {
   ResolvedStore,
   SerializedInput,
@@ -148,7 +149,9 @@ export const AstraDataSources: React.FC<{ node: GenericNode }> = ({ node }) => {
               <td>{row.type ?? '—'}</td>
               <td>
                 {row.description ? (
-                  <span className="astra-ds__desc">{row.description}</span>
+                  <span className="astra-ds__desc">
+                    <StoreProse text={row.description} />
+                  </span>
                 ) : null}
                 {row.source ? (
                   <code className="astra-ds__source">{row.source}</code>

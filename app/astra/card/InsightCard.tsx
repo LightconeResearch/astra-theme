@@ -21,6 +21,7 @@ import type { SerializedInsight } from '@astra-spec/store-types';
 import { AstraCite, useCiteNodeForDoi } from '../cite';
 import { KindLabel, Desc } from './CardChrome';
 import { PreviewCard } from './PreviewCard';
+import { StoreProse } from '../storeProse';
 
 /** Concatenated text content of a resolved cite node ("Chen et al., 2024"). */
 export function citeNodeText(node: GenericNode | undefined): string | undefined {
@@ -64,8 +65,16 @@ export const InsightCard: React.FC<{ entry: SerializedInsight }> = ({ entry }) =
   return (
     <>
       <KindLabel kind="prior_insight" />
-      {entry.claim ? <Desc>{entry.claim}</Desc> : null}
-      {entry.quote ? <div className="astra-quote">{entry.quote}</div> : null}
+      {entry.claim ? (
+        <Desc>
+          <StoreProse text={entry.claim} />
+        </Desc>
+      ) : null}
+      {entry.quote ? (
+        <div className="astra-quote">
+          <StoreProse text={entry.quote} />
+        </div>
+      ) : null}
       {entry.doi ? (
         <div className="astra-cite">
           <AstraCite doi={entry.doi} />

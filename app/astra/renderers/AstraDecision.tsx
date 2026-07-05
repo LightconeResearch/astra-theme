@@ -24,6 +24,7 @@ import { decisionEvidenceInsights } from '../store/decisionEvidence';
 import { InsightRef } from '../card';
 import { AstraCite } from '../cite';
 import { labelFor } from '../glyphs';
+import { StoreProse } from '../storeProse';
 
 const KIND = 'decision' as const;
 
@@ -53,7 +54,9 @@ const EvidenceItem: React.FC<{ ins: SerializedInsight }> = ({ ins }) => {
     <li className="astra-evidence__item">
       <InsightRef entry={ins} tag="prior insight" />
       {ins.label && ins.claim ? (
-        <div className="astra-evidence__note">{ins.claim}</div>
+        <div className="astra-evidence__note">
+          <StoreProse text={ins.claim} />
+        </div>
       ) : null}
       {ins.doi ? (
         <div className="astra-cite">
@@ -138,7 +141,13 @@ export const AstraDecision: React.FC<{ node: GenericNode }> = ({ node }) => {
       {/* Narrative view — rationale prose. */}
       {view === 'narrative' ? (
         <div className="astra-decision__rationale">
-          {rationale ? <p>{rationale}</p> : <MyST ast={node.children} />}
+          {rationale ? (
+            <p>
+              <StoreProse text={rationale} />
+            </p>
+          ) : (
+            <MyST ast={node.children} />
+          )}
         </div>
       ) : null}
 

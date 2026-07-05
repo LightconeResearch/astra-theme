@@ -12,6 +12,12 @@ export const GLYPHS: Record<AstraKind, string> = {
   finding: '●',
   analysis: '◐',
   output: '◆',
+  input: '▤',
+  // An option belongs to the decision family and shares its open-diamond.
+  option: '◇',
+  // Evidence / universe refs have no card or glyph; they read as plain tokens.
+  evidence: '',
+  universe: '',
   value: '',
 };
 
@@ -25,6 +31,7 @@ export const KIND_LABELS: Record<string, string> = {
   finding: 'FINDING',
   analysis: 'SUB-ANALYSIS',
   output: 'OUTPUT',
+  input: 'INPUT',
 };
 
 /**
@@ -38,6 +45,8 @@ export const kindToCssVar: Record<string, string> = {
   finding: '--astra-c-finding',
   analysis: '--astra-c-analysis',
   output: '--astra-c-output',
+  input: '--astra-c-input',
+  option: '--astra-c-decision',
   value: '--astra-c-value',
 };
 

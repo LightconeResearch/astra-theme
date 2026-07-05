@@ -41,9 +41,9 @@ export const ASTRA_RENDERERS: NodeRenderers = {
     'span[class*="astra-ref--value"]': AstraValue,
   },
 
-  // astra:output — the carrier is usually a `container` (figure/table), but a
-  // metric/data output lands on a `paragraph` carrier. Register both so either
-  // carrier type resolves to AstraOutput.
+  // An output block (`:::{astra} outputs/<id>`) — the carrier is usually a
+  // `container` (figure/table), but a metric/data output lands on a `paragraph`
+  // carrier. Register both so either carrier type resolves to AstraOutput.
   container: {
     'container[class*="astra-output"]': AstraOutput,
   },
@@ -51,27 +51,32 @@ export const ASTRA_RENDERERS: NodeRenderers = {
     'paragraph[class*="astra-output"]': AstraOutput,
   },
 
-  // astra:decision + astra:finding — the plugin stamps `astra-decision` /
+  // Decision + finding blocks — the plugin stamps `astra-decision` /
   // `astra-finding` on a `heading` carrier (verified against the real build).
   // The component body (rationale/options, claim/notes/scope) comes from the
   // store entry keyed by the heading identifier, not the heading's children.
+  // (An option heading (`astra-option`) intentionally has no override: a
+  // single placed option reads fine as the stock heading + prose.)
   heading: {
     'heading[class*="astra-decision"]': AstraDecision,
     'heading[class*="astra-finding"]': AstraFinding,
   },
 
-  // astra:prior-insight — admonition(seealso). (class `astra-prior-insight`.)
+  // A prior-insight block — admonition(seealso). (class `astra-prior-insight`.)
   admonition: {
     'admonition[class*="astra-prior-insight"]': AstraPriorInsight,
   },
 
-  // astra:inputs / astra:outputs — registry tables.
+  // Registry tables (`:::{astra} inputs` / `:::{astra} outputs`). A
+  // single-input table (class `astra-input`, singular) and a universe
+  // selection table (`astra-universe`) deliberately stay on the stock table
+  // renderer — they are already resolved, readable tables.
   table: {
     'table[class*="astra-inputs"]': AstraDataSources,
     'table[class*="astra-outputs"]': AstraDataSources,
   },
 
-  // astra:subanalysis — nav card (class `astra-subanalysis`, id `analysis-<id>`).
+  // A sub-analysis nav card (class `astra-subanalysis`, id `analysis-<id>`).
   // The plugin emits the sub-analysis carrier as a `card`.
   card: {
     'card[class*="astra-subanalysis"]': AstraSubanalysis,

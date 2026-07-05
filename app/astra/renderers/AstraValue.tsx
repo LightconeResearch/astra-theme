@@ -21,6 +21,7 @@ import { MyST } from 'myst-to-react';
 import { useAstraEntry } from '../store/useAstraStore';
 import { PreviewCard } from '../card/PreviewCard';
 import { KindLabel, Title, Desc } from '../card';
+import { StoreProse } from '../storeProse';
 import type { InlineAstra, SerializedOutput } from '@astra-spec/store-types';
 
 /** Pull the inline `data.astra` payload off the node, tolerating absence. */
@@ -82,7 +83,11 @@ export const AstraValue: React.FC<AstraValueProps> = ({ node }) => {
               {unit ? <span className="astra-card__unit"> {unit}</span> : null}
             </span>
           </Title>
-          {description ? <Desc>{description}</Desc> : null}
+          {description ? (
+            <Desc>
+              <StoreProse text={description} />
+            </Desc>
+          ) : null}
         </>
       }
     />

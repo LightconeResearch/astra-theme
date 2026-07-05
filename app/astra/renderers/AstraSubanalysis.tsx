@@ -17,6 +17,7 @@ import type { GenericNode } from 'myst-common';
 import { MyST } from 'myst-to-react';
 import { useEntryByIdentifier } from '../store/useAstraStore';
 import { KindLabel } from '../card';
+import { StoreProse } from '../storeProse';
 import type { SerializedSubAnalysis } from '@astra-spec/store-types';
 
 /** Type guard: the resolved entry is a sub-analysis (has the nav fields). */
@@ -75,7 +76,9 @@ export const AstraSubanalysis: React.FC<{ node: GenericNode }> = ({ node }) => {
         )}
       </div>
       {entry.summary ? (
-        <div className="astra-subanalysis__summary">{entry.summary}</div>
+        <div className="astra-subanalysis__summary">
+          <StoreProse text={entry.summary} />
+        </div>
       ) : null}
       <div className="astra-subanalysis__counts">{counts}</div>
     </div>

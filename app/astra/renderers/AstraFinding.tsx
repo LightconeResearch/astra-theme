@@ -17,6 +17,7 @@ import type { GenericNode } from 'myst-common';
 import { MyST } from 'myst-to-react';
 import { useEntryByIdentifier } from '../store/useAstraStore';
 import { KindLabel } from '../card';
+import { StoreProse } from '../storeProse';
 import type { SerializedFinding } from '@astra-spec/store-types';
 
 /**
@@ -70,14 +71,22 @@ export function AstraFinding({ node }: AstraFindingProps): React.ReactElement {
     <div className={rootClass}>
       <KindLabel kind="finding" className="astra-finding__kind" />
 
-      {claim ? <div className="astra-finding__claim">{claim}</div> : null}
+      {claim ? (
+        <div className="astra-finding__claim">
+          <StoreProse text={claim} />
+        </div>
+      ) : null}
 
       {entry.scope ? (
-        <span className="astra-scope-chip">{entry.scope}</span>
+        <span className="astra-scope-chip">
+          <StoreProse text={entry.scope} />
+        </span>
       ) : null}
 
       {!compact && entry.notes ? (
-        <div className="astra-finding__notes">{entry.notes}</div>
+        <div className="astra-finding__notes">
+          <StoreProse text={entry.notes} />
+        </div>
       ) : null}
     </div>
   );

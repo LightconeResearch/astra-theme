@@ -76,15 +76,20 @@ describe('PREFIX_TO_TABLE', () => {
 });
 
 describe('KIND_TO_TABLE', () => {
-  it('maps each inline kind to its table, with value→outputs projection', () => {
+  it('maps each carded inline kind to its table, with value→outputs projection', () => {
     expect(KIND_TO_TABLE).toEqual({
       decision: 'decisions',
       output: 'outputs',
       finding: 'findings',
       prior_insight: 'prior_insights',
       analysis: 'subanalyses',
+      input: 'inputs',
       // a value is one cell pulled from an output product
       value: 'outputs',
     });
+    // option / evidence / universe refs have no store table: absent by design.
+    expect(KIND_TO_TABLE.option).toBeUndefined();
+    expect(KIND_TO_TABLE.evidence).toBeUndefined();
+    expect(KIND_TO_TABLE.universe).toBeUndefined();
   });
 });

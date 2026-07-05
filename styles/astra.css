@@ -54,6 +54,7 @@
   --astra-c-insight:  #A45A43; /* ◈ Wax Red       */
   --astra-c-analysis: #3F7280; /* ◐ Slate Blue    */
   --astra-c-output:   #4E5A70; /* ◆ Blue Ink      */
+  --astra-c-input:    #4E5A70; /* ▤ Blue Ink (inputs share the data family) */
   --astra-c-value:    #3F7280; /* Slate Blue      */
 
   /* layout + type — the three brand typefaces by role */
@@ -331,6 +332,9 @@ hr.astra-rule {
 .astra-ref--finding       { --astra-kind: var(--astra-c-finding);  --astra-glyph: "\25CF"; } /* ● */
 .astra-ref--analysis      { --astra-kind: var(--astra-c-analysis); --astra-glyph: "\25D0"; } /* ◐ */
 .astra-ref--output        { --astra-kind: var(--astra-c-output);   --astra-glyph: "\25C6"; } /* ◆ */
+.astra-ref--input         { --astra-kind: var(--astra-c-input);    --astra-glyph: "\25A4"; } /* ▤ */
+/* an option shares its decision's open-diamond family */
+.astra-ref--option        { --astra-kind: var(--astra-c-decision); --astra-glyph: "\25C7"; } /* ◇ */
 
 /* value token — self-describing number, no glyph, tabular figures.
    Reads as inline prose (inherits ink), with a quiet teal dotted underline. */
@@ -509,6 +513,7 @@ hr.astra-rule {
 .astra-card--analysis,
 .astra-card--subanalysis   { --astra-kind: var(--astra-c-analysis); --astra-glyph: "\25D0"; }
 .astra-card--output        { --astra-kind: var(--astra-c-output);   --astra-glyph: "\25C6"; }
+.astra-card--input         { --astra-kind: var(--astra-c-input);    --astra-glyph: "\25A4"; }
 .astra-card--value         { --astra-kind: var(--astra-c-value);    --astra-glyph: ""; }
 
 /* -----------------------------------------------------------------------------

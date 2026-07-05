@@ -22,6 +22,7 @@ import {
 } from '../store/useAstraStore';
 import { PreviewCard } from '../card/PreviewCard';
 import { DecisionCard } from './AstraInlineRef';
+import { StoreProse } from '../storeProse';
 import type {
   SerializedOutput,
   SerializedProvenanceDecision,
@@ -203,7 +204,11 @@ const TableFromData: React.FC<{ output: SerializedOutput }> = ({ output }) => {
 const OutputCaption: React.FC<{ output: SerializedOutput }> = ({ output }) => {
   const text = output.description ?? output.label;
   if (!text) return null;
-  return <div className="astra-output__caption">{text}</div>;
+  return (
+    <div className="astra-output__caption">
+      <StoreProse text={text} />
+    </div>
+  );
 };
 
 export interface AstraOutputProps {

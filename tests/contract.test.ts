@@ -94,12 +94,17 @@ describe('B. decorated-node markers', () => {
 
   it('inline tokens carry astra-ref + astra-ref--<kind> and a data.astra payload', () => {
     expect(inlineRefs.length).toBeGreaterThan(0);
+    // The unified-path grammar's full inline vocabulary (v0.0.5 contract).
     const kinds = new Set([
       'decision',
       'output',
       'finding',
       'prior_insight',
       'analysis',
+      'input',
+      'option',
+      'evidence',
+      'universe',
       'value',
     ]);
     for (const ref of inlineRefs) {
@@ -155,10 +160,10 @@ describe('C. the join', () => {
   });
 
   it('inline join: KIND_TO_TABLE then store[table][id] resolves each ref', () => {
-    expect(store[KIND_TO_TABLE.decision].cov_source).toBeDefined();
-    expect(store[KIND_TO_TABLE.finding].s8_consistent).toBeDefined();
+    expect(store[KIND_TO_TABLE.decision!].cov_source).toBeDefined();
+    expect(store[KIND_TO_TABLE.finding!].s8_consistent).toBeDefined();
     // value resolves through the outputs table to the metric product
-    expect(store[KIND_TO_TABLE.value].sigma8_metric).toBeDefined();
+    expect(store[KIND_TO_TABLE.value!].sigma8_metric).toBeDefined();
   });
 
   it('block join: prefix→table resolves output-shear_plot to outputs.shear_plot', () => {

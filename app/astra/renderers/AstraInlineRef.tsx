@@ -1,6 +1,7 @@
 /**
- * AstraInlineRef — renderer for the NON-value inline `{astra:*}` reference
- * tokens (decision / output / finding / prior_insight / analysis).
+ * AstraInlineRef — renderer for the NON-value inline `{astra}` reference
+ * tokens (decision / output / finding / prior_insight / analysis / input,
+ * plus the card-less option / evidence / universe kinds).
  *
  * The plugin emits each as a neutral span:
  *   span.astra-ref.astra-ref--<kind>  children:[text(label)]
@@ -25,6 +26,7 @@ import * as React from 'react';
 import type { GenericNode } from 'myst-common';
 import { MyST } from 'myst-to-react';
 import { useAstraEntry, useAstraStore } from '../store/useAstraStore';
+import { StoreProse } from '../storeProse';
 import { decisionEvidenceInsights } from '../store/decisionEvidence';
 import { PreviewCard } from '../card/PreviewCard';
 import { CardChrome, DataFlow, InsightCard, InsightRef } from '../card';
@@ -34,6 +36,7 @@ import type {
   InlineAstra,
   SerializedDecision,
   SerializedFinding,
+  SerializedInput,
   SerializedInsight,
   SerializedSubAnalysis,
   SerializedOutput,
@@ -90,7 +93,9 @@ export const DecisionCard: React.FC<{ entry: SerializedDecision }> = ({ entry })
       <CardChrome.KindLabel kind="decision" />
       <CardChrome.Title>{entry.label ?? entry.id}</CardChrome.Title>
       {entry.rationale ? (
-        <CardChrome.Desc>{entry.rationale}</CardChrome.Desc>
+        <CardChrome.Desc>
+          <StoreProse text={entry.rationale} />
+        </CardChrome.Desc>
       ) : null}
 
       {optionCount > 0 ? (
@@ -149,14 +154,20 @@ const FindingCard: React.FC<{ entry: SerializedFinding }> = ({ entry }) => {
       <CardChrome.KindLabel kind="finding" />
       <CardChrome.Title>{title}</CardChrome.Title>
       {entry.claim ? (
-        <div className="astra-finding__claim">{entry.claim}</div>
+        <div className="astra-finding__claim">
+          <StoreProse text={entry.claim} />
+        </div>
       ) : null}
       {entry.scope ? (
-        <span className="astra-scope-chip">{entry.scope}</span>
+        <span className="astra-scope-chip">
+          <StoreProse text={entry.scope} />
+        </span>
       ) : null}
       {entry.notes ? (
         <CardChrome.Desc>
-          <span className="astra-finding__notes">{entry.notes}</span>
+          <span className="astra-finding__notes">
+            <StoreProse text={entry.notes} />
+          </span>
         </CardChrome.Desc>
       ) : null}
 
@@ -204,7 +215,9 @@ const FindingCard: React.FC<{ entry: SerializedFinding }> = ({ entry }) => {
                     titleRow
                   )}
                   {ev.quote ? (
-                    <div className="astra-evidence__quote">{ev.quote}</div>
+                    <div className="astra-evidence__quote">
+                      <StoreProse text={ev.quote} />
+                    </div>
                   ) : null}
                   {ev.doi ? (
                     <div className="astra-cite">
@@ -229,7 +242,9 @@ const AnalysisCard: React.FC<{ entry: SerializedSubAnalysis }> = ({ entry }) => 
       <CardChrome.KindLabel kind="analysis" />
       <CardChrome.Title>{title}</CardChrome.Title>
       {entry.summary ? (
-        <CardChrome.Desc>{entry.summary}</CardChrome.Desc>
+        <CardChrome.Desc>
+          <StoreProse text={entry.summary} />
+        </CardChrome.Desc>
       ) : null}
       {flowNodes.length > 1 ? <DataFlow nodes={flowNodes} /> : null}
     </>
@@ -251,7 +266,9 @@ const OutputCard: React.FC<{ entry: SerializedOutput }> = ({ entry }) => {
       <CardChrome.KindLabel kind="output" />
       <CardChrome.Title>{title}</CardChrome.Title>
       {entry.description ? (
-        <CardChrome.Desc>{entry.description}</CardChrome.Desc>
+        <CardChrome.Desc>
+          <StoreProse text={entry.description} />
+        </CardChrome.Desc>
       ) : null}
 
       {entry.resolved_path ? (
@@ -268,6 +285,27 @@ const OutputCard: React.FC<{ entry: SerializedOutput }> = ({ entry }) => {
         <>
           <CardChrome.SectionLabel>PROVENANCE</CardChrome.SectionLabel>
           <DataFlow nodes={provNodes} />
+        </>
+      ) : null}
+    </>
+  );
+};
+
+const InputCard: React.FC<{ entry: SerializedInput }> = ({ entry }) => {
+  const source = entry.source ?? entry.from;
+  return (
+    <>
+      <CardChrome.KindLabel kind="input" />
+      <CardChrome.Title>{entry.label ?? entry.id}</CardChrome.Title>
+      {entry.description ? (
+        <CardChrome.Desc>
+          <StoreProse text={entry.description} />
+        </CardChrome.Desc>
+      ) : null}
+      {source ? (
+        <>
+          <CardChrome.SectionLabel>SOURCE</CardChrome.SectionLabel>
+          <code className="astra-ds__source">{source}</code>
         </>
       ) : null}
     </>
@@ -293,8 +331,11 @@ function renderCardBody(
       return <AnalysisCard entry={entry as SerializedSubAnalysis} />;
     case 'output':
       return <OutputCard entry={entry as SerializedOutput} />;
+    case 'input':
+      return <InputCard entry={entry as SerializedInput} />;
     default:
-      // `value` is handled by its own renderer; anything else degrades.
+      // `value` has its own renderer; option / evidence / universe (and any
+      // future kind) have no store table — the token degrades gracefully.
       return null;
   }
 }
