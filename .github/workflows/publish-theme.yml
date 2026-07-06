@@ -44,9 +44,9 @@ jobs:
       matrix:
         include:
           - theme: book
-            deploy_repo: Eiffl/astra-theme
+            deploy_repo: EiffL/astra-book-theme
           - theme: article
-            deploy_repo: Eiffl/astra-article-theme
+            deploy_repo: EiffL/astra-article-theme
     steps:
       - name: Checkout source
         uses: actions/checkout@v4

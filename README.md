@@ -22,7 +22,7 @@ Both layer the same ASTRA overlay, [`packages/astra`](./packages/astra).
 
 ```yaml
 site:
-  template: astra-theme    # one line; nothing else changes
+  template: astra-book-theme    # one line; nothing else changes
   # or the single-article flavor:
   # template: astra-article-theme
 ```
@@ -62,8 +62,9 @@ In your ASTRA project's `myst.yml`:
 
 ```yaml
 site:
-  template: astra-theme                        # once published to the MyST registry
-  # template: /path/to/astra-theme/themes/book # or a local checkout while developing
+  template: https://github.com/EiffL/astra-book-theme    # the published builds
+  # template: https://github.com/EiffL/astra-article-theme
+  # template: /path/to/astra-theme/themes/book           # or a built local checkout
   # template: /path/to/astra-theme/themes/article
 ```
 
