@@ -33,7 +33,7 @@ IDs recorded 2026-06-07; treat as hints and re-discover by name if a lookup miss
 ### ASTRA Tokens (`VariableCollectionId:3:13`, modes Light=`3:1` Dark=`3:2`)
 
 Light values alias Brand Palette primitives where exact; Dark values are raw lifted
-hues (see `styles/astra.css` §13). Every variable carries WEB code syntax `var(--astra-…)`.
+hues (see `packages/astra/styles/astra.css` §13). Every variable carries WEB code syntax `var(--astra-…)`.
 
 | Variable | CSS var | ID |
 |---|---|---|

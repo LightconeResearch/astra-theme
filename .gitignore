@@ -2,15 +2,16 @@
 node_modules/
 
 # ---- Remix build output + generated assets (reproduce with `npm run build`) ----
-/build/
-# /public/ is entirely generated: Remix client build + copied thebe assets
-/public/
+themes/*/build/
+# public/ is entirely generated: Remix client build + copied thebe assets
+themes/*/public/
 # Remix compiler cache
 /.cache/
-# tailwind output (source is styles/app.css)
-/app/styles/app.css
+themes/*/.cache/
+# tailwind output (source is themes/*/styles/app.css)
+themes/*/app/styles/app.css
 # copied from remix.config.prod.js by `npm run prod:copy`
-/remix.config.js
+themes/*/remix.config.js
 *.tsbuildinfo
 packages/*/dist/
 

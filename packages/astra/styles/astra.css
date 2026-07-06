@@ -1,0 +1,1344 @@
+/* =============================================================================
+   ASTRA — the Lightcone Research design system
+   Editorial, narrative-first, parchment presentation layer for the
+   @astra-spec/mystra plugin. All appearance lives here; the AST stays neutral.
+
+   Palette + typography follow the Lightcone Research brand guidelines:
+   Antique Gold / Blue Ink / Charcoal / Slate Blue primaries,
+   Vert de Gris / Wax Red / Mushroom Cap secondaries, parchment neutrals;
+   Quattrocento headings, Alegreya subheadings, Newsreader body.
+
+   Conventions
+   -----------
+   - Every token is a CSS custom property on :root, prefixed --astra-.
+   - Every class below is part of the theme's internal contract: the renderers in
+     packages/astra/src/ emit these classes, this file styles them.
+   - Restrained, print-like. Hairline rules over heavy borders, no loud colour.
+   ========================================================================== */
+
+/* Fonts (Quattrocento / Alegreya / Newsreader / JetBrains Mono) are linked by
+   the theme in app/root.tsx (<link rel="stylesheet">), not @import-ed here, so
+   this file can be bundled at any position by the Remix/esbuild CSS pipeline. */
+
+/* -----------------------------------------------------------------------------
+   1. Tokens
+   -------------------------------------------------------------------------- */
+:root {
+  /* surfaces — the brand's Background Neutrals ramp */
+  --astra-paper: #FFFFFF;     /* page background — white; parchment is reserved
+                                 for raised chrome (header band, cards, rail) */
+  --astra-surface: #F1EFE9;   /* cards, rail, header band — Darker Parchment */
+  --astra-surface-2: #E9E6DD; /* recessed insets: figure frames, diagram wells
+                                 (Darker Parchment, deepened one step) */
+
+  /* ink */
+  --astra-ink: #221F20;       /* Charcoal */
+  --astra-ink-soft: #4E5A70;  /* Blue Ink — secondary text, per the type-style page */
+  --astra-muted: #8B7D70;     /* Mushroom Cap */
+  --astra-faint: #BCB2A6;     /* Mushroom Cap, lightened */
+
+  /* rules — cool parchment hairlines */
+  --astra-rule: #E4E1D7;
+  --astra-rule-strong: #D2CCBF;
+
+  /* brand accent — Antique Gold (rail mark + inline links + headings) */
+  --astra-accent: #A67C3C;
+  --astra-link: #A67C3C;
+  --astra-accent-soft: rgba(166, 124, 60, 0.12); /* the warm hover hotspot */
+
+  /* kickers / uppercase labels — Slate Blue, as in the brand's type-style page */
+  --astra-kicker: #3F7280;
+
+  /* per-kind accents — mapped onto the brand palette */
+  --astra-c-decision: #A67C3C; /* ◇ Antique Gold  */
+  --astra-c-finding:  #3B7A73; /* ● Vert de Gris  */
+  --astra-c-insight:  #A45A43; /* ◈ Wax Red       */
+  --astra-c-analysis: #3F7280; /* ◐ Slate Blue    */
+  --astra-c-output:   #4E5A70; /* ◆ Blue Ink      */
+  --astra-c-input:    #4E5A70; /* ▤ Blue Ink (inputs share the data family) */
+  --astra-c-value:    #3F7280; /* Slate Blue      */
+
+  /* layout + type — the three brand typefaces by role */
+  --astra-measure: 40rem;      /* the 640px editorial column */
+  --astra-heading: "Quattrocento", Georgia, "Times New Roman", serif;
+  --astra-serif: "Newsreader", Georgia, "Times New Roman", serif; /* body */
+  --astra-label: "Alegreya", Georgia, serif; /* subheadings, kickers, UI labels */
+  --astra-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* card — sharp editorial corners, soft warm shadow (exact mock values) */
+  --astra-card-w: 27.5rem;     /* 440px overlay width */
+  --astra-radius: 3px;
+  --astra-shadow: 0 6px 18px rgba(38, 28, 15, 0.10);
+
+  /* the kind accent in scope — overridden by .astra-card--<kind> etc. */
+  --astra-kind: var(--astra-accent);
+}
+
+/* -----------------------------------------------------------------------------
+   1b. Global page theme — applies the Lightcone palette + brand typefaces to
+   the host book-theme app's DOM (this theme extends book-theme; these are
+   ordinary theme rules, not a hack — the ASTRA block/inline elements are
+   rendered by our React renderers and styled by the component rules further
+   below).
+   -------------------------------------------------------------------------- */
+/* Paint the parchment + ink in BOTH modes: every colour below is an
+   --astra-* token that swaps on `html.dark` (section 13), so one set of
+   mode-agnostic rules yields parchment in light and brand charcoal in
+   dark. `!important` beats book-theme's `bg-white` / `dark:bg-stone-900` body
+   utilities (specificity 0,1,0). */
+body {
+  background: var(--astra-paper) !important;
+  color: var(--astra-ink);
+}
+/* The article-theme title header is a full-bleed solid band, one step down
+   the surface ramp from the page: parchment on the white page in light,
+   lifted charcoal on charcoal in dark. A hairline rule closes it. flow-root
+   keeps the content's own vertical margins inside the band instead of
+   collapsing through it. */
+.myst-article-header {
+  display: flow-root;
+  background: var(--astra-surface);
+  border-bottom: 1px solid var(--astra-rule);
+}
+/* The abstract well ships cool slate (bg-slate-50 / dark:bg-slate-800) from
+   @myst-theme/site; keep it on the same warm surface ramp as the header band
+   and cards. The doubled :root out-guns both the light utility (0,1,0) and
+   the `.dark .dark:…` variant (0,2,0). */
+:root:root .myst-abstract-box {
+  background: var(--astra-surface);
+  border: 1px solid var(--astra-rule);
+}
+/* Newsreader prose, Quattrocento headings.
+   (`:is()` over pure element lists keeps specificity identical to the longhand;
+   `.myst-fm-block-title` stays outside it so it doesn't raise the element
+   branches' specificity.) */
+article,
+article :is(p, li, dd, dt, blockquote) {
+  font-family: var(--astra-serif);
+}
+article :is(p, li) {
+  font-size: 1.0625rem;
+  line-height: 1.72;
+}
+article :is(h1, h2, h3, h4, h5, h6),
+.myst-fm-block-title {
+  font-family: var(--astra-heading);
+  letter-spacing: -0.01em;
+}
+.myst-fm-block-title { font-weight: 600; }
+/* Warm ink + accents. The doubled `:root:root` prefix lifts these to (0,2,…)
+   so they beat Tailwind utility colours in BOTH modes — light utilities are
+   (0,1,0) and `dark:` variants are (0,2,0) (`.dark .dark\:…`). The old
+   `html:not(.dark)` scoping only cleared the light bar, which is why dark
+   prose used to fall back to book-theme's zinc. */
+:root:root article,
+:root:root article :is(p, li, dd, dt, blockquote, h1, h2, h3, h4, h5, h6),
+:root:root .myst-fm-block-title {
+  color: var(--astra-ink);
+}
+/* Title + section headings carry Antique Gold, per the brand type-style page.
+   (The doc title is an `h1.myst-fm-block-title`; the class branch keeps this
+   rule's specificity above the `.myst-fm-block-title` ink rule just before.) */
+:root:root article :is(h1, h2),
+:root:root h1.myst-fm-block-title {
+  color: var(--astra-accent);
+}
+:root:root article :is(p, li, blockquote) a { color: var(--astra-accent); }
+:root:root article hr { border-color: var(--astra-rule); }
+
+/* -----------------------------------------------------------------------------
+   2. Base / page chrome (used by standalone ASTRA pages / the .astra-doc wrapper)
+   -------------------------------------------------------------------------- */
+.astra-doc {
+  background: var(--astra-paper);
+  color: var(--astra-ink);
+  font-family: var(--astra-serif);
+  font-size: 18px;          /* Newsreader body */
+  line-height: 1.667;       /* 30px on 18px */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* the abstract / lead paragraph — Newsreader italic, slightly smaller */
+.astra-abstract,
+.astra-doc .astra-abstract p {
+  font-style: italic;
+  font-size: 17px;
+  line-height: 1.647;       /* 28px on 17px */
+  color: var(--astra-ink);
+}
+
+/* prose column lives at the editorial measure, centred */
+.astra-doc p,
+.astra-doc ul,
+.astra-doc ol,
+.astra-doc blockquote,
+.astra-doc .astra-section-label,
+.astra-doc .astra-breadcrumb,
+.astra-doc .astra-doc-title,
+.astra-doc .astra-doc-meta {
+  max-width: var(--astra-measure);
+}
+
+.astra-doc h1,
+.astra-doc h2,
+.astra-doc h3,
+.astra-doc h4 {
+  font-family: var(--astra-heading); /* Quattrocento — 400/700 only */
+  font-weight: 400;
+  color: var(--astra-ink);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+/* title + section headings carry Antique Gold, per the brand type-style page */
+.astra-doc h1,
+.astra-doc h2 {
+  color: var(--astra-accent);
+}
+
+.astra-doc a {
+  color: var(--astra-accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+/* left rail — a slim parchment strip with a gold wordmark near the top */
+.astra-rail {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 56px;
+  height: 100vh;
+  background: var(--astra-surface);
+  border-right: 1px solid var(--astra-rule);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 22px;
+  z-index: 40;
+}
+
+.astra-rail__mark {
+  font-family: var(--astra-heading);
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--astra-accent);
+  white-space: nowrap;
+}
+
+/* breadcrumb */
+.astra-breadcrumb {
+  font-family: var(--astra-label);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--astra-muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75em;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.astra-breadcrumb a {
+  color: var(--astra-muted);
+  text-decoration: none;
+}
+
+.astra-breadcrumb a:hover {
+  color: var(--astra-accent);
+}
+
+.astra-breadcrumb > * + *::before {
+  content: "\203A"; /* › */
+  margin-right: 0.75em;
+  color: var(--astra-faint);
+}
+
+/* document title + meta — Quattrocento regular in Antique Gold */
+.astra-doc-title {
+  font-family: var(--astra-heading);
+  font-weight: 400;
+  font-size: clamp(1.9rem, 1.4rem + 2vw, 2.8rem);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  color: var(--astra-accent);
+  margin: 0 0 0.5rem;
+}
+
+.astra-doc-meta {
+  font-family: var(--astra-label);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--astra-ink-soft);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35em 1.1em;
+  align-items: center;
+  margin-bottom: 1.75rem;
+}
+/* the leading status glyph in the meta line (◐ active) carries the analysis hue */
+.astra-doc-meta__glyph { color: var(--astra-c-analysis); }
+
+/* section labels (the uppercase kicker used across cards + page) —
+   Alegreya caps in Slate Blue, as in the brand's "POSITION PAPER" kicker */
+.astra-section-label {
+  font-family: var(--astra-label);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--astra-kicker);
+  margin: 0 0 0.5rem;
+}
+
+/* hairline rule */
+.astra-rule,
+hr.astra-rule {
+  border: 0;
+  border-top: 1px solid var(--astra-rule);
+  height: 0;
+  margin: 2rem 0;
+  max-width: var(--astra-measure);
+}
+
+/* -----------------------------------------------------------------------------
+   3. Inline reference tokens
+   -------------------------------------------------------------------------- */
+.astra-ref {
+  --astra-kind: var(--astra-ink-soft);
+  font-family: inherit;
+  font-weight: 600;                 /* a semibold run inside the Newsreader prose */
+  color: var(--astra-link);         /* uniform warm-gold link */
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, var(--astra-link) 55%, transparent);
+  text-underline-offset: 2px;
+  padding: 0.05em 0.1em;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+/* the kind glyph — coloured per kind, sits before the label and is NOT underlined
+   (inline-block breaks the underline run cleanly) */
+.astra-ref::before {
+  content: var(--astra-glyph, "");
+  display: inline-block;
+  color: var(--astra-kind);
+  font-weight: 400;
+  font-size: 0.9em;
+  margin-right: 0.32em;
+  text-decoration: none;
+  line-height: 1;
+  vertical-align: 0.02em;
+}
+
+.astra-ref:hover,
+.astra-ref[data-open="true"] {
+  background: var(--astra-accent-soft);
+  text-decoration-color: var(--astra-link);
+}
+
+/* the auto-appended "(Chen et al., 2024)" after inline prior-insight tokens */
+.astra-ref-citation {
+  white-space: nowrap;
+}
+
+/* per-kind glyph + colour */
+.astra-ref--decision      { --astra-kind: var(--astra-c-decision); --astra-glyph: "\25C7"; } /* ◇ */
+.astra-ref--prior_insight { --astra-kind: var(--astra-c-insight);  --astra-glyph: "\25C8"; } /* ◈ */
+.astra-ref--finding       { --astra-kind: var(--astra-c-finding);  --astra-glyph: "\25CF"; } /* ● */
+.astra-ref--analysis      { --astra-kind: var(--astra-c-analysis); --astra-glyph: "\25D0"; } /* ◐ */
+.astra-ref--output        { --astra-kind: var(--astra-c-output);   --astra-glyph: "\25C6"; } /* ◆ */
+.astra-ref--input         { --astra-kind: var(--astra-c-input);    --astra-glyph: "\25A4"; } /* ▤ */
+/* an option shares its decision's open-diamond family */
+.astra-ref--option        { --astra-kind: var(--astra-c-decision); --astra-glyph: "\25C7"; } /* ◇ */
+
+/* value token — self-describing number, no glyph, tabular figures.
+   Reads as inline prose (inherits ink), with a quiet teal dotted underline. */
+.astra-ref--value {
+  --astra-kind: var(--astra-c-value);
+  --astra-glyph: "";
+  font-weight: inherit;
+  color: var(--astra-ink);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  text-decoration: underline dotted color-mix(in srgb, var(--astra-c-value) 60%, transparent);
+  text-underline-offset: 2px;
+  white-space: nowrap;
+}
+.astra-ref--value:hover { text-decoration-color: var(--astra-c-value); }
+.astra-ref--value::before { content: none; }
+
+/* A navigable ref token (sub-analysis → its page): the inner span already
+   carries the full ref styling, so the anchor itself stays invisible. */
+.astra-ref-anchor,
+.astra-ref-anchor:hover {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* -----------------------------------------------------------------------------
+   4. Card chrome (shared by the floating preview + placed cards)
+   -------------------------------------------------------------------------- */
+
+/* The floating-ui portal wrapper is the positioned element, so the stacking
+   order must live HERE (a z-index on the static .astra-card inside it is
+   ignored) — it has to beat the book theme's sticky TOC (z-10) and the fixed
+   rail (z-40), or open cards render clipped underneath them. */
+.astra-card-portal {
+  z-index: 60;
+}
+
+.astra-card {
+  --astra-kind: var(--astra-accent);
+  width: var(--astra-card-w);
+  max-width: calc(100vw - 2rem);
+  box-sizing: border-box;
+  background: var(--astra-surface);
+  /* translucent kind-coloured hairline — the signature card edge in the mocks */
+  border: 1px solid color-mix(in srgb, var(--astra-kind) 55%, transparent);
+  border-radius: var(--astra-radius);
+  box-shadow: var(--astra-shadow);
+  padding: 19px 20px;
+  font-family: var(--astra-serif);
+  color: var(--astra-ink);
+  font-size: 15px;
+  line-height: 1.5;
+  /* Height cap set by PreviewCard's `size` middleware (viewport-available
+     space); the inner scroll layer absorbs the overflow. Unset for placed
+     (non-floating) cards, where the var never gets defined. */
+  max-height: var(--astra-card-max-h, none);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Scrollable body of a floating card: overflow lives one layer inside the
+   card so the protruding arrow is never clipped. `min-height: 0` lets the
+   flex child actually shrink below its content height. */
+.astra-card__scroll {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--astra-faint) transparent;
+}
+
+.astra-card__kind {
+  font-family: var(--astra-label);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--astra-kind);
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
+  margin-bottom: 0.5rem;
+}
+
+.astra-card__kind::before {
+  content: var(--astra-glyph, "");
+  font-size: 1em;
+  line-height: 1;
+}
+
+.astra-card__title {
+  font-family: var(--astra-label); /* Alegreya — the brand's subheading face */
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--astra-ink);
+  margin: 0 0 0.4rem;
+}
+
+.astra-card__desc {
+  color: var(--astra-ink-soft);
+  margin: 0 0 0.75rem;
+}
+
+/* small muted unit appended to a value/title (e.g. "Mpc", "km/s") */
+.astra-card__unit {
+  font-family: var(--astra-label);
+  font-size: 0.7em;
+  color: var(--astra-muted);
+  margin-left: 0.25em;
+}
+
+/* the selection line in a value card: which column/row of which product the
+   interpolated number came from ("alpha1_std · tracer=elg1, recon=Pre · from
+   BAO dilation parameters") */
+.astra-value__selection {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5em;
+  margin: -0.35rem 0 0.6rem;
+  font-family: var(--astra-label);
+  font-size: 12px;
+  color: var(--astra-muted);
+}
+.astra-value__col,
+.astra-value__where {
+  font-family: var(--astra-mono);
+  font-size: 11px;
+  color: var(--astra-ink-soft);
+}
+.astra-value__col {
+  background: var(--astra-surface-2);
+  padding: 0.1em 0.4em;
+  border-radius: 3px;
+}
+.astra-value__product {
+  font-style: italic;
+}
+
+.astra-card__section {
+  font-family: var(--astra-label);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--astra-muted);
+  margin: 0.9rem 0 0.4rem;
+}
+
+/* evidence rows — the decision panel's Evidence view and the cards'
+   SUPPORTED BY / EVIDENCE sections. Each item: optional artifact thumb, a
+   title row (kind glyph + human label + type tag), and an optional
+   plain-language note or evidence quote. */
+.astra-evidence {
+  list-style: none;
+  margin: 0.15rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.astra-evidence__item {
+  background: var(--astra-surface-2);
+  border-radius: var(--astra-radius);
+  padding: 8px 12px;
+}
+.astra-evidence__title {
+  font-family: var(--astra-label);
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--astra-ink);
+  display: flex;
+  align-items: baseline;
+  gap: 0.5em;
+}
+.astra-evidence--compact .astra-evidence__item { padding: 5px 10px; }
+.astra-evidence--compact .astra-evidence__title { font-size: 13px; }
+.astra-evidence__glyph--insight { color: var(--astra-c-insight); font-size: 0.85em; }
+.astra-evidence__glyph--output  { color: var(--astra-c-output);  font-size: 0.85em; }
+.astra-evidence__tag {
+  font-family: var(--astra-label);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--astra-muted);
+}
+/* hoverable evidence names share the inline-ref affordance language: warm-
+   gold underline, accent-soft wash on hover (the row opens a nested card) */
+.astra-ref-trigger .astra-evidence__name {
+  color: var(--astra-link);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, var(--astra-link) 45%, transparent);
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.astra-ref-trigger:hover .astra-evidence__name,
+.astra-ref-trigger:focus-visible .astra-evidence__name {
+  background: var(--astra-accent-soft);
+  text-decoration-color: var(--astra-link);
+}
+.astra-evidence__note {
+  font-family: var(--astra-serif);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--astra-ink-soft);
+  margin-top: 2px;
+}
+.astra-evidence__quote {
+  font-family: var(--astra-serif);
+  font-style: italic;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--astra-muted);
+  margin-top: 2px;
+}
+.astra-evidence__quote::before { content: "\201C"; }
+.astra-evidence__quote::after  { content: "\201D"; }
+.astra-evidence__thumb { margin: 2px 0 6px; }
+.astra-evidence__thumb img {
+  display: block;
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid var(--astra-rule);
+}
+.astra-evidence__more {
+  font-family: var(--astra-label);
+  font-size: 11px;
+  color: var(--astra-muted);
+}
+
+/* kind modifiers set the accent the kind label + glyph + diagrams use */
+.astra-card--decision      { --astra-kind: var(--astra-c-decision); --astra-glyph: "\25C7"; }
+.astra-card--prior_insight { --astra-kind: var(--astra-c-insight);  --astra-glyph: "\25C8"; }
+.astra-card--finding       { --astra-kind: var(--astra-c-finding);  --astra-glyph: "\25CF"; }
+.astra-card--analysis,
+.astra-card--subanalysis   { --astra-kind: var(--astra-c-analysis); --astra-glyph: "\25D0"; }
+.astra-card--output        { --astra-kind: var(--astra-c-output);   --astra-glyph: "\25C6"; }
+.astra-card--input         { --astra-kind: var(--astra-c-input);    --astra-glyph: "\25A4"; }
+.astra-card--value         { --astra-kind: var(--astra-c-value);    --astra-glyph: ""; }
+
+/* -----------------------------------------------------------------------------
+   5. Card diagrams — data flow: a row of mono boxes joined by arrows
+   -------------------------------------------------------------------------- */
+.astra-flow {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: 0;
+  margin: 0.4rem 0 0.2rem;
+}
+
+.astra-flow__node {
+  font-family: var(--astra-mono);
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--astra-ink-soft);
+  background: var(--astra-surface-2);
+  border: 1px solid var(--astra-rule-strong);
+  border-radius: 6px;
+  padding: 0.3em 0.55em;
+  white-space: nowrap;
+  max-width: 11em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.astra-flow__arrow {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.45em;
+  color: var(--astra-faint);
+  font-size: 12px;
+}
+.astra-flow__arrow::before { content: "\25B8"; } /* ▸ */
+
+/* -----------------------------------------------------------------------------
+   6. Decision panel (block)
+   -------------------------------------------------------------------------- */
+
+/* BACK-COMPAT with plugin releases ≤ v0.0.5 (MySTRA#9): those emitted the
+   neutral fallback ("<label> — selected: <option>" dropdown) as a SIBLING of
+   the decision carrier, so once the rich panel rendered the reader saw the
+   decision twice. Hide the stock dropdown only when it directly follows a
+   rendered panel — on store-less pages the panel doesn't render (the fallback
+   branch emits no .astra-decision element) and the dropdown stays visible.
+   From MySTRA#11 on the fallback is nested inside the carrier and this
+   selector matches nothing; drop it when pre-#11 plugins no longer matter. */
+details.astra-decision + details.myst-dropdown {
+  display: none;
+}
+
+.astra-decision {
+  --astra-kind: var(--astra-c-decision);
+  --astra-glyph: "\25C7";
+  background: var(--astra-surface);
+  border: 1px solid var(--astra-rule);
+  border-left: 3px solid var(--astra-kind);
+  border-radius: var(--astra-radius);
+  padding: 1.1rem 1.25rem;
+  margin: 1.5rem 0;
+  max-width: var(--astra-measure);
+}
+
+.astra-decision > summary,
+.astra-decision__head {
+  list-style: none;
+  cursor: pointer;
+  font-family: var(--astra-label);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--astra-kind);
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+}
+.astra-decision > summary::-webkit-details-marker { display: none; }
+.astra-decision > summary::before { content: var(--astra-glyph); }
+
+.astra-decision__title {
+  font-family: var(--astra-label);
+  font-weight: 600;
+  font-size: 19px;
+  color: var(--astra-ink);
+  margin: 0.35rem 0 0.6rem;
+}
+
+/* segmented narrative | options toggle */
+.astra-decision__toggle {
+  display: inline-flex;
+  border: 1px solid var(--astra-rule-strong);
+  border-radius: 7px;
+  overflow: hidden;
+  margin: 0.4rem 0 0.9rem;
+  font-family: var(--astra-label);
+  font-size: 12px;
+}
+.astra-decision__toggle button {
+  appearance: none;
+  border: 0;
+  background: var(--astra-surface);
+  color: var(--astra-muted);
+  padding: 0.3em 0.85em;
+  cursor: pointer;
+  font: inherit;
+  letter-spacing: 0.02em;
+}
+.astra-decision__toggle button + button { border-left: 1px solid var(--astra-rule); }
+.astra-decision__toggle button[aria-selected="true"],
+.astra-decision__toggle button.is-active {
+  background: color-mix(in srgb, var(--astra-kind) 12%, var(--astra-surface));
+  color: var(--astra-kind);
+  font-weight: 600;
+}
+
+.astra-decision__rationale {
+  color: var(--astra-ink-soft);
+  font-size: 16px;
+  margin: 0.4rem 0;
+}
+
+/* muted footer meta line (default selection · option count) */
+.astra-decision__meta {
+  font-family: var(--astra-label);
+  font-size: 11px;
+  color: var(--astra-muted);
+  letter-spacing: 0.08em;
+  margin-top: 0.7rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--astra-rule);
+}
+
+/* options list */
+.astra-options {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.astra-option {
+  position: relative;
+  padding: 0.5rem 0.5rem 0.5rem 1.4rem;
+  border-radius: 7px;
+  border: 1px solid var(--astra-rule);
+  background: var(--astra-surface-2);
+}
+
+.astra-option::before {
+  /* unselected: hollow dot */
+  content: "";
+  position: absolute;
+  left: 0.55rem;
+  top: 0.85rem;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid var(--astra-faint);
+  background: var(--astra-surface);
+}
+
+.astra-option__label {
+  font-family: var(--astra-label);
+  font-weight: 500;
+  font-size: 16px;
+  color: var(--astra-ink);
+}
+
+.astra-option__note {
+  font-size: 14px;
+  color: var(--astra-ink-soft);
+  margin-top: 0.15rem;
+}
+
+.astra-option__reason {
+  font-size: 13px;
+  color: var(--astra-muted);
+  font-style: italic;
+  margin-top: 0.15rem;
+}
+
+.astra-option__backed {
+  font-family: var(--astra-label);
+  font-size: 11px;
+  color: var(--astra-muted);
+  margin-top: 0.3rem;
+}
+
+/* selected option — filled dot, accent border */
+.astra-option--selected {
+  border-color: var(--astra-kind);
+  background: color-mix(in srgb, var(--astra-kind) 10%, var(--astra-surface));
+}
+.astra-option--selected::before {
+  border-color: var(--astra-kind);
+  background: var(--astra-kind);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--astra-kind) 16%, transparent);
+}
+
+/* Non-selected option — dimmed, NOT struck through: alternatives are usually
+   legitimate sensitivity variants (MultiGrid, polynomial broadband), and a
+   strikethrough reads as "wrong/invalid". Reserve the strike for options the
+   author explicitly excluded (an `excluded_reason` is present). */
+.astra-option--excluded {
+  opacity: 0.72;
+}
+.astra-option--excluded .astra-option__label {
+  color: var(--astra-muted);
+}
+.astra-option--excluded:has(.astra-option__reason) .astra-option__label {
+  text-decoration: line-through;
+  text-decoration-color: var(--astra-faint);
+  text-decoration-thickness: 1px;
+}
+
+/* -----------------------------------------------------------------------------
+   7. Output (block)
+   -------------------------------------------------------------------------- */
+.astra-output {
+  --astra-kind: var(--astra-c-output);
+  --astra-glyph: "\25C6";
+  margin: 1.75rem 0;
+  max-width: var(--astra-measure);
+}
+
+.astra-output figure,
+.astra-output img {
+  max-width: 100%;
+}
+
+.astra-output figcaption,
+.astra-output__caption {
+  font-family: var(--astra-label);
+  font-size: 13px;
+  color: var(--astra-muted);
+  margin-top: 0.5rem;
+}
+.astra-output__caption .astra-output__num {
+  color: var(--astra-kind);
+  font-weight: 600;
+}
+
+/* provenance drawer: inputs → recipe → artifact */
+.astra-output__provenance {
+  margin-top: 0.75rem;
+  border: 1px solid var(--astra-rule);
+  border-radius: 8px;
+  background: var(--astra-surface-2);
+}
+
+.astra-output__provenance > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  font-family: var(--astra-label);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--astra-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+.astra-output__provenance > summary::-webkit-details-marker { display: none; }
+.astra-output__provenance > summary::before {
+  content: "\25B8"; /* ▸ */
+  color: var(--astra-kind);
+  transition: transform 120ms ease;
+}
+.astra-output__provenance[open] > summary::before { transform: rotate(90deg); }
+
+.astra-output__provenance > *:not(summary) {
+  padding: 0 0.85rem 0.75rem;
+}
+
+/* a single row inside the provenance drawer */
+.astra-output__prov-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4em;
+  font-family: var(--astra-mono);
+  font-size: 12px;
+  color: var(--astra-muted);
+}
+
+/* the decisions list: one decision ref per row, with its selection */
+.astra-output__prov-decisions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.astra-output__prov-decisions .astra-ref {
+  font-family: var(--astra-serif);
+  font-size: 14px;
+}
+
+/* "via <scope>" marker on decisions inherited through another scope */
+.astra-prov-via {
+  font-family: var(--astra-serif);
+  font-style: italic;
+  font-size: 11px;
+  color: var(--astra-muted);
+}
+
+/* the option selected under the active universe */
+.astra-prov-selection {
+  font-family: var(--astra-serif);
+  font-size: 13px;
+  color: var(--astra-ink-soft);
+}
+.astra-prov-selection::before {
+  content: "\2192\00A0"; /* → */
+  color: var(--astra-faint);
+}
+
+/* a thumbnail preview of the produced artifact */
+.astra-output__thumb {
+  max-width: 100%;
+  border-radius: 6px;
+  border: 1px solid var(--astra-rule);
+}
+
+/* metric subtype — big stat */
+.astra-metric {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4em;
+  flex-wrap: wrap;
+  font-family: var(--astra-label);
+}
+.astra-metric__value {
+  font-size: 2.6rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--astra-ink);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.astra-metric__unit {
+  font-size: 1.1rem;
+  color: var(--astra-muted);
+}
+.astra-metric__uncertainty {
+  font-family: var(--astra-mono);
+  font-size: 0.95rem;
+  color: var(--astra-muted);
+}
+.astra-metric__uncertainty::before { content: "\00B1 "; } /* ± */
+.astra-metric__label {
+  flex-basis: 100%;
+  font-family: var(--astra-label);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--astra-muted);
+  margin-top: 0.25rem;
+}
+
+/* -----------------------------------------------------------------------------
+   8. Finding card (block)
+   -------------------------------------------------------------------------- */
+.astra-finding {
+  --astra-kind: var(--astra-c-finding);
+  --astra-glyph: "\25CF";
+  background: var(--astra-surface);
+  border: 1px solid var(--astra-rule);
+  border-left: 3px solid var(--astra-kind);
+  border-radius: var(--astra-radius);
+  padding: 1.1rem 1.25rem;
+  margin: 1.5rem 0;
+  max-width: var(--astra-measure);
+}
+
+.astra-finding__kind,
+.astra-finding > .astra-section-label {
+  color: var(--astra-kind);
+}
+.astra-finding__kind {
+  font-family: var(--astra-label);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+}
+.astra-finding__kind::before { content: var(--astra-glyph); }
+
+.astra-finding__claim {
+  font-family: var(--astra-label);
+  font-weight: 500;
+  font-size: 19px;
+  line-height: 1.35;
+  color: var(--astra-ink);
+  margin: 0.4rem 0 0.6rem;
+}
+
+.astra-finding__notes {
+  font-size: 15px;
+  color: var(--astra-ink-soft);
+}
+
+/* scope chip — small pill noting universe scope */
+.astra-scope-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  font-family: var(--astra-label);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--astra-kind);
+  background: color-mix(in srgb, var(--astra-kind) 10%, var(--astra-surface));
+  border: 1px solid color-mix(in srgb, var(--astra-kind) 30%, transparent);
+  border-radius: 999px;
+  padding: 0.1em 0.6em;
+  vertical-align: 0.05em;
+}
+
+/* -----------------------------------------------------------------------------
+   9. Prior-insight card (block)
+   -------------------------------------------------------------------------- */
+.astra-prior-insight {
+  --astra-kind: var(--astra-c-insight);
+  --astra-glyph: "\25C8";
+  background: var(--astra-surface-2);
+  border: 1px solid var(--astra-rule);
+  border-left: 3px solid var(--astra-kind);
+  border-radius: var(--astra-radius);
+  padding: 1.1rem 1.25rem;
+  margin: 1.5rem 0;
+  max-width: var(--astra-measure);
+}
+
+.astra-prior-insight > .admonition-title,
+.astra-prior-insight__kind {
+  font-family: var(--astra-label);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--astra-kind);
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+}
+.astra-prior-insight__kind::before { content: var(--astra-glyph); }
+
+.astra-insight__claim {
+  font-family: var(--astra-label);
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 1.4;
+  color: var(--astra-ink);
+  margin: 0.4rem 0 0.6rem;
+}
+
+/* citation chrome: DOI + provenance */
+.astra-cite {
+  font-family: var(--astra-label);
+  font-size: 12px;
+  color: var(--astra-muted);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4em 0.8em;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--astra-rule);
+}
+.astra-cite a {
+  color: var(--astra-kind);
+  font-family: var(--astra-mono);
+  font-size: 11px;
+  text-decoration: none;
+}
+.astra-cite a:hover { text-decoration: underline; }
+
+/* micro-label preceding the DOI in a citation ("SOURCE") */
+.astra-cite__label {
+  font-family: var(--astra-label);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--astra-muted);
+}
+
+/* exact quote — serif italic, left-ruled */
+.astra-quote {
+  font-family: var(--astra-serif);
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--astra-ink-soft);
+  border-left: 2px solid var(--astra-rule-strong);
+  padding-left: 0.85rem;
+  margin: 0.6rem 0;
+}
+.astra-quote::before { content: "\201C"; } /* “ */
+.astra-quote::after  { content: "\201D"; } /* ” */
+
+/* -----------------------------------------------------------------------------
+   10. Registry tables (inputs / outputs)
+   -------------------------------------------------------------------------- */
+/* Wide registries (long mono ids, source paths) scroll inside the article
+   column — without this the table pushes the page into horizontal panning. */
+.astra-registry-scroll {
+  overflow-x: auto;
+  margin: 1.5rem 0;
+}
+.astra-registry-scroll > .astra-inputs,
+.astra-registry-scroll > .astra-outputs {
+  margin: 0;
+}
+
+.astra-inputs,
+.astra-outputs {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--astra-label);
+  font-size: 13px;
+  margin: 1.5rem 0;
+}
+
+.astra-inputs caption,
+.astra-outputs caption {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--astra-muted);
+  padding-bottom: 0.5rem;
+}
+
+.astra-inputs th,
+.astra-outputs th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--astra-muted);
+  border-bottom: 1px solid var(--astra-rule-strong);
+  padding: 0.45rem 0.7rem;
+}
+
+.astra-inputs td,
+.astra-outputs td {
+  border-bottom: 1px solid var(--astra-rule);
+  padding: 0.5rem 0.7rem;
+  color: var(--astra-ink-soft);
+  vertical-align: top;
+}
+
+.astra-inputs tr:hover td,
+.astra-outputs tr:hover td {
+  background: var(--astra-surface-2);
+}
+
+/* mono ids in registry tables */
+.astra-inputs .astra-id,
+.astra-outputs .astra-id,
+.astra-inputs code,
+.astra-outputs code {
+  font-family: var(--astra-mono);
+  font-size: 12px;
+  color: var(--astra-ink);
+}
+
+/* The source/recipe line under a registry description: its own dimmed line
+   (not run-on with the prose), wrapping anywhere so an unbreakable
+   /global/cfs/… path cannot widen the column. */
+.astra-ds__source {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 11px;
+  color: var(--astra-muted);
+  word-break: break-all;
+  max-width: 60ch;
+}
+
+/* per-type glyph in front of an id/label */
+.astra-type-glyph {
+  display: inline-block;
+  width: 1.2em;
+  margin-right: 0.3em;
+  text-align: center;
+  color: var(--astra-c-output);
+}
+.astra-type-glyph--figure::before { content: "\25C6"; }
+.astra-type-glyph--table::before  { content: "\25A6"; } /* ▦ */
+.astra-type-glyph--metric::before { content: "\2248"; } /* ≈ */
+.astra-type-glyph--input::before  { content: "\25C7"; }
+
+/* -----------------------------------------------------------------------------
+   11. Sub-analysis nav card (block)
+   -------------------------------------------------------------------------- */
+.astra-subanalysis {
+  --astra-kind: var(--astra-c-analysis);
+  --astra-glyph: "\25D0";
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  background: var(--astra-surface);
+  border: 1px solid var(--astra-rule);
+  border-radius: var(--astra-radius);
+  padding: 1rem 1.15rem;
+  margin: 1rem 0;
+  max-width: var(--astra-measure);
+  transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+}
+.astra-subanalysis:hover {
+  border-color: var(--astra-kind);
+  box-shadow: var(--astra-shadow);
+  transform: translateY(-1px);
+}
+
+.astra-subanalysis__kind {
+  font-family: var(--astra-label);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--astra-kind);
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+}
+.astra-subanalysis__kind::before { content: var(--astra-glyph); }
+
+.astra-subanalysis__name {
+  font-family: var(--astra-label);
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--astra-ink);
+  margin: 0.3rem 0 0.3rem;
+}
+
+/* the anchor wrapping the sub-analysis name — inherit colour, subtle hover underline */
+.astra-subanalysis__link {
+  color: inherit;
+  text-decoration: none;
+}
+.astra-subanalysis__link:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--astra-kind);
+  text-underline-offset: 2px;
+}
+
+.astra-subanalysis__summary {
+  font-family: var(--astra-serif);
+  font-size: 15px;
+  color: var(--astra-ink-soft);
+  margin-bottom: 0.5rem;
+}
+
+.astra-subanalysis__counts {
+  font-family: var(--astra-label);
+  font-size: 12px;
+  color: var(--astra-muted);
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+}
+.astra-subanalysis__counts .astra-dot::before {
+  content: "\00B7"; /* · */
+  margin: 0 0.1em;
+}
+
+/* -----------------------------------------------------------------------------
+   12. Dark mode — brand Charcoal (#221F20), as on the guidelines' dark pages:
+   parchment ink and Antique Gold accents on charcoal, kind hues lifted just
+   enough to hold contrast.
+   Keyed on `html.dark`, NOT `prefers-color-scheme`: book-theme's dark mode is
+   class-based (theme cookie, falling back to a pre-hydration script that maps
+   the OS preference onto the class — `html.dark` is the single source of
+   truth and can diverge from the media query after a toggle). `html.dark`
+   (0,1,1) outranks the `:root` (0,1,0) light defaults above.
+   -------------------------------------------------------------------------- */
+html.dark {
+  --astra-paper: #221F20;     /* Charcoal */
+  --astra-surface: #2A2728;
+  --astra-surface-2: #312D2E;
+
+  --astra-ink: #F1EFE9;       /* Darker Parchment, as ink */
+  --astra-ink-soft: #B4BDCD;  /* Blue Ink, lifted */
+  --astra-muted: #9C9085;     /* Mushroom Cap, lifted */
+  --astra-faint: #6E6660;
+
+  --astra-rule: #3B3738;
+  --astra-rule-strong: #4C4747;
+
+  --astra-accent: #C2924A;    /* Antique Gold, lifted for contrast */
+  --astra-link: #C2924A;
+  --astra-accent-soft: rgba(194, 146, 74, 0.16);
+
+  --astra-kicker: #7FA8B5;    /* Slate Blue, lifted */
+
+  --astra-c-decision: #C2924A; /* Antique Gold   */
+  --astra-c-finding: #5FA199;  /* Vert de Gris   */
+  --astra-c-insight: #C97F66;  /* Wax Red        */
+  --astra-c-analysis: #6FA0AE; /* Slate Blue     */
+  --astra-c-output: #93A1BC;   /* Blue Ink       */
+  --astra-c-value: #6FA0AE;
+
+  --astra-shadow: 0 6px 18px rgba(0, 0, 0, .45);
+}
+
+/* Transparent-background figure PNGs (matplotlib default) are unreadable on
+   charcoal — dark axis labels vanish. Give artifact images a paper backdrop
+   in dark mode; images that already carry a white background are unchanged
+   visually. Applies to placed figures, hover-card thumbnails, and finding
+   evidence thumbs. */
+html.dark .astra-output img,
+html.dark .astra-output__thumb img,
+html.dark .astra-evidence__thumb img {
+  background: #FBF9F4;
+  border-radius: 3px;
+}
+
+/* -----------------------------------------------------------------------------
+   14. Site-chrome fixes
+   -------------------------------------------------------------------------- */
+
+/* The brand wordmark renders at a fixed h-9, which is ~260px wide — wider
+   than a phone viewport allows once the search button joins it, so the whole
+   page pans horizontally. Let the logo scale down on small screens. */
+@media (max-width: 640px) {
+  .myst-home-link img {
+    max-width: 44vw;
+    height: auto;
+  }
+  .myst-top-nav-bar > div:first-child {
+    min-width: 0;
+  }
+}

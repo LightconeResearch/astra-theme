@@ -7,8 +7,8 @@ description: Operate the Lightcone design-mirror workflow between this theme's c
 
 ## Principles (the contract)
 
-1. **The code is the source of truth.** `styles/astra.css` tokens + the renderers in
-   `app/astra/` define the design. The Figma file is a generated *mirror* for
+1. **The code is the source of truth.** `packages/astra/styles/astra.css` tokens + the renderers in
+   `packages/astra/src/` define the design. The Figma file is a generated *mirror* for
    discussion — never the authority.
 2. **Proposals flow one way:** Figma Proposals page → discussion → code change →
    validation on the rendered prototype → commit → mirror re-sync.
@@ -38,8 +38,8 @@ description: Operate the Lightcone design-mirror workflow between this theme's c
      (fills/strokes/text/fonts/spacing, walk both trees in parallel).
    - **Comment pins are NOT readable** (Plugin API never exposes comments; REST-only).
      If a proposal has no annotation and no delta, ask the user what they intended.
-3. **Map the change to code.** Token-level → `styles/astra.css` (`--astra-*`).
-   Structural → the renderer in `app/astra/renderers/` (each mirror component's
+3. **Map the change to code.** Token-level → `packages/astra/styles/astra.css` (`--astra-*`).
+   Structural → the renderer in `packages/astra/src/renderers/` (each mirror component's
    description names its source file).
 4. **Implement, test, validate live:** `npm test`, `npm run build`, then run a
    prototype and verify the change in the real renderer (see "Validation" below).
