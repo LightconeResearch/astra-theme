@@ -7,7 +7,7 @@ description: >-
   provenance, and registry tables — keyed on the neutral astra-* markers the
   @astra-spec/mystra plugin emits. A document that renders cleanly on book-theme
   renders richly here by changing one line: `site.template: astra-book-theme`.
-version: 0.0.7
+version: 0.0.8
 license: BSD-3-Clause
 source: https://github.com/LightconeResearch/astra-theme
 tags:

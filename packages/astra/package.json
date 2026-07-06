@@ -1,6 +1,6 @@
 {
   "name": "@astra-spec/theme-astra",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "The ASTRA overlay shared by the astra themes: glyph-tagged inline references, preview cards, decision/finding/output renderers, the resolved-store provider, and the ASTRA stylesheet. Consumed as TypeScript source — the themes' Remix builds bundle it.",
   "license": "BSD-3-Clause",
   "type": "module",

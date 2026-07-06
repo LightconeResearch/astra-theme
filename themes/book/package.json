@@ -1,6 +1,6 @@
 {
   "name": "@astra-spec/astra-theme-book",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "ASTRA book theme — @myst-theme/book plus the ASTRA overlay (multi-page sites with a table of contents).",
   "license": "BSD-3-Clause",
   "private": true,
