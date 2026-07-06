@@ -25,8 +25,9 @@
    -------------------------------------------------------------------------- */
 :root {
   /* surfaces — the brand's Background Neutrals ramp */
-  --astra-paper: #F8F7F3;     /* page background — Parchment */
-  --astra-surface: #F1EFE9;   /* cards, rail — Darker Parchment */
+  --astra-paper: #FFFFFF;     /* page background — white; parchment is reserved
+                                 for raised chrome (header band, cards, rail) */
+  --astra-surface: #F1EFE9;   /* cards, rail, header band — Darker Parchment */
   --astra-surface-2: #E9E6DD; /* recessed insets: figure frames, diagram wells
                                  (Darker Parchment, deepened one step) */
 
@@ -88,6 +89,24 @@
 body {
   background: var(--astra-paper) !important;
   color: var(--astra-ink);
+}
+/* The article-theme title header is a full-bleed solid band, one step down
+   the surface ramp from the page: parchment on the white page in light,
+   lifted charcoal on charcoal in dark. A hairline rule closes it. flow-root
+   keeps the content's own vertical margins inside the band instead of
+   collapsing through it. */
+.myst-article-header {
+  display: flow-root;
+  background: var(--astra-surface);
+  border-bottom: 1px solid var(--astra-rule);
+}
+/* The abstract well ships cool slate (bg-slate-50 / dark:bg-slate-800) from
+   @myst-theme/site; keep it on the same warm surface ramp as the header band
+   and cards. The doubled :root out-guns both the light utility (0,1,0) and
+   the `.dark .dark:…` variant (0,2,0). */
+:root:root .myst-abstract-box {
+  background: var(--astra-surface);
+  border: 1px solid var(--astra-rule);
 }
 /* Newsreader prose, Quattrocento headings.
    (`:is()` over pure element lists keeps specificity identical to the longhand;
