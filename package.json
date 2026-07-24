@@ -8,6 +8,7 @@
     "node": ">=18"
   },
   "workspaces": [
+    "apps/*",
     "packages/*",
     "themes/*"
   ],
@@ -17,6 +18,8 @@
     "build:book": "npm run build -w themes/book",
     "dev:article": "npm run dev -w themes/article",
     "dev:book": "npm run dev -w themes/book",
+    "dev:inventory": "npm run dev -w apps/inventory-lab",
+    "build:inventory": "npm run build -w apps/inventory-lab",
     "start:article": "npm run start -w themes/article",
     "start:book": "npm run start -w themes/book",
     "typecheck": "npm run typecheck --workspaces --if-present",
@@ -27,12 +30,14 @@
   },
   "devDependencies": {
     "@remix-run/dev": "~1.19.0",
+    "@remix-run/serve": "~1.19.0",
     "@tailwindcss/typography": "^0.5.9",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/compression": "^1.7.5",
     "@types/express": "^4.17.21",
+    "@types/lodash.throttle": "^4.1.9",
     "@types/morgan": "^1.9.9",
     "@types/node-fetch": "^2.6.4",
     "@types/react": "^19.2.14",

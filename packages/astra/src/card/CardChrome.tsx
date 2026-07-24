@@ -33,8 +33,12 @@ export const Desc: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return <div className="astra-card__desc">{children}</div>;
 };
 
-/** A small uppercase section label inside a card (e.g. "PROVENANCE"). */
-export const SectionLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+/** A shared small uppercase section label, defaulting to the card treatment. */
+export const SectionLabel: React.FC<{
+  children: React.ReactNode;
+  className?: string;
+  as?: 'div' | 'h3' | 'span';
+}> = ({ children, className = 'astra-card__section', as: Component = 'div' }) => {
   if (children == null || children === '') return null;
-  return <div className="astra-card__section">{children}</div>;
+  return <Component className={className}>{children}</Component>;
 };

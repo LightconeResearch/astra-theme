@@ -8,6 +8,8 @@ export type { PreviewCardProps } from './PreviewCard';
 export { KindLabel, Title, Desc, SectionLabel } from './CardChrome';
 
 export { InsightCard, InsightRef } from './InsightCard';
+export { InsightEvidenceTitle } from './InsightEvidenceTitle';
+export { insightEvidenceName } from './insightEvidenceName';
 
 export { DataFlow } from './diagrams';
 export type { DataFlowProps } from './diagrams';

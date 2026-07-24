@@ -14,10 +14,9 @@ import type {
   SerializedInsight,
 } from '@astra-spec/store-types';
 
-export function decisionEvidenceInsights(
-  decision: SerializedDecision,
-  store: ResolvedStore | undefined,
-): SerializedInsight[] {
+export function decisionEvidenceIds(
+  decision: Pick<SerializedDecision, 'selected' | 'option_insights'>,
+): string[] {
   const { selected, option_insights: byOption = {} } = decision;
   const ordered = [
     ...(selected ? byOption[selected] ?? [] : []),
@@ -25,7 +24,14 @@ export function decisionEvidenceInsights(
       .filter(([optId]) => optId !== selected)
       .flatMap(([, ids]) => ids ?? []),
   ];
-  return [...new Set(ordered)]
+  return [...new Set(ordered)];
+}
+
+export function decisionEvidenceInsights(
+  decision: SerializedDecision,
+  store: ResolvedStore | undefined,
+): SerializedInsight[] {
+  return decisionEvidenceIds(decision)
     .map((id) => store?.prior_insights?.[id])
     .filter((ins): ins is SerializedInsight => ins != null);
 }

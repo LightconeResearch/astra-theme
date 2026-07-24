@@ -189,7 +189,7 @@ describe('AstraInlineRef', () => {
     expect(screen.getByText('SUPPORTED BY')).toBeInTheDocument();
   });
 
-  it('falls back to the claim for insight chips authored without a label', () => {
+  it('falls back to the insight id for chips authored without a label', () => {
     const store = makeStore();
     delete store.prior_insights.kids_s8_low.label;
     const { container } = renderWithProviders(
@@ -197,12 +197,10 @@ describe('AstraInlineRef', () => {
       store,
     );
     fireEvent.focus(container.querySelector('.astra-ref-trigger')!);
-    // No label → the chip shows the claim's opening, never the raw id.
-    expect(screen.getByText('KiDS reported a lower S8.')).toBeInTheDocument();
-    expect(screen.queryByText('kids_s8_low')).not.toBeInTheDocument();
+    expect(screen.getByText('kids_s8_low')).toBeInTheDocument();
   });
 
-  it('clips long unlabelled claims to their opening; hover shows the entirety', () => {
+  it('keeps long unlabelled claims in the hover body instead of the title', () => {
     const store = makeStore();
     const long =
       'KiDS reported a lower S8 than Planck across all tomographic bins, a tension ' +
@@ -216,10 +214,9 @@ describe('AstraInlineRef', () => {
       store,
     );
     fireEvent.focus(container.querySelector('.astra-ref-trigger')!);
-    // The chip carries a clipped opening (ellipsis), not the raw id.
     const name = document.querySelector('.astra-evidence__name')!;
-    expect(name.textContent).toMatch(/^KiDS reported a lower S8 than Planck/);
-    expect(name.textContent).toMatch(/…$/);
+    expect(name).toHaveTextContent('kids_s8_low');
+    expect(name).not.toHaveTextContent(/^KiDS reported/);
     // Focusing the chip opens the insight card with the full claim.
     fireEvent.focus(document.querySelector('.astra-evidence .astra-ref-trigger')!);
     expect(screen.getByText(long)).toBeInTheDocument();

@@ -8,7 +8,10 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./styles/astra.css": "./styles/astra.css"
+    "./inventory": "./src/inventory/index.ts",
+    "./shell": "./src/shell/index.ts",
+    "./styles/astra.css": "./styles/astra.css",
+    "./styles/inventory.css": "./styles/inventory.css"
   },
   "files": [
     "src",
@@ -22,11 +25,14 @@
     "@floating-ui/react": "^0.27.0",
     "@myst-theme/common": "^1.3.1",
     "@myst-theme/providers": "^1.3.1",
+    "@myst-theme/site": "^1.3.1",
+    "classnames": "^2.3.2",
     "doi-utils": "^2.0.6",
     "katex": "^0.16.22",
     "myst-common": "^1.8.1",
     "myst-config": "^1.8.1",
-    "myst-to-react": "^1.3.1"
+    "myst-to-react": "^1.3.1",
+    "pdfjs-dist": "^5.7.284"
   },
   "peerDependencies": {
     "react": ">=18"
