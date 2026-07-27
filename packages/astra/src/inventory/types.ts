@@ -55,6 +55,8 @@ export interface InventoryRecord {
     headers: string[];
     rows: Array<Array<string | number>>;
   };
+  table_rows_total?: number;
+  table_columns_total?: number;
   metric?: {
     value?: string | number;
     uncertainty?: string | number;

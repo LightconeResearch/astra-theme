@@ -25,6 +25,9 @@ import {
   findInventorySnapshot,
   InventoryExplorer,
   OverviewInventory,
+  citationTitleFromHtml,
+  directCitationPdfUrl,
+  normalizeDoi,
   type InventoryPaperMetadataMap,
   type InventorySnapshot,
 } from '@astra-spec/theme-astra/inventory';
@@ -36,40 +39,17 @@ import { getConfig, getPage } from '../utils/loaders.server';
 type ManifestProject = Required<SiteManifest>['projects'][0];
 const OUTLINE_TOP_OFFSET = 24;
 
-function citationTitle(html: unknown): string | undefined {
-  if (typeof html !== 'string') return undefined;
-  const match = /<(i|em)>([\s\S]*?)<\/\1>/i.exec(html);
-  if (!match) return undefined;
-  const entities: Record<string, string> = {
-    amp: '&',
-    apos: "'",
-    gt: '>',
-    lt: '<',
-    quot: '"',
-  };
-  return match[2]
-    .replace(/<[^>]*>/g, '')
-    .replace(/&(#x[\da-f]+|#\d+|amp|apos|gt|lt|quot);/gi, (_, entity: string) => {
-      if (entity[0] !== '#') return entities[entity.toLowerCase()] ?? _;
-      const hexadecimal = entity[1]?.toLowerCase() === 'x';
-      const value = Number.parseInt(entity.slice(hexadecimal ? 2 : 1), hexadecimal ? 16 : 10);
-      return Number.isSafeInteger(value) && value >= 0 && value <= 0x10ffff
-        ? String.fromCodePoint(value)
-        : _;
-    })
-    .trim() || undefined;
-}
-
 function paperMetadataFromPage(page: any): InventoryPaperMetadataMap {
   const citations = page.references?.cite?.data;
   if (!citations || typeof citations !== 'object') return {};
   return Object.fromEntries(
     Object.values(citations).flatMap((citation: any) => {
       const doi = typeof citation?.doi === 'string'
-        ? citation.doi.trim().toLowerCase()
+        ? normalizeDoi(citation.doi)
         : undefined;
-      const title = citationTitle(citation?.html);
-      return doi && title ? [[doi, { title }]] : [];
+      const title = citationTitleFromHtml(citation?.html);
+      const pdfUrl = directCitationPdfUrl(citation?.url);
+      return doi && (title || pdfUrl) ? [[doi, { title, pdfUrl }]] : [];
     }),
   );
 }
@@ -167,6 +147,7 @@ export default function InventoryPage() {
         <ArticleHeader frontmatter={project} />
         <AnalysisModeTabs active="inventory" />
         <article
+          id="skip-to-article"
           className="myst-article article article-left-grid subgrid-gap col-screen pt-10"
         >
           <div

@@ -5,6 +5,12 @@ export { InventoryExplorer, InventoryOutline } from './InventoryOutline';
 export { OverviewInventory } from './OverviewInventory';
 export { PapersInventory } from './PapersInventory';
 export { findInventorySnapshot, hasInventorySnapshot } from './snapshot';
+export {
+  citationTitleFromHtml,
+  directCitationPdfUrl,
+  doiHref,
+  normalizeDoi,
+} from './citationMetadata';
 export type {
   InventoryPaperMetadata,
   InventoryPaperMetadataMap,

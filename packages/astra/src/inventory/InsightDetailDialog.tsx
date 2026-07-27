@@ -10,6 +10,7 @@ import {
   InventoryPath,
 } from './InventoryPrimitives';
 import { InventoryRelationList } from './InventoryRelations';
+import { doiHref } from './citationMetadata';
 import {
   inventoryInformedDecisions,
   inventoryRecordTitle,
@@ -126,7 +127,7 @@ export function InsightDetailDialog({
           {insight.doi ? (
             <section className="inventory-paper-doi">
               <h4>Source paper</h4>
-              <a href={`https://doi.org/${insight.doi}`} target="_blank" rel="noreferrer">
+              <a href={doiHref(insight.doi)} target="_blank" rel="noreferrer">
                 {insight.doi}{insight.page ? ` · page ${insight.page}` : ''} ↗
               </a>
             </section>

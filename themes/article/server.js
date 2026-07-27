@@ -57,7 +57,7 @@ app.all(
 async function start() {
   const host = process.env.HOST || 'localhost';
   const port = process.env.PORT || (await getPort({ port: getPort.makeRange(3000, 3100) }));
-  app.listen(port, host, async () => {
+  const server = app.listen(port, host, async () => {
     if (process.env.MODE === 'static') {
       const requestHost = host === '0.0.0.0' || host === '::' ? '127.0.0.1' : host;
       try {
@@ -66,13 +66,19 @@ async function start() {
         // see `/inventory` in its server state and reload forever after the
         // static host redirects to `/inventory/`.
         const response = await fetch(`http://${requestHost}:${port}/inventory/`);
-        if (!response.ok) {
+        if (response.status === 404) {
+          console.log('No ASTRA inventory snapshot was found; skipping static inventory export.');
+        } else if (!response.ok) {
           throw new Error(`inventory route returned ${response.status}`);
+        } else {
+          fs.mkdirSync(STATIC_INVENTORY_DIR, { recursive: true });
+          fs.writeFileSync(STATIC_INVENTORY_PATH, await response.text());
         }
-        fs.mkdirSync(STATIC_INVENTORY_DIR, { recursive: true });
-        fs.writeFileSync(STATIC_INVENTORY_PATH, await response.text());
       } catch (error) {
-        console.warn(`Could not pre-render the ASTRA inventory route: ${error}`);
+        console.error(`Could not pre-render the ASTRA inventory route: ${error}`);
+        process.exitCode = 1;
+        server.close();
+        return;
       }
     }
     console.log(`astra-theme server started at http://${host}:${port}`);

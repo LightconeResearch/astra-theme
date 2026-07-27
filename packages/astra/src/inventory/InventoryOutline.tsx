@@ -16,6 +16,7 @@ import {
   getInventoryScope,
   inventoryScopeForRecord,
 } from './model';
+import { normalizeDoi } from './citationMetadata';
 import type { InventoryRecord, InventoryScope, InventorySnapshot } from './types';
 
 type InventoryModalEntry =
@@ -120,9 +121,10 @@ export function InventoryExplorer({
         />
       );
     } else if (activeModal.kind === 'insight') {
-      const sourcePaper = activeModal.record.doi
+      const insightDoi = activeModal.record.doi;
+      const sourcePaper = insightDoi
         ? paperRecords(model, activeScope, paperMetadata)
-          .find((paper) => paper.doi === activeModal.record.doi)
+          .find((paper) => normalizeDoi(paper.doi) === normalizeDoi(insightDoi))
         : undefined;
       modal = (
         <InsightDetailDialog

@@ -10,6 +10,7 @@ import {
 } from './InventoryPrimitives';
 import { InventoryRelationList } from './InventoryRelations';
 import { PaperPdfViewer, type PaperQuoteFocusRequest } from './PaperPdfViewer';
+import { doiHref, normalizeDoi } from './citationMetadata';
 import {
   getInventoryScope,
   inventoryDecisionInsights,
@@ -37,7 +38,7 @@ export interface InventoryPaper {
 }
 
 export interface InventoryPaperMetadata {
-  title: string;
+  title?: string;
   authors?: string;
   pdfUrl?: string;
 }
@@ -45,14 +46,19 @@ export interface InventoryPaperMetadata {
 export type InventoryPaperMetadataMap = Readonly<Record<string, InventoryPaperMetadata>>;
 
 function paperFromDoi(doi: string, paperMetadata: InventoryPaperMetadataMap): InventoryPaper {
-  const metadata = paperMetadata[doi] ?? paperMetadata[doi.toLowerCase()];
-  const arxivId = /^10\.48550\/arxiv\.(.+)$/i.exec(doi.trim())?.[1];
+  const canonicalDoi = normalizeDoi(doi);
+  const metadata = paperMetadata[canonicalDoi] ?? paperMetadata[doi];
+  const arxivId = /^10\.48550\/arxiv\.(.+)$/i.exec(canonicalDoi)?.[1];
+  const arxivPdfId = arxivId
+    ?.split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
   return {
-    doi,
-    title: metadata?.title ?? (arxivId ? `arXiv ${arxivId}` : doi),
+    doi: canonicalDoi,
+    title: metadata?.title ?? (arxivId ? `arXiv ${arxivId}` : canonicalDoi),
     authors: metadata?.authors,
     pdfUrl: metadata?.pdfUrl
-      ?? (arxivId ? `https://arxiv.org/pdf/${encodeURIComponent(arxivId)}` : undefined),
+      ?? (arxivPdfId ? `https://arxiv.org/pdf/${arxivPdfId}` : undefined),
     insights: [],
     decisions: [],
   };
@@ -61,7 +67,7 @@ function paperFromDoi(doi: string, paperMetadata: InventoryPaperMetadataMap): In
 type InventoryEvidence = NonNullable<InventoryRecord['evidence']>[number];
 
 function normalizedDoi(doi: string): string {
-  return doi.trim().toLowerCase();
+  return normalizeDoi(doi);
 }
 
 function insightDois(insight: InventoryRecord): string[] {
@@ -105,10 +111,8 @@ export function paperRecords(
     for (const record of inventoryRecordsOfKind(candidate, 'decision')) {
       decisions.set(record.path, record);
     }
-    if (!scope.parent) {
-      for (const record of inventoryRecordsOfKind(candidate, 'prior_insight')) {
-        insights.set(record.path, record);
-      }
+    for (const record of inventoryRecordsOfKind(candidate, 'prior_insight')) {
+      insights.set(record.path, record);
     }
   }
 
@@ -221,13 +225,15 @@ export function PaperDialog({
                   {evidence.map((source, index) => (
                     <Fragment key={`${insight.path}-${index}`}>
                       <blockquote className="inventory-paper-insight__quote">{source.quote}</blockquote>
-                      <button
-                        type="button"
-                        className="inventory-paper-insight__locate"
-                        onClick={() => focusInsight(insight, source)}
-                      >
-                        Locate quote in PDF
-                      </button>
+                      {paper.pdfUrl ? (
+                        <button
+                          type="button"
+                          className="inventory-paper-insight__locate"
+                          onClick={() => focusInsight(insight, source)}
+                        >
+                          Locate quote in PDF
+                        </button>
+                      ) : null}
                     </Fragment>
                   ))}
                   </li>
@@ -237,7 +243,7 @@ export function PaperDialog({
           </section>
           <section className="inventory-paper-doi">
             <h4>DOI</h4>
-            <a href={`https://doi.org/${paper.doi}`} target="_blank" rel="noreferrer">
+            <a href={doiHref(paper.doi)} target="_blank" rel="noreferrer">
               {paper.doi} ↗
             </a>
           </section>

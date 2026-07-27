@@ -323,11 +323,7 @@ export function OutputDialog({
 }
 
 export function OutputsInventory({ model, scopeId, onOpenOutput }: OutputsInventoryProps) {
-  const scopes = model.snapshot.scopes.filter(
-    (scope) => inventoryRecordsOfKind(scope, 'output').length > 0,
-  );
-  const requestedScope = getInventoryScope(model, scopeId);
-  const scope = requestedScope && scopes.includes(requestedScope) ? requestedScope : scopes[0];
+  const scope = getInventoryScope(model, scopeId);
   const records = scope ? inventoryRecordsOfKind(scope, 'output') : [];
   const figures = records.filter((record) => record.type === 'figure');
   const tables = records.filter((record) => record.type === 'table');
@@ -335,7 +331,7 @@ export function OutputsInventory({ model, scopeId, onOpenOutput }: OutputsInvent
     (record) => record.type !== 'figure' && record.type !== 'table',
   );
 
-  if (!scope) {
+  if (!scope || records.length === 0) {
     return (
       <InventoryEmptyState className="inventory-output-empty">
         No outputs are declared in this analysis.

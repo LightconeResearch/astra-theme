@@ -56,10 +56,12 @@ function TablePreview({ record, compact = false }: {
     );
   }
 
-  const columnLimit = compact ? 5 : 10;
-  const rowLimit = compact ? 4 : 10;
+  const columnLimit = compact ? 5 : 30;
+  const rowLimit = compact ? 4 : 30;
   const headers = table.headers.slice(0, columnLimit);
   const rows = table.rows.slice(0, rowLimit);
+  const totalRows = record.table_rows_total ?? table.rows.length;
+  const totalColumns = record.table_columns_total ?? table.headers.length;
   return (
     <div className={`inventory-output-table${compact ? ' is-compact' : ''}`}>
       <table>
@@ -76,10 +78,10 @@ function TablePreview({ record, compact = false }: {
           ))}
         </tbody>
       </table>
-      {!compact && (table.rows.length > rowLimit || table.headers.length > columnLimit) ? (
+      {!compact && (totalRows > rows.length || totalColumns > headers.length) ? (
         <p>
-          Showing {Math.min(rowLimit, table.rows.length)} of {table.rows.length} rows and{' '}
-          {Math.min(columnLimit, table.headers.length)} of {table.headers.length} columns.
+          Showing {rows.length} of {totalRows} rows and{' '}
+          {headers.length} of {totalColumns} columns.
         </p>
       ) : null}
     </div>

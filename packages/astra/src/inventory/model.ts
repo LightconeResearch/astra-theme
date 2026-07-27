@@ -95,6 +95,14 @@ function parentScope(
   return scope.parent ? model.scopeById.get(scope.parent) : undefined;
 }
 
+const COLLECTION_KINDS: Readonly<Record<string, InventoryKind>> = {
+  inputs: 'input',
+  decisions: 'decision',
+  outputs: 'output',
+  findings: 'finding',
+  prior_insights: 'prior_insight',
+};
+
 /** Resolve local ids, relative aliases, and fully-qualified ASTRA paths. */
 export function resolveInventoryRecordReference(
   model: InventoryModel,
@@ -114,29 +122,29 @@ export function resolveInventoryRecordReference(
   }
   if (normalized.startsWith('./')) normalized = normalized.slice(2);
 
-  const exact = model.recordByPath.get(normalized);
-  if (exact && matchesKind(exact.record, kind)) return exact;
-
   const parts = normalized.split('.');
   if (parts.length > 1) {
     const id = parts[parts.length - 1] ?? normalized;
     const scopePath = parts.slice(0, -1).join('.');
-    if (
-      scopePath === 'inputs'
-      || scopePath === 'decisions'
-      || scopePath === 'outputs'
-      || scopePath === 'findings'
-      || scopePath === 'prior_insights'
-    ) {
+    const collectionKind = COLLECTION_KINDS[scopePath];
+    if (collectionKind && (!kind || kind === collectionKind)) {
       let candidate: InventoryScope | undefined = owner;
       while (candidate) {
         const local = candidate.records.find(
-          (record) => record.id === id && matchesKind(record, kind),
+          (record) => record.id === id && record.kind === collectionKind,
         );
         if (local) return { record: local, scope: candidate };
         candidate = parentScope(model, candidate);
       }
     }
+  }
+
+  const exact = model.recordByPath.get(normalized);
+  if (exact && matchesKind(exact.record, kind)) return exact;
+
+  if (parts.length > 1) {
+    const id = parts[parts.length - 1] ?? normalized;
+    const scopePath = parts.slice(0, -1).join('.');
     const qualifiedScope = model.scopeByPath.get(scopePath)
       ?? model.scopeById.get(scopePath);
     const qualified = qualifiedScope?.records.find(

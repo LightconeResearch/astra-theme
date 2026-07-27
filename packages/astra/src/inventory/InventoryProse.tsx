@@ -1,10 +1,10 @@
 /**
- * A deliberately local prose renderer for the isolated inventory preview.
+ * A deliberately small prose renderer for inventory metadata strings.
  *
  * The normal ASTRA report keeps using StoreProse and MyST's renderer registry.
- * This fallback exists because inventory-lab is a standalone Vite app: it
- * needs to render frozen fixture strings without mounting the full MyST
- * document pipeline. It is not a proposed MySTRA rendering contract.
+ * The inventory snapshot carries plain strings rather than parsed MyST nodes,
+ * so this renders the inline code and math forms used by ASTRA metadata without
+ * mounting a second document pipeline.
  */
 import * as React from 'react';
 import type { GenericNode } from 'myst-common';

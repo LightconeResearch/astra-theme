@@ -43,6 +43,7 @@ const snapshot: InventorySnapshot = {
             quote: 'The inherited result supports this choice.',
           }],
         },
+        { id: 'result', path: 'outputs.result', kind: 'output' },
       ],
     },
     {
@@ -95,6 +96,11 @@ describe('inventory model', () => {
       .toBe('result');
     expect(resolveInventoryRecordReference(model, child, 'outputs.result')?.record.path)
       .toBe('child.outputs.result');
+    expect(resolveInventoryRecordReference(model, child, './outputs.result')?.record.path)
+      .toBe('child.outputs.result');
+    expect(
+      resolveInventoryRecordReference(model, child, 'prior_insights.support')?.record.path,
+    ).toBe('child.prior_insights.support');
     expect(resolveInventoryRecordReference(model, child, 'result')?.record.path)
       .toBe('child.outputs.result');
     expect(resolveInventoryRecordReference(model, root, 'child.result')?.record.path)

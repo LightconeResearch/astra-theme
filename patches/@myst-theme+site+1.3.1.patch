@@ -2,9 +2,7 @@ diff --git a/node_modules/@myst-theme/site/src/components/DocumentOutline.tsx b/
 index be02915..9513f98 100644
 --- a/node_modules/@myst-theme/site/src/components/DocumentOutline.tsx
 +++ b/node_modules/@myst-theme/site/src/components/DocumentOutline.tsx
-@@ -125,7 +125,7 @@ function getHeaders(selector: string): HTMLHeadingElement[] {
- type MutationCallback = (mutations: MutationRecord[], observer: MutationObserver) => void;
- 
+@@ -127,5 +127,5 @@ type MutationCallback = (mutations: MutationRecord[], observer: MutationObserver) => void;
  function useMutationObserver(
 -  targetRef: RefObject<Element>,
 +  targetRef: RefObject<Element | null>,

@@ -243,6 +243,35 @@ test('promotes visual outputs, lists additional files, and opens declared proven
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 });
 
+test('renders at most a 30 by 30 table preview and reports the full dimensions', () => {
+  const tableSnapshot = structuredClone(snapshot);
+  const table = tableSnapshot.scopes[0].records.find(
+    (record) => record.path === 'outputs.result_table',
+  )!;
+  table.table_data = {
+    headers: Array.from({ length: 30 }, (_, index) => `column_${index + 1}`),
+    rows: Array.from(
+      { length: 30 },
+      (_, rowIndex) => Array.from(
+        { length: 30 },
+        (_, columnIndex) => `${rowIndex + 1}:${columnIndex + 1}`,
+      ),
+    ),
+  };
+  table.table_rows_total = 31;
+  table.table_columns_total = 32;
+
+  render(<InventoryOutline snapshot={tableSnapshot} />);
+  fireEvent.click(screen.getByRole('button', { name: /Result table/i }));
+
+  const dialog = screen.getByRole('dialog', { name: 'Result table' });
+  expect(within(dialog).getAllByRole('columnheader')).toHaveLength(30);
+  expect(within(dialog).getAllByRole('row')).toHaveLength(31);
+  expect(
+    within(dialog).getByText('Showing 30 of 31 rows and 30 of 32 columns.'),
+  ).toBeInTheDocument();
+});
+
 test('lists full finding claims and opens their evidence through the shared detail stack', () => {
   render(<InventoryOutline snapshot={snapshot} paperMetadata={paperMetadata} />);
 
@@ -378,6 +407,23 @@ test('renders a selected sub-analysis as its own inventory scope', () => {
   );
 
   expect(screen.getByRole('button', { name: /child_result/i })).toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: /Result figure/i })).not.toBeInTheDocument();
+  expect(
+    screen.getByRole('button', {
+      name: /10.48550\/arXiv.1807.06209, 1 insights, 0 decisions/i,
+    }),
+  ).toBeInTheDocument();
+});
+
+test('does not borrow outputs from another scope when the selected scope is empty', () => {
+  const emptyChildSnapshot = structuredClone(snapshot);
+  emptyChildSnapshot.scopes[1].records = emptyChildSnapshot.scopes[1].records.filter(
+    (record) => record.kind !== 'output',
+  );
+
+  render(<InventoryOutline snapshot={emptyChildSnapshot} scopeId="child" />);
+
+  expect(screen.getByText('No outputs are declared in this analysis.')).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: /Result figure/i })).not.toBeInTheDocument();
 });
 
