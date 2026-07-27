@@ -14,6 +14,12 @@ export type InventoryKind =
   | 'finding'
   | 'prior_insight';
 
+export interface InventoryRecordReference {
+  kind: Exclude<InventoryKind, 'analysis'>;
+  id: string;
+  path?: string;
+}
+
 export interface InventoryDiagnostic {
   severity: 'error' | 'warning' | 'info';
   message: string;

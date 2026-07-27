@@ -11,12 +11,21 @@ import { describe, it, expect } from 'vitest';
 import { screen, fireEvent } from '@testing-library/react';
 import type { GenericNode } from 'myst-common';
 import { renderWithProviders } from './helpers/renderWithProviders';
-import { makeStore, emptyStore } from './helpers/store';
+import {
+  makeInventorySnapshot,
+  makeStore,
+  emptyStore,
+} from './helpers/store';
 
 import { AstraDecision } from '../src/renderers/AstraDecision';
 import { AstraFinding } from '../src/renderers/AstraFinding';
 import { AstraInlineRef } from '../src/renderers/AstraInlineRef';
 import { AstraValue } from '../src/renderers/AstraValue';
+import {
+  InventoryDialogTriggerProvider,
+} from '../src/inventory/DialogContext';
+import { InventoryExplorer } from '../src/inventory/InventoryOutline';
+import type { InventoryRecordReference } from '../src/inventory/types';
 
 /* --------------------------------------------------------------- *
  * AstraDecision (heading carrier, joined by identifier)
@@ -148,6 +157,35 @@ describe('AstraInlineRef', () => {
     expect(
       screen.getByText(/Analytic covariance is fastest/),
     ).toBeInTheDocument();
+  });
+
+  it('opens the inventory decision dialog when the narrative token is clicked', () => {
+    function NarrativeReferenceWithDialogs() {
+      const [reference, setReference] =
+        React.useState<InventoryRecordReference>();
+      return (
+        <InventoryDialogTriggerProvider onOpen={setReference}>
+          <AstraInlineRef node={node} />
+          <InventoryExplorer
+            snapshot={makeInventorySnapshot()}
+            dialogsOnly
+            openReference={reference}
+          />
+        </InventoryDialogTriggerProvider>
+      );
+    }
+
+    const { container } = renderWithProviders(
+      <NarrativeReferenceWithDialogs />,
+      makeStore(),
+    );
+    const trigger = container.querySelector('.astra-ref-trigger')!;
+    expect(trigger).toHaveAttribute('role', 'button');
+    fireEvent.click(trigger);
+    expect(
+      screen.getByRole('dialog', { name: 'Covariance source' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Rationale')).toBeInTheDocument();
   });
 
   it('renders just the bare labelled span when the entry is missing', () => {

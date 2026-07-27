@@ -15,11 +15,13 @@ import {
   createInventoryModel,
   getInventoryScope,
   inventoryScopeForRecord,
+  resolveInventoryRecordReference,
 } from './model';
 import { normalizeDoi } from './citationMetadata';
 import type {
   InventoryInsightRecord,
   InventoryRecord,
+  InventoryRecordReference,
   InventoryScope,
   InventorySnapshot,
 } from './types';
@@ -42,6 +44,8 @@ export interface InventoryOutlineProps {
   scopeId?: string;
   paperMetadata?: InventoryPaperMetadataMap;
   decisionTagLabels?: Readonly<Record<string, string>>;
+  dialogsOnly?: boolean;
+  openReference?: InventoryRecordReference;
 }
 
 export function InventoryExplorer({
@@ -49,11 +53,40 @@ export function InventoryExplorer({
   scopeId = 'root',
   paperMetadata = {},
   decisionTagLabels = {},
+  dialogsOnly = false,
+  openReference,
 }: InventoryOutlineProps) {
   const [modalStack, setModalStack] = useState<InventoryModalEntry[]>([]);
   const model = useMemo(() => snapshot ? createInventoryModel(snapshot) : undefined, [snapshot]);
 
   useEffect(() => setModalStack([]), [scopeId]);
+  useEffect(() => {
+    if (!model || !openReference) return;
+    const fallbackScope = getInventoryScope(model, scopeId)
+      ?? model.snapshot.scopes[0];
+    if (!fallbackScope) return;
+    const located = (
+      openReference.path
+        ? model.recordByPath.get(openReference.path)
+        : undefined
+    ) ?? resolveInventoryRecordReference(
+      model,
+      fallbackScope,
+      openReference.path ?? openReference.id,
+      openReference.kind,
+    );
+    if (!located || located.record.kind !== openReference.kind) return;
+    const { record, scope } = located;
+    if (record.kind === 'prior_insight') {
+      setModalStack([{
+        kind: 'insight',
+        record: record as InventoryInsightRecord,
+        scopeId: scope.id,
+      }]);
+    } else {
+      setModalStack([{ kind: record.kind, record, scopeId: scope.id }]);
+    }
+  }, [model, openReference, scopeId]);
 
   const startModal = (entry: InventoryModalEntry) => setModalStack([entry]);
   const pushModal = (entry: InventoryModalEntry) => setModalStack((stack) => [...stack, entry]);
@@ -173,6 +206,8 @@ export function InventoryExplorer({
       );
     }
   }
+
+  if (dialogsOnly) return <>{modal}</>;
 
   const sections = [
     {

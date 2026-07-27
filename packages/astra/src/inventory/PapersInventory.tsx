@@ -10,7 +10,12 @@ import {
 } from './InventoryPrimitives';
 import { InventoryRelationList } from './InventoryRelations';
 import { PaperPdfViewer, type PaperQuoteFocusRequest } from './PaperPdfViewer';
-import { doiHref, normalizeDoi } from './citationMetadata';
+import {
+  citationTitleFromHtml,
+  directCitationPdfUrl,
+  doiHref,
+  normalizeDoi,
+} from './citationMetadata';
 import {
   getInventoryScope,
   inventoryDecisionInsights,
@@ -48,6 +53,22 @@ export interface InventoryPaperMetadata {
 }
 
 export type InventoryPaperMetadataMap = Readonly<Record<string, InventoryPaperMetadata>>;
+
+export function paperMetadataFromCitations(
+  citations: unknown,
+): InventoryPaperMetadataMap {
+  if (!citations || typeof citations !== 'object') return {};
+  return Object.fromEntries(
+    Object.values(citations).flatMap((citation: any) => {
+      const doi = typeof citation?.doi === 'string'
+        ? normalizeDoi(citation.doi)
+        : undefined;
+      const title = citationTitleFromHtml(citation?.html);
+      const pdfUrl = directCitationPdfUrl(citation?.url);
+      return doi && (title || pdfUrl) ? [[doi, { title, pdfUrl }]] : [];
+    }),
+  );
+}
 
 function paperFromDoi(doi: string, paperMetadata: InventoryPaperMetadataMap): InventoryPaper {
   const canonicalDoi = normalizeDoi(doi);

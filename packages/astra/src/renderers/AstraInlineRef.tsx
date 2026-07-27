@@ -31,6 +31,8 @@ import { decisionEvidenceInsights } from '../store/decisionEvidence';
 import { PreviewCard } from '../card/PreviewCard';
 import { CardChrome, DataFlow, InsightCard, InsightRef } from '../card';
 import { AstraCite } from '../cite';
+import { useInventoryDialogTrigger } from '../inventory/DialogContext';
+import type { InventoryRecordReference } from '../inventory/types';
 import type {
   AstraKind,
   InlineAstra,
@@ -58,6 +60,26 @@ function clean(values: (string | undefined)[] | undefined): string[] {
   return (values ?? [])
     .map((v) => (v == null ? '' : String(v).trim()))
     .filter((v) => v !== '');
+}
+
+function inventoryReference(
+  inline: InlineAstra | undefined,
+): InventoryRecordReference | undefined {
+  if (
+    !inline
+    || ![
+      'input',
+      'decision',
+      'output',
+      'finding',
+      'prior_insight',
+    ].includes(inline.kind)
+  ) return undefined;
+  return {
+    kind: inline.kind as InventoryRecordReference['kind'],
+    id: inline.id,
+    path: inline.path,
+  };
 }
 
 /** Reconstruct the visible carrier `<span>` (preserves its astra-* classes). */
@@ -362,6 +384,7 @@ function renderCardBody(
 
 export const AstraInlineRef: React.FC<{ node: GenericNode }> = ({ node }) => {
   const inline = readInline(node);
+  const openInventoryDialog = useInventoryDialogTrigger();
   const kind = inline?.kind;
   const id = inline?.id;
 
@@ -402,10 +425,14 @@ export const AstraInlineRef: React.FC<{ node: GenericNode }> = ({ node }) => {
   // while the gold token keeps the insight card.
   const insightDoi =
     kind === 'prior_insight' ? (entry as SerializedInsight).doi : undefined;
+  const detailReference = inventoryReference(inline);
+  const onActivate = detailReference && openInventoryDialog
+    ? () => openInventoryDialog(detailReference)
+    : undefined;
 
   return (
     <>
-      <PreviewCard kind={kind} trigger={trigger}>
+      <PreviewCard kind={kind} trigger={trigger} onActivate={onActivate}>
         {body}
       </PreviewCard>
       {insightDoi ? (

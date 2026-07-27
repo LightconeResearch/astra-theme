@@ -21,6 +21,7 @@ import { ComputeOptionsProvider } from '@myst-theme/jupyter';
 import { ProjectProvider, useBaseurl } from '@myst-theme/providers';
 import { ThebeLoaderAndServer } from '@myst-theme/jupyter';
 import { useRouteError, isRouteErrorResponse } from '@remix-run/react';
+import inventoryStyles from '@astra-spec/theme-astra/styles/inventory.css';
 
 type ManifestProject = Required<SiteManifest>['projects'][0];
 
@@ -45,7 +46,10 @@ export const meta: V2_MetaFunction<typeof loader> = ({ data, matches, location }
   });
 };
 
-export const links: LinksFunction = () => [KatexCSS];
+export const links: LinksFunction = () => [
+  KatexCSS,
+  { rel: 'stylesheet', href: inventoryStyles },
+];
 
 export const loader: LoaderFunction = async ({ params, request }) => {
   const url = new URL(request.url);

@@ -29,6 +29,13 @@ import { copyNode } from 'myst-common';
 import { SourceFileKind } from 'myst-spec-ext';
 import { MyST } from 'myst-to-react';
 import { AstraStoreProvider } from '@astra-spec/theme-astra';
+import {
+  findInventorySnapshot,
+  InventoryDialogTriggerProvider,
+  InventoryExplorer,
+  paperMetadataFromCitations,
+  type InventoryRecordReference,
+} from '@astra-spec/theme-astra/inventory';
 
 const TOP_OFFSET = 24;
 
@@ -60,6 +67,16 @@ export function Article({
     () => ({ ...article.references, article: article.mdast }),
     [article],
   );
+  const inventorySnapshot = React.useMemo(
+    () => findInventorySnapshot(tree),
+    [tree],
+  );
+  const paperMetadata = React.useMemo(
+    () => paperMetadataFromCitations(article.references?.cite?.data),
+    [article.references],
+  );
+  const [openInventoryReference, setOpenInventoryReference] =
+    React.useState<InventoryRecordReference>();
   const { title, subtitle } = article.frontmatter;
   const compute = useComputeOptions();
   const top = useThemeTop();
@@ -109,9 +126,21 @@ export function Article({
               the abstract is extracted from the tree and rendered separately,
               and its astra refs need the store context for preview cards. */}
           <AstraStoreProvider mdast={tree}>
-            <FrontmatterParts parts={parts} keywords={keywords} hideKeywords={hideKeywords} />
-            <MyST ast={tree} />
-            <BackmatterParts parts={parts} />
+            <InventoryDialogTriggerProvider
+              onOpen={inventorySnapshot ? setOpenInventoryReference : undefined}
+            >
+              <FrontmatterParts parts={parts} keywords={keywords} hideKeywords={hideKeywords} />
+              <MyST ast={tree} />
+              <BackmatterParts parts={parts} />
+              {inventorySnapshot ? (
+                <InventoryExplorer
+                  snapshot={inventorySnapshot}
+                  paperMetadata={paperMetadata}
+                  dialogsOnly
+                  openReference={openInventoryReference}
+                />
+              ) : null}
+            </InventoryDialogTriggerProvider>
           </AstraStoreProvider>
           <Footnotes />
           <Bibliography />

@@ -1,4 +1,8 @@
 import type { ResolvedStore } from '@astra-spec/store-types';
+import type {
+  InventoryRecord,
+  InventorySnapshot,
+} from '../../src/inventory/types';
 
 /** A populated ResolvedStore for component rendering tests. */
 export function makeStore(): ResolvedStore {
@@ -95,5 +99,27 @@ export function emptyStore(): ResolvedStore {
     findings: {},
     prior_insights: {},
     subanalyses: {},
+  };
+}
+
+export function makeInventorySnapshot(): InventorySnapshot {
+  const store = makeStore();
+  const records = [
+    ...Object.values(store.outputs),
+    ...Object.values(store.decisions),
+    ...Object.values(store.inputs),
+    ...Object.values(store.findings),
+    ...Object.values(store.prior_insights),
+  ] as InventoryRecord[];
+  return {
+    version: 1,
+    analysis: { id: 'demo', name: 'Demo' },
+    scopes: [{
+      id: 'root',
+      path: 'demo',
+      name: 'Demo',
+      children: [],
+      records,
+    }],
   };
 }

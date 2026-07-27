@@ -30,6 +30,8 @@ export interface PreviewCardProps {
   children: React.ReactNode;
   /** ASTRA kind string, used to tint the card via `astra-card--<kind>`. */
   kind: string;
+  /** Optional detail action for click, Enter, or Space on the trigger. */
+  onActivate?: () => void;
 }
 
 const ARROW_HEIGHT = 7;
@@ -47,7 +49,12 @@ const GAP = 6;
  * floating-ui FloatingTree (the outermost one creates it), so hovering a child
  * card keeps every ancestor card open instead of unmounting the chain.
  */
-const PreviewCardInner: React.FC<PreviewCardProps> = ({ trigger, children, kind }) => {
+const PreviewCardInner: React.FC<PreviewCardProps> = ({
+  trigger,
+  children,
+  kind,
+  onActivate,
+}) => {
   const [open, setOpen] = React.useState(false);
   const arrowRef = React.useRef<SVGSVGElement>(null);
   const nodeId = useFloatingNodeId();
@@ -126,8 +133,19 @@ const PreviewCardInner: React.FC<PreviewCardProps> = ({ trigger, children, kind 
       <span
         ref={refs.setReference}
         tabIndex={0}
+        role={onActivate ? 'button' : undefined}
         className="astra-ref-trigger"
         {...getReferenceProps({
+          onClick: onActivate,
+          onKeyDown: (event) => {
+            if (
+              onActivate
+              && (event.key === 'Enter' || event.key === ' ')
+            ) {
+              event.preventDefault();
+              onActivate();
+            }
+          },
           onMouseEnter: (e) => {
             cursorXRef.current = e.clientX;
           },

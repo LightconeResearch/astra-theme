@@ -2,8 +2,15 @@ export { DecisionsInventory } from './DecisionsInventory';
 export { FindingsInventory } from './FindingsInventory';
 export { InputsInventory } from './InputsInventory';
 export { InventoryExplorer, InventoryOutline } from './InventoryOutline';
+export {
+  InventoryDialogTriggerProvider,
+  useInventoryDialogTrigger,
+} from './DialogContext';
 export { OverviewInventory } from './OverviewInventory';
-export { PapersInventory } from './PapersInventory';
+export {
+  PapersInventory,
+  paperMetadataFromCitations,
+} from './PapersInventory';
 export { findInventorySnapshot, hasInventorySnapshot } from './snapshot';
 export {
   citationTitleFromHtml,
@@ -28,6 +35,7 @@ export type {
   InventoryDiagnostic,
   InventoryKind,
   InventoryRecord,
+  InventoryRecordReference,
   InventoryDecisionRecord,
   InventoryFindingRecord,
   InventoryInputRecord,

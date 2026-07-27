@@ -25,9 +25,7 @@ import {
   findInventorySnapshot,
   InventoryExplorer,
   OverviewInventory,
-  citationTitleFromHtml,
-  directCitationPdfUrl,
-  normalizeDoi,
+  paperMetadataFromCitations,
   type InventoryPaperMetadataMap,
   type InventorySnapshot,
 } from '@astra-spec/theme-astra/inventory';
@@ -38,21 +36,6 @@ import { getConfig, getPage } from '../utils/loaders.server';
 
 type ManifestProject = Required<SiteManifest>['projects'][0];
 const OUTLINE_TOP_OFFSET = 24;
-
-function paperMetadataFromPage(page: any): InventoryPaperMetadataMap {
-  const citations = page.references?.cite?.data;
-  if (!citations || typeof citations !== 'object') return {};
-  return Object.fromEntries(
-    Object.values(citations).flatMap((citation: any) => {
-      const doi = typeof citation?.doi === 'string'
-        ? normalizeDoi(citation.doi)
-        : undefined;
-      const title = citationTitleFromHtml(citation?.html);
-      const pdfUrl = directCitationPdfUrl(citation?.url);
-      return doi && (title || pdfUrl) ? [[doi, { title, pdfUrl }]] : [];
-    }),
-  );
-}
 
 export const links: LinksFunction = () => [
   KatexCSS,
@@ -99,7 +82,7 @@ export const loader: LoaderFunction = async ({ request }) => {
     config,
     project,
     snapshot,
-    paperMetadata: paperMetadataFromPage(page),
+    paperMetadata: paperMetadataFromCitations(page.references?.cite?.data),
     initialScopeId,
   });
 };
