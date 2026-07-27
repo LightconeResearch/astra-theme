@@ -1,13 +1,22 @@
+import { useBaseurl } from '@myst-theme/providers';
 import { useEffect, useRef, useState } from 'react';
-import type { PDFDocumentProxy } from 'pdfjs-dist';
-// Vite turns the worker module into a deployable asset URL at build time.
-// @ts-expect-error Asset-query imports are provided by the consuming bundler.
-import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import type { PDFDocumentProxy } from 'pdfjs-dist/legacy/build/pdf.mjs';
+
+type PdfJs = typeof import('pdfjs-dist/legacy/build/pdf.mjs');
+
+function pdfAssetUrl(baseurl: string | undefined, filename: string): string {
+  return `${(baseurl ?? '').replace(/\/+$/, '')}/${filename}`;
+}
+
+function loadPdfJs(baseurl: string | undefined): Promise<PdfJs> {
+  return import(pdfAssetUrl(baseurl, 'pdf.mjs')) as Promise<PdfJs>;
+}
 
 export interface PaperQuoteFocusRequest {
   key: string;
   insightId: string;
   quote: string;
+  page?: number;
 }
 
 interface PaperPdfViewerProps {
@@ -142,10 +151,12 @@ function pageStrings(
     .then((page) => page.getTextContent())
     .then((content) => content.items.map((item) => ('str' in item ? item.str : '')));
   cache.set(pageNumber, pending);
+  void pending.catch(() => cache.delete(pageNumber));
   return pending;
 }
 
 export function PaperPdfViewer({ pdfUrl, title, focusRequest }: PaperPdfViewerProps) {
+  const baseurl = useBaseurl();
   const [pdf, setPdf] = useState<PDFDocumentProxy>();
   const [pageNumber, setPageNumber] = useState(1);
   const [zoomIndex, setZoomIndex] = useState(1);
@@ -154,6 +165,7 @@ export function PaperPdfViewer({ pdfUrl, title, focusRequest }: PaperPdfViewerPr
     requestKey: string;
     pageNumber: number;
     quote: string;
+    fallback?: boolean;
   }>();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pageRef = useRef<HTMLDivElement>(null);
@@ -185,10 +197,11 @@ export function PaperPdfViewer({ pdfUrl, title, focusRequest }: PaperPdfViewerPr
       };
     }
 
-    void import('pdfjs-dist').then(async (pdfjs) => {
-      pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
-      loadingTask = pdfjs.getDocument({ url: pdfUrl.split('#')[0] });
+    void (async () => {
       try {
+        const pdfjs = await loadPdfJs(baseurl);
+        pdfjs.GlobalWorkerOptions.workerSrc = pdfAssetUrl(baseurl, 'pdf.worker.min.mjs');
+        loadingTask = pdfjs.getDocument({ url: pdfUrl.split('#')[0] });
         loadedDocument = await loadingTask.promise;
         if (disposed) return;
         setPdf(loadedDocument);
@@ -196,7 +209,7 @@ export function PaperPdfViewer({ pdfUrl, title, focusRequest }: PaperPdfViewerPr
       } catch {
         if (!disposed) setStatus('The PDF could not be loaded. Use “Open PDF” instead.');
       }
-    });
+    })();
 
     return () => {
       disposed = true;
@@ -204,7 +217,7 @@ export function PaperPdfViewer({ pdfUrl, title, focusRequest }: PaperPdfViewerPr
       void loadingTask?.destroy();
       void loadedDocument?.destroy();
     };
-  }, [pdfUrl]);
+  }, [baseurl, pdfUrl]);
 
   useEffect(() => {
     if (!pdf) return;
@@ -220,7 +233,7 @@ export function PaperPdfViewer({ pdfUrl, title, focusRequest }: PaperPdfViewerPr
       if (!canvas || !pageElement || !scrollElement || !textLayerElement) return;
 
       try {
-        const pdfjs = await import('pdfjs-dist');
+        const pdfjs = await loadPdfJs(baseurl);
         const page = await pdf.getPage(pageNumber);
         if (disposed) return;
         const baseViewport = page.getViewport({ scale: 1 });
@@ -243,7 +256,6 @@ export function PaperPdfViewer({ pdfUrl, title, focusRequest }: PaperPdfViewerPr
         textLayerElement.style.setProperty('--scale-factor', String(viewport.scale));
 
         renderTask = page.render({
-          canvas,
           canvasContext: context,
           viewport,
           transform: ratio === 1 ? undefined : [ratio, 0, 0, ratio, 0, 0],
@@ -269,6 +281,9 @@ export function PaperPdfViewer({ pdfUrl, title, focusRequest }: PaperPdfViewerPr
           if (match) {
             match.scrollIntoView({ behavior: 'smooth', block: 'center' });
             setStatus(`Quote highlighted on page ${pageNumber} of ${pdf.numPages}`);
+          } else if (pendingHighlight.fallback) {
+            scrollElement.scrollTo({ top: 0 });
+            setStatus(`Exact quote not found; showing its cited page ${pageNumber} of ${pdf.numPages}`);
           } else {
             setStatus(`Page ${pageNumber} of ${pdf.numPages}`);
           }
@@ -288,26 +303,39 @@ export function PaperPdfViewer({ pdfUrl, title, focusRequest }: PaperPdfViewerPr
       renderTask?.cancel();
       textLayer?.cancel();
     };
-  }, [pageNumber, pdf, pendingHighlight, zoomIndex]);
+  }, [baseurl, pageNumber, pdf, pendingHighlight, zoomIndex]);
 
   useEffect(() => {
     if (!pdf || !focusRequest?.quote) return;
     const token = ++searchTokenRef.current;
-    const cachedPage = quotePageCacheRef.current.get(focusRequest.insightId);
+    const cacheKey = `${focusRequest.insightId}\u0000${focusRequest.quote}`;
+    const cachedPage = quotePageCacheRef.current.get(cacheKey);
 
     void (async () => {
       setStatus('Locating quote in the PDF…');
       let foundPage = cachedPage;
       if (!foundPage) {
-        const order = [pageNumberRef.current, ...Array.from({ length: pdf.numPages }, (_, index) => index + 1)]
+        const order = [
+          focusRequest.page,
+          pageNumberRef.current,
+          ...Array.from({ length: pdf.numPages }, (_, index) => index + 1),
+        ]
+          .filter((page): page is number => (
+            page !== undefined && page >= 1 && page <= pdf.numPages
+          ))
           .filter((page, index, pages) => pages.indexOf(page) === index);
         for (let index = 0; index < order.length; index += 1) {
           if (token !== searchTokenRef.current) return;
           const candidate = order[index];
-          const strings = await pageStrings(pdf, candidate, textCacheRef.current);
+          let strings: string[];
+          try {
+            strings = await pageStrings(pdf, candidate, textCacheRef.current);
+          } catch {
+            continue;
+          }
           if (findQuoteMatch(strings, focusRequest.quote)) {
             foundPage = candidate;
-            quotePageCacheRef.current.set(focusRequest.insightId, candidate);
+            quotePageCacheRef.current.set(cacheKey, candidate);
             break;
           }
           if (index > 0 && index % 5 === 0) {
@@ -317,6 +345,21 @@ export function PaperPdfViewer({ pdfUrl, title, focusRequest }: PaperPdfViewerPr
       }
       if (token !== searchTokenRef.current) return;
       if (!foundPage) {
+        if (
+          focusRequest.page !== undefined
+          && Number.isInteger(focusRequest.page)
+          && focusRequest.page >= 1
+          && focusRequest.page <= pdf.numPages
+        ) {
+          setPendingHighlight({
+            requestKey: focusRequest.key,
+            pageNumber: focusRequest.page,
+            quote: focusRequest.quote,
+            fallback: true,
+          });
+          setPageNumber(focusRequest.page);
+          return;
+        }
         setStatus('The exact quote was not found in the PDF text layer.');
         return;
       }

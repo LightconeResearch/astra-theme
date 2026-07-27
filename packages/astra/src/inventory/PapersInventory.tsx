@@ -1,5 +1,4 @@
-import { useRef, useState } from 'react';
-import { decisionEvidenceIds } from '../store/decisionEvidence';
+import { Fragment, useRef, useState } from 'react';
 import { InventoryProse } from './InventoryProse';
 import { InsightDetailTrigger } from './InsightDetailDialog';
 import {
@@ -13,6 +12,7 @@ import { InventoryRelationList } from './InventoryRelations';
 import { PaperPdfViewer, type PaperQuoteFocusRequest } from './PaperPdfViewer';
 import {
   getInventoryScope,
+  inventoryDecisionInsights,
   inventoryRecordTitle,
   inventoryRecordsOfKind,
   inventoryScopesForView,
@@ -45,15 +45,51 @@ export interface InventoryPaperMetadata {
 export type InventoryPaperMetadataMap = Readonly<Record<string, InventoryPaperMetadata>>;
 
 function paperFromDoi(doi: string, paperMetadata: InventoryPaperMetadataMap): InventoryPaper {
-  const metadata = paperMetadata[doi];
+  const metadata = paperMetadata[doi] ?? paperMetadata[doi.toLowerCase()];
+  const arxivId = /^10\.48550\/arxiv\.(.+)$/i.exec(doi.trim())?.[1];
   return {
     doi,
-    title: metadata?.title ?? doi,
+    title: metadata?.title ?? (arxivId ? `arXiv ${arxivId}` : doi),
     authors: metadata?.authors,
-    pdfUrl: metadata?.pdfUrl,
+    pdfUrl: metadata?.pdfUrl
+      ?? (arxivId ? `https://arxiv.org/pdf/${encodeURIComponent(arxivId)}` : undefined),
     insights: [],
     decisions: [],
   };
+}
+
+type InventoryEvidence = NonNullable<InventoryRecord['evidence']>[number];
+
+function normalizedDoi(doi: string): string {
+  return doi.trim().toLowerCase();
+}
+
+function insightDois(insight: InventoryRecord): string[] {
+  const dois = [
+    insight.doi,
+    ...(insight.evidence ?? []).map((evidence) => evidence.doi),
+  ].filter((doi): doi is string => Boolean(doi));
+  return dois.filter(
+    (doi, index) => dois.findIndex(
+      (candidate) => normalizedDoi(candidate) === normalizedDoi(doi),
+    ) === index,
+  );
+}
+
+function paperEvidence(
+  insight: InventoryRecord,
+  doi: string,
+): InventoryEvidence[] {
+  const matching = (insight.evidence ?? []).filter(
+    (evidence) =>
+      evidence.quote
+      && normalizedDoi(evidence.doi ?? insight.doi ?? '') === normalizedDoi(doi),
+  );
+  if (matching.length) return matching;
+  return insight.quote && insight.doi
+    && normalizedDoi(insight.doi) === normalizedDoi(doi)
+    ? [{ doi: insight.doi, quote: insight.quote, page: insight.page }]
+    : [];
 }
 
 export function paperRecords(
@@ -66,37 +102,47 @@ export function paperRecords(
   const decisions = new Map<string, InventoryRecord>();
 
   for (const candidate of scopes) {
-    for (const record of inventoryRecordsOfKind(candidate, 'prior_insight')) {
-      if (!insights.has(record.id)) {
-        insights.set(record.id, record);
-      }
-    }
     for (const record of inventoryRecordsOfKind(candidate, 'decision')) {
       decisions.set(record.path, record);
     }
+    if (!scope.parent) {
+      for (const record of inventoryRecordsOfKind(candidate, 'prior_insight')) {
+        insights.set(record.path, record);
+      }
+    }
   }
 
-  const includedInsightIds = scope.parent
-    ? new Set([...decisions.values()].flatMap(decisionEvidenceIds))
-    : new Set(insights.keys());
+  if (scope.parent) {
+    for (const decision of decisions.values()) {
+      const decisionScope = model.recordByPath.get(decision.path)?.scope ?? scope;
+      for (const insight of inventoryDecisionInsights(model, decisionScope, decision)) {
+        insights.set(insight.path, insight);
+      }
+    }
+  }
+
   const papers = new Map<string, InventoryPaper>();
 
-  for (const id of includedInsightIds) {
-    const insight = insights.get(id);
-    if (!insight?.doi) continue;
-    const paper = papers.get(insight.doi) ?? paperFromDoi(insight.doi, paperMetadata);
-    paper.insights.push(insight);
-    papers.set(insight.doi, paper);
+  for (const insight of insights.values()) {
+    for (const doi of insightDois(insight)) {
+      const key = normalizedDoi(doi);
+      const paper = papers.get(key) ?? paperFromDoi(doi, paperMetadata);
+      if (!paper.insights.some((candidate) => candidate.path === insight.path)) {
+        paper.insights.push(insight);
+      }
+      papers.set(key, paper);
+    }
   }
 
   for (const decision of decisions.values()) {
+    const decisionScope = model.recordByPath.get(decision.path)?.scope ?? scope;
     const dois = new Set(
-      decisionEvidenceIds(decision)
-        .map((id) => insights.get(id)?.doi)
-        .filter((doi): doi is string => Boolean(doi)),
+      inventoryDecisionInsights(model, decisionScope, decision)
+        .flatMap(insightDois)
+        .map(normalizedDoi),
     );
-    for (const doi of dois) {
-      const paper = papers.get(doi);
+    for (const key of dois) {
+      const paper = papers.get(key);
       if (paper) paper.decisions.push(decision);
     }
   }
@@ -121,22 +167,27 @@ export function PaperDialog({
   onBack?: () => void;
   onClose: () => void;
 }) {
+  const initialEvidence = initialFocusInsight
+    ? paperEvidence(initialFocusInsight, paper.doi)[0]
+    : undefined;
   const [focusRequest, setFocusRequest] = useState<PaperQuoteFocusRequest | undefined>(() => (
-    initialFocusInsight?.quote ? {
+    initialFocusInsight && initialEvidence?.quote ? {
       key: `${initialFocusInsight.id}-source`,
       insightId: initialFocusInsight.id,
-      quote: initialFocusInsight.quote,
+      quote: initialEvidence.quote,
+      page: initialEvidence.page,
     } : undefined
   ));
   const focusSequence = useRef(0);
 
-  const focusInsight = (insight: InventoryRecord) => {
-    if (!insight.quote) return;
+  const focusInsight = (insight: InventoryRecord, evidence: InventoryEvidence) => {
+    if (!evidence.quote) return;
     focusSequence.current += 1;
     setFocusRequest({
       key: `${insight.id}-${focusSequence.current}`,
       insightId: insight.id,
-      quote: insight.quote,
+      quote: evidence.quote,
+      page: evidence.page,
     });
   };
 
@@ -157,28 +208,31 @@ export function PaperDialog({
           <section className="inventory-insight-list">
             <InventoryCountHeading title="Insights from this paper" count={paper.insights.length} />
             <ul className="astra-evidence">
-              {paper.insights.map((insight) => (
-                <li key={insight.path} className="astra-evidence__item">
+              {paper.insights.map((insight) => {
+                const evidence = paperEvidence(insight, paper.doi);
+                return (
+                  <li key={insight.path} className="astra-evidence__item">
                   <InsightDetailTrigger insight={insight} onOpen={() => onOpenInsight(insight)} />
                   {insight.label && insight.claim ? (
                     <div className="astra-evidence__note">
                       <InventoryProse text={insight.claim} />
                     </div>
                   ) : null}
-                  {insight.quote ? (
-                    <>
-                      <blockquote className="inventory-paper-insight__quote">{insight.quote}</blockquote>
+                  {evidence.map((source, index) => (
+                    <Fragment key={`${insight.path}-${index}`}>
+                      <blockquote className="inventory-paper-insight__quote">{source.quote}</blockquote>
                       <button
                         type="button"
                         className="inventory-paper-insight__locate"
-                        onClick={() => focusInsight(insight)}
+                        onClick={() => focusInsight(insight, source)}
                       >
                         Locate quote in PDF
                       </button>
-                    </>
-                  ) : null}
-                </li>
-              ))}
+                    </Fragment>
+                  ))}
+                  </li>
+                );
+              })}
             </ul>
           </section>
           <section className="inventory-paper-doi">

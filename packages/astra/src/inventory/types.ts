@@ -21,7 +21,9 @@ export interface InventoryRecord {
   type?: string;
   tags?: string[];
   source?: string;
+  ref?: string;
   from?: string;
+  when?: string[];
   selected?: string;
   options?: Record<string, string | undefined>;
   option_insights?: Record<string, string[]>;
@@ -36,7 +38,12 @@ export interface InventoryRecord {
   recipe?: { command?: string; container?: string };
   inputs?: string[];
   decisions?: string[];
-  evidence?: Array<{ artifact?: string; doi?: string; quote?: string }>;
+  evidence?: Array<{
+    artifact?: string;
+    doi?: string;
+    quote?: string;
+    page?: number;
+  }>;
   inputs_root?: Array<{ id: string; label?: string }>;
   decisions_transitive?: Array<{
     id: string;
@@ -68,17 +75,10 @@ export interface InventoryScope {
   records: InventoryRecord[];
 }
 
-/**
- * UI-facing snapshot used by the isolated inventory preview.
- *
- * This is deliberately not the proposed MySTRA production contract. The
- * eventual project-inventory payload will be designed separately and adapted
- * into this view model after its ownership and inheritance semantics are
- * agreed.
- */
+/** UI-facing snapshot; MySTRA's project payload is adapted at the theme boundary. */
 export interface InventorySnapshot {
   version: number;
-  fixture: {
+  fixture?: {
     label: string;
     source: string;
     frozen: string;
@@ -87,8 +87,8 @@ export interface InventorySnapshot {
   analysis: {
     id: string;
     name: string;
-    description: string;
+    description?: string;
   };
   scopes: InventoryScope[];
-  diagnostics: InventoryDiagnostic[];
+  diagnostics?: InventoryDiagnostic[];
 }

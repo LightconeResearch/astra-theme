@@ -72,6 +72,18 @@ const snapshot: InventorySnapshot = {
           claim: 'The baseline calibration is supported by the reference analysis.',
           doi: '10.48550/arXiv.0812.2905',
           quote: 'Reconstruction reduces the damping of the oscillations.',
+          evidence: [
+            {
+              doi: '10.48550/arXiv.0812.2905',
+              quote: 'Reconstruction reduces the damping of the oscillations.',
+              page: 4,
+            },
+            {
+              doi: '10.48550/arXiv.0812.2905',
+              quote: 'A second excerpt from the same supporting paper.',
+              page: 5,
+            },
+          ],
         },
         {
           id: 'unlabeled_evidence',
@@ -263,7 +275,13 @@ test('orders outputs, decisions, and inputs and uses shared registry rows and de
   render(<InventoryOutline snapshot={snapshot} paperMetadata={paperMetadata} />);
 
   const sectionHeadings = screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent);
-  expect(sectionHeadings).toEqual(['Outputs', 'Decisions', 'Inputs', 'Findings', 'Papers']);
+  expect(sectionHeadings).toEqual([
+    '1. Outputs',
+    '2. Decisions',
+    '3. Inputs',
+    '4. Findings',
+    '5. Papers',
+  ]);
   expect(screen.queryByRole('heading', { name: 'Prior insights' })).not.toBeInTheDocument();
   expect(screen.queryByText('Affects')).not.toBeInTheDocument();
   expect(screen.queryByText('fit')).not.toBeInTheDocument();
@@ -339,7 +357,12 @@ test('orders outputs, decisions, and inputs and uses shared registry rows and de
   expect(within(paperDialog).getByText('Baseline calibration evidence')).toBeInTheDocument();
   expect(within(paperDialog).getByRole('button', { name: 'Open insight details: Baseline calibration evidence' })).toBeInTheDocument();
   expect(within(paperDialog).getByText('Reconstruction reduces the damping of the oscillations.')).toBeInTheDocument();
-  expect(within(paperDialog).getByRole('button', { name: 'Locate quote in PDF' })).toBeInTheDocument();
+  expect(within(paperDialog).getByText(
+    'A second excerpt from the same supporting paper.',
+  )).toBeInTheDocument();
+  expect(within(paperDialog).getAllByRole('button', {
+    name: 'Locate quote in PDF',
+  })).toHaveLength(2);
   expect(within(paperDialog).getByText('Fit choice')).toBeInTheDocument();
   fireEvent.click(within(paperDialog).getByRole('button', { name: 'View decision: Fit choice' }));
 
@@ -359,18 +382,26 @@ test('renders a selected sub-analysis as its own inventory scope', () => {
 });
 
 test('renders project structure as reusable outline navigation', () => {
-  render(<OverviewInventory snapshot={snapshot} scopeId="child" />);
+  const onSelectScope = vi.fn();
+  render(
+    <OverviewInventory
+      snapshot={snapshot}
+      scopeId="child"
+      onSelectScope={onSelectScope}
+    />,
+  );
 
-  expect(screen.getByText('PROJECT HIERARCHY')).toHaveClass(
+  expect(screen.getByText('Project hierarchy')).toHaveClass(
     'myst-supporting-documents',
     'text-sm',
     'leading-6',
-    'font-normal',
     'uppercase',
   );
-  expect(screen.getByRole('link', { name: /Child analysis/i })).toHaveAttribute('href', '/child');
-  expect(screen.getByRole('link', { name: /Child analysis/i })).toHaveAttribute(
+  const child = screen.getByRole('button', { name: /Child analysis/i });
+  expect(child).toHaveAttribute(
     'aria-current',
     'page',
   );
+  fireEvent.click(screen.getByRole('button', { name: /^Analysis$/i }));
+  expect(onSelectScope).toHaveBeenCalledWith('root');
 });

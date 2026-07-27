@@ -108,6 +108,14 @@ body {
   background: var(--astra-surface);
   border: 1px solid var(--astra-rule);
 }
+
+/* Match the stock article section hierarchy; the upstream Abstract component
+   otherwise forces its h2 down to body-copy size with `text-base`. */
+:root:root article .myst-abstract-title {
+  font-size: 1.5em;
+  font-weight: 700;
+  line-height: 1.3333333;
+}
 /* Newsreader prose, Quattrocento headings.
    (`:is()` over pure element lists keeps specificity identical to the longhand;
    `.myst-fm-block-title` stays outside it so it doesn't raise the element
@@ -1324,6 +1332,46 @@ html.dark .astra-output__thumb img,
 html.dark .astra-evidence__thumb img {
   background: #FBF9F4;
   border-radius: 3px;
+}
+
+/* -----------------------------------------------------------------------------
+   13b. Report / inventory view switcher
+   -------------------------------------------------------------------------- */
+.analysis-mode-tabs {
+  position: relative;
+  z-index: 20;
+  border-bottom: 1px solid var(--astra-rule);
+  background: var(--astra-paper);
+}
+
+.analysis-mode-tabs__inner {
+  display: flex;
+  min-width: 0;
+  gap: 1.5rem;
+}
+
+.analysis-mode-tabs__inner > a {
+  position: relative;
+  display: inline-flex;
+  min-height: 2.85rem;
+  align-items: center;
+  gap: 0.42rem;
+  border-bottom: 2px solid transparent;
+  color: var(--astra-muted);
+  font-family: var(--astra-label);
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: 0.025em;
+  text-decoration: none;
+}
+
+.analysis-mode-tabs__inner > a:hover {
+  color: var(--astra-ink);
+}
+
+.analysis-mode-tabs__inner > a.is-active {
+  border-bottom-color: var(--astra-accent);
+  color: var(--astra-ink);
 }
 
 /* -----------------------------------------------------------------------------

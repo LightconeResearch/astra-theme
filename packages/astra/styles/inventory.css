@@ -117,23 +117,6 @@
   font-size: 0.8125rem;
 }
 
-.myst-outline.astra-numbered-outline > .CollapsibleContent > .myst-outline-list {
-  counter-reset: astra-outline-item;
-}
-
-.myst-outline.astra-numbered-outline > .CollapsibleContent > .myst-outline-list > .myst-outline-item {
-  counter-increment: astra-outline-item;
-}
-
-.myst-outline.astra-numbered-outline > .CollapsibleContent > .myst-outline-list > .myst-outline-item > a::before {
-  content: counter(astra-outline-item) ".";
-  display: inline-block;
-  min-width: 1.35rem;
-  margin-right: 0.2rem;
-  color: var(--astra-muted);
-  font-variant-numeric: tabular-nums;
-}
-
 /* Outputs are deliberately split into two reading speeds: visual results are
    promoted into a gallery, while supporting artifacts remain a dense registry. */
 .inventory-outputs,

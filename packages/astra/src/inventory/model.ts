@@ -81,46 +81,99 @@ export function inventoryScopeForRecord(
   return model.recordByPath.get(record.path)?.scope ?? fallback;
 }
 
-/** Resolve local ids, fully-qualified ASTRA paths, and scope-qualified ids. */
+function matchesKind(
+  record: InventoryRecord,
+  kind?: InventoryKind,
+): boolean {
+  return kind === undefined || record.kind === kind;
+}
+
+function parentScope(
+  model: InventoryModel,
+  scope: InventoryScope,
+): InventoryScope | undefined {
+  return scope.parent ? model.scopeById.get(scope.parent) : undefined;
+}
+
+/** Resolve local ids, relative aliases, and fully-qualified ASTRA paths. */
 export function resolveInventoryRecordReference(
   model: InventoryModel,
   scope: InventoryScope,
   reference: string,
+  kind?: InventoryKind,
 ): LocatedInventoryRecord | undefined {
-  const exact = model.recordByPath.get(reference);
-  if (exact) return exact;
+  let normalized = reference.trim();
+  if (!normalized) return undefined;
 
-  const parts = reference.split('.');
+  let owner = scope;
+  while (normalized.startsWith('../')) {
+    const parent = parentScope(model, owner);
+    if (!parent) return undefined;
+    owner = parent;
+    normalized = normalized.slice(3);
+  }
+  if (normalized.startsWith('./')) normalized = normalized.slice(2);
+
+  const exact = model.recordByPath.get(normalized);
+  if (exact && matchesKind(exact.record, kind)) return exact;
+
+  const parts = normalized.split('.');
   if (parts.length > 1) {
-    const id = parts[parts.length - 1] ?? reference;
+    const id = parts[parts.length - 1] ?? normalized;
     const scopePath = parts.slice(0, -1).join('.');
-    if (scopePath === 'inputs' || scopePath === 'outputs') {
-      const local = scope.records.find((record) => record.id === id);
-      if (local) return { record: local, scope };
+    if (
+      scopePath === 'inputs'
+      || scopePath === 'decisions'
+      || scopePath === 'outputs'
+      || scopePath === 'findings'
+      || scopePath === 'prior_insights'
+    ) {
+      let candidate: InventoryScope | undefined = owner;
+      while (candidate) {
+        const local = candidate.records.find(
+          (record) => record.id === id && matchesKind(record, kind),
+        );
+        if (local) return { record: local, scope: candidate };
+        candidate = parentScope(model, candidate);
+      }
     }
-    const owner = model.scopeByPath.get(scopePath) ?? model.scopeById.get(scopePath);
-    const qualified = owner?.records.find((record) => record.id === id);
-    if (owner && qualified) return { record: qualified, scope: owner };
+    const qualifiedScope = model.scopeByPath.get(scopePath)
+      ?? model.scopeById.get(scopePath);
+    const qualified = qualifiedScope?.records.find(
+      (record) => record.id === id && matchesKind(record, kind),
+    );
+    if (qualifiedScope && qualified) {
+      return { record: qualified, scope: qualifiedScope };
+    }
   }
 
-  const local = scope.records.find((record) => record.id === reference);
-  if (local) return { record: local, scope };
-  const matches = model.recordsById.get(reference) ?? [];
+  let candidate: InventoryScope | undefined = owner;
+  while (candidate) {
+    const local = candidate.records.find(
+      (record) => record.id === normalized && matchesKind(record, kind),
+    );
+    if (local) return { record: local, scope: candidate };
+    candidate = parentScope(model, candidate);
+  }
+
+  const matches = (model.recordsById.get(normalized) ?? [])
+    .filter(({ record }) => matchesKind(record, kind));
   return matches.length === 1 ? matches[0] : undefined;
 }
 
 export function inventoryDecisionInsights(
-  _model: InventoryModel,
+  model: InventoryModel,
   scope: InventoryScope,
   decision: InventoryRecord,
 ): InventoryRecord[] {
-  const insights = new Map(
-    inventoryRecordsOfKind(scope, 'prior_insight')
-      .map((record) => [record.id, record] as const),
-  );
   return decisionEvidenceIds(decision)
-    .map((id) => insights.get(id))
-    .filter((record): record is InventoryRecord => record != null);
+    .map((id) => resolveInventoryRecordReference(
+      model,
+      scope,
+      id,
+      'prior_insight',
+    )?.record)
+    .filter((record): record is InventoryRecord => record !== undefined);
 }
 
 export function inventoryInformedDecisions(
@@ -132,7 +185,8 @@ export function inventoryInformedDecisions(
   for (const candidate of inventoryScopesForView(model, scope)) {
     for (const decision of inventoryRecordsOfKind(candidate, 'decision')) {
       if (
-        decisionEvidenceIds(decision).includes(insight.id)
+        inventoryDecisionInsights(model, candidate, decision)
+          .some((record) => record.path === insight.path)
         && !decisions.has(decision.path)
       ) {
         decisions.set(decision.path, decision);

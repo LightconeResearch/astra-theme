@@ -4,6 +4,7 @@ export { InputsInventory } from './InputsInventory';
 export { InventoryExplorer, InventoryOutline } from './InventoryOutline';
 export { OverviewInventory } from './OverviewInventory';
 export { PapersInventory } from './PapersInventory';
+export { findInventorySnapshot, hasInventorySnapshot } from './snapshot';
 export type {
   InventoryPaperMetadata,
   InventoryPaperMetadataMap,

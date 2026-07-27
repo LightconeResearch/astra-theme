@@ -12,9 +12,10 @@
     "prod:copy": "cp remix.config.prod.js remix.config.js",
     "dev:copy": "cp remix.config.dev.js remix.config.js",
     "build:css": "tailwindcss -m -i ./styles/app.css -o app/styles/app.css",
+    "build:pdf-worker": "node scripts/copy-pdf-worker.mjs",
     "build:thebe": "copy-thebe-assets ./public",
-    "build": "npm run prod:copy && npm run build:thebe && npm run build:css && remix build",
-    "dev": "npm run dev:copy && npm run build:thebe && npm run build:css && remix dev",
+    "build": "npm run prod:copy && npm run build:thebe && npm run build:pdf-worker && npm run build:css && remix build",
+    "dev": "npm run dev:copy && npm run build:thebe && npm run build:pdf-worker && npm run build:css && remix dev",
     "start": "node ./server.js",
     "typecheck": "tsc --noEmit --skipLibCheck",
     "clean": "rm -rf public/build build app/styles/app.css remix.config.js"

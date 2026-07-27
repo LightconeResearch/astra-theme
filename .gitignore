@@ -16,7 +16,6 @@ themes/*/app/styles/app.css
 themes/*/remix.config.js
 *.tsbuildinfo
 packages/*/dist/
-apps/*/dist/
 
 # ---- MyST engine artifacts (created when running a project against the theme) ----
 _build/

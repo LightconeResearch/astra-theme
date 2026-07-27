@@ -250,13 +250,13 @@ export function InventoryExplorer({
   return (
     <div className="inventory-outline">
       <div className="inventory-outline__sections">
-        {sections.map((item) => (
+        {sections.map((item, index) => (
           <section
             key={item.id}
             className={`inventory-outline__section inventory-outline__section--${item.id}`}
           >
             <h2 id={item.id} tabIndex={-1}>
-              <span className="heading-text">{item.label}</span>
+              <span className="heading-text">{index + 1}. {item.label}</span>
             </h2>
             {item.content}
             {!model ? (

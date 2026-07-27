@@ -15,8 +15,10 @@ import classNames from 'classnames';
 import { BusyScopeProvider, ExecuteScopeProvider } from '@myst-theme/jupyter';
 import { DownloadLinksArea } from './Downloads';
 import { Article } from './Article';
+import { AnalysisModeTabs } from './AnalysisModeTabs';
 import type { TemplateOptions } from '../types.js';
 import { useTemplateOptions } from '@astra-spec/theme-astra';
+import { hasInventorySnapshot } from '@astra-spec/theme-astra/inventory';
 
 export function ArticlePage({ article }: { article: PageLoader }) {
   const grid = useGridSystemProvider();
@@ -30,6 +32,7 @@ export function ArticlePage({ article }: { article: PageLoader }) {
   const compute = useComputeOptions();
   const project = projects?.[0];
   const isIndex = article.slug === project?.index;
+  const inventoryAvailable = isIndex && hasInventorySnapshot(article.mdast);
 
   if (!project) return <Error404 />;
 
@@ -53,6 +56,7 @@ export function ArticlePage({ article }: { article: PageLoader }) {
               )}
             </div>
           </ArticleHeader>
+          {inventoryAvailable ? <AnalysisModeTabs active="report" /> : null}
           <article
             data-name="article-page-main"
             className={classNames('myst-article', 'article', grid, 'subgrid-gap col-screen', {
