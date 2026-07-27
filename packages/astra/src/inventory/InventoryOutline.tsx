@@ -17,19 +17,24 @@ import {
   inventoryScopeForRecord,
 } from './model';
 import { normalizeDoi } from './citationMetadata';
-import type { InventoryRecord, InventoryScope, InventorySnapshot } from './types';
+import type {
+  InventoryInsightRecord,
+  InventoryRecord,
+  InventoryScope,
+  InventorySnapshot,
+} from './types';
 
 type InventoryModalEntry =
   | { kind: 'output'; record: InventoryRecord; scopeId: string }
   | { kind: 'decision'; record: InventoryRecord; scopeId: string }
   | { kind: 'input'; record: InventoryRecord; scopeId: string }
   | { kind: 'finding'; record: InventoryRecord; scopeId: string }
-  | { kind: 'insight'; record: InventoryRecord; scopeId: string }
+  | { kind: 'insight'; record: InventoryInsightRecord; scopeId: string }
   | {
       kind: 'paper';
       paper: InventoryPaper;
       scopeId: string;
-      focusInsight?: InventoryRecord;
+      focusInsight?: InventoryInsightRecord;
     };
 
 export interface InventoryOutlineProps {

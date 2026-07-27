@@ -4,9 +4,7 @@ import {
   InventoryDetailLayout,
   InventoryDetailMain,
   InventoryDetailProse,
-  InventoryDetailRail,
   InventoryEmptyState,
-  InventoryPath,
   InventoryRecordIdentity,
   InventoryRecordList,
 } from './InventoryPrimitives';
@@ -48,7 +46,7 @@ export function InputDialog({
       closeLabel="Close input details"
       onClose={onClose}
     >
-      <InventoryDetailLayout>
+      <InventoryDetailLayout className="inventory-record-detail__layout--single">
         <InventoryDetailMain>
           {record.description ? (
             <InventoryDetailProse label="Description">
@@ -60,9 +58,6 @@ export function InputDialog({
             <code>{sourceLabel(record)}</code>
           </section>
         </InventoryDetailMain>
-        <InventoryDetailRail label="Input details">
-          <InventoryPath path={record.path} />
-        </InventoryDetailRail>
       </InventoryDetailLayout>
     </InventoryDetailDialog>
   );

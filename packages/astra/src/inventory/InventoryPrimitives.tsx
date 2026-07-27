@@ -216,15 +216,6 @@ export function InventoryDetailProse({ label, children, className }: {
   );
 }
 
-export function InventoryPath({ path, className }: { path: string; className?: string }) {
-  return (
-    <section className={`inventory-record-detail__path${className ? ` ${className}` : ''}`}>
-      <h4>ASTRA path</h4>
-      <code>{path}</code>
-    </section>
-  );
-}
-
 export function InventoryCountHeading({ title, count }: {
   title: ReactNode;
   count: number;

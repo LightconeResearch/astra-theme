@@ -1,6 +1,11 @@
 import { decisionEvidenceIds } from '../store/decisionEvidence';
 import type {
   InventoryKind,
+  InventoryDecisionRecord,
+  InventoryFindingRecord,
+  InventoryInputRecord,
+  InventoryInsightRecord,
+  InventoryOutputRecord,
   InventoryRecord,
   InventoryScope,
   InventorySnapshot,
@@ -10,6 +15,18 @@ export interface LocatedInventoryRecord {
   record: InventoryRecord;
   scope: InventoryScope;
 }
+
+interface InventoryRecordByKind {
+  input: InventoryInputRecord;
+  decision: InventoryDecisionRecord;
+  output: InventoryOutputRecord;
+  finding: InventoryFindingRecord;
+  prior_insight: InventoryInsightRecord;
+}
+
+export type InventoryRecordForKind<
+  Kind extends keyof InventoryRecordByKind,
+> = InventoryRecordByKind[Kind];
 
 /**
  * Read-only indexes over one inventory snapshot. Components receive this model
@@ -49,11 +66,15 @@ export function getInventoryScope(
   return model.scopeById.get(scopeId);
 }
 
-export function inventoryRecordsOfKind(
+export function inventoryRecordsOfKind<
+  Kind extends keyof InventoryRecordByKind,
+>(
   scope: InventoryScope,
-  kind: InventoryKind,
-): InventoryRecord[] {
-  return scope.records.filter((record) => record.kind === kind);
+  kind: Kind,
+): InventoryRecordForKind<Kind>[] {
+  return scope.records.filter(
+    (record): record is InventoryRecordForKind<Kind> => record.kind === kind,
+  );
 }
 
 export function inventoryRecordTitle(record: InventoryRecord): string {
@@ -173,7 +194,7 @@ export function inventoryDecisionInsights(
   model: InventoryModel,
   scope: InventoryScope,
   decision: InventoryRecord,
-): InventoryRecord[] {
+): InventoryInsightRecord[] {
   return decisionEvidenceIds(decision)
     .map((id) => resolveInventoryRecordReference(
       model,
@@ -181,15 +202,17 @@ export function inventoryDecisionInsights(
       id,
       'prior_insight',
     )?.record)
-    .filter((record): record is InventoryRecord => record !== undefined);
+    .filter((record): record is InventoryInsightRecord =>
+      record?.kind === 'prior_insight',
+    );
 }
 
 export function inventoryInformedDecisions(
   model: InventoryModel,
   scope: InventoryScope,
   insight: InventoryRecord,
-): InventoryRecord[] {
-  const decisions = new Map<string, InventoryRecord>();
+): InventoryDecisionRecord[] {
+  const decisions = new Map<string, InventoryDecisionRecord>();
   for (const candidate of inventoryScopesForView(model, scope)) {
     for (const decision of inventoryRecordsOfKind(candidate, 'decision')) {
       if (

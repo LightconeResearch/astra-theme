@@ -958,6 +958,10 @@
   grid-template-columns: minmax(0, 1.55fr) minmax(18rem, 0.85fr);
 }
 
+.inventory-record-detail__layout--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .inventory-record-detail__main {
   min-width: 0;
   min-height: 0;
@@ -1003,12 +1007,10 @@
 
 .inventory-decision-options h4,
 .inventory-input-source h4,
-.inventory-record-detail__path h4,
 .inventory-insight-list h4,
 .inventory-paper-doi h4,
 .inventory-record-detail__relations h4,
-.inventory-finding-detail__notes h4,
-.inventory-finding-detail__scope h4 {
+.inventory-finding-detail__notes h4 {
   margin: 0 0 0.55rem;
   color: var(--astra-ink);
   font-family: var(--astra-label);
@@ -1060,8 +1062,7 @@
   padding-top: 1rem;
 }
 
-.inventory-input-source code,
-.inventory-record-detail__path code {
+.inventory-input-source code {
   display: block;
   overflow-wrap: anywhere;
   border: 1px solid var(--astra-rule);
@@ -1194,17 +1195,6 @@
 .inventory-finding-evidence-preview blockquote > :first-child { margin-top: 0; }
 .inventory-finding-detail__notes > div > :last-child,
 .inventory-finding-evidence-preview blockquote > :last-child { margin-bottom: 0; }
-
-.inventory-finding-detail__scope {
-  margin-top: 1.25rem;
-}
-
-.inventory-finding-detail__scope p {
-  margin: 0;
-  color: var(--astra-ink-soft);
-  font-size: 0.72rem;
-  line-height: 1.5;
-}
 
 .inventory-finding-evidence-previews {
   margin-top: 1.6rem;
@@ -1489,10 +1479,6 @@
 .inventory-output-recipe code { color: var(--astra-ink-soft); font-size: 0.63rem; }
 .inventory-output-recipe p { color: var(--astra-muted); font-size: 0.68rem; }
 .inventory-output-provenance__empty { margin: 1.2rem 0 0; color: var(--astra-muted); font-size: 0.72rem; }
-
-.inventory-output-path {
-  margin-top: 1.2rem;
-}
 
 .inventory-output-file-hero {
   display: grid;

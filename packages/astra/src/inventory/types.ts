@@ -1,3 +1,11 @@
+import type {
+  SerializedDecision,
+  SerializedFinding,
+  SerializedInput,
+  SerializedInsight,
+  SerializedOutput,
+} from '@astra-spec/store-types';
+
 export type InventoryKind =
   | 'analysis'
   | 'input'
@@ -12,61 +20,62 @@ export interface InventoryDiagnostic {
   path?: string;
 }
 
+/**
+ * UI-wide convenience view of MySTRA's common record vocabulary. Each nested
+ * field is sourced from the corresponding page-store type; `kind` narrows it
+ * to the concrete aliases below when a component needs stricter typing.
+ */
 export interface InventoryRecord {
   id: string;
   path: string;
-  kind: InventoryKind;
+  kind: Exclude<InventoryKind, 'analysis'>;
   label?: string;
   description?: string;
   type?: string;
-  tags?: string[];
-  source?: string;
-  ref?: string;
+  tags?: SerializedDecision['tags'];
+  source?: SerializedInput['source'];
+  ref?: SerializedInput['ref'];
   from?: string;
-  when?: string[];
-  selected?: string;
-  options?: Record<string, string | undefined>;
-  option_insights?: Record<string, string[]>;
-  rationale?: string;
-  claim?: string;
-  notes?: string;
-  scope?: string;
-  doi?: string;
-  quote?: string;
-  page?: number;
-  resolved_path?: string;
-  recipe?: { command?: string; container?: string };
-  inputs?: string[];
-  decisions?: string[];
-  evidence?: Array<{
-    artifact?: string;
-    doi?: string;
-    quote?: string;
-    page?: number;
-  }>;
-  inputs_root?: Array<{ id: string; label?: string }>;
-  decisions_transitive?: Array<{
-    id: string;
-    label?: string;
-    selection?: string;
-    via?: string;
-  }>;
-  table_data?: {
-    headers: string[];
-    rows: Array<Array<string | number>>;
-  };
+  when?: SerializedDecision['when'];
+  active?: SerializedDecision['active'];
+  selected?: SerializedDecision['selected'];
+  options?: SerializedDecision['options'];
+  option_insights?: SerializedDecision['option_insights'];
+  rationale?: SerializedDecision['rationale'];
+  claim?: SerializedFinding['claim'];
+  notes?: SerializedFinding['notes'];
+  scope?: SerializedFinding['scope'];
+  doi?: SerializedInsight['doi'];
+  quote?: SerializedInsight['quote'];
+  /** Compatibility projection of the selected evidence location. */
+  page?: SerializedInsight['page'];
+  resolved_path?: SerializedOutput['resolved_path'];
+  recipe?: SerializedOutput['recipe'];
+  inputs?: SerializedOutput['inputs'];
+  decisions?: SerializedOutput['decisions'];
+  evidence?: SerializedFinding['evidence'];
+  inputs_root?: SerializedOutput['inputs_root'];
+  decisions_transitive?: SerializedOutput['decisions_transitive'];
+  table_data?: SerializedOutput['table_data'];
+  table_preview?: SerializedOutput['table_preview'];
   table_rows_total?: number;
   table_columns_total?: number;
-  metric?: {
-    value?: string | number;
-    uncertainty?: string | number;
-    error?: string | number;
-    unit?: string;
-    units?: string;
-    label?: string;
-  };
+  table_preview_omitted?: 'project_size_budget';
+  metric?: SerializedOutput['metric'];
   resultPreview?: string;
 }
+
+export type InventoryOutputRecord =
+  InventoryRecord & SerializedOutput & {
+    resultPreview?: string;
+    table_rows_total?: number;
+    table_columns_total?: number;
+    table_preview_omitted?: 'project_size_budget';
+  };
+export type InventoryInputRecord = InventoryRecord & SerializedInput;
+export type InventoryDecisionRecord = InventoryRecord & SerializedDecision;
+export type InventoryFindingRecord = InventoryRecord & SerializedFinding;
+export type InventoryInsightRecord = InventoryRecord & SerializedInsight;
 
 export interface InventoryScope {
   id: string;

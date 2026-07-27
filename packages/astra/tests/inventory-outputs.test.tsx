@@ -128,9 +128,13 @@ const snapshot: InventorySnapshot = {
           kind: 'output',
           type: 'table',
           label: 'Result table',
-          table_data: {
+          table_preview: {
             headers: ['bin', 'value'],
             rows: [[1, 2.5]],
+            total_rows: 1,
+            total_columns: 2,
+            serialized_bytes: 128,
+            truncated: false,
           },
         },
         {
@@ -214,8 +218,8 @@ test('promotes visual outputs, lists additional files, and opens declared proven
   expect(within(outputDialog).queryByText('catalog', { selector: 'code' })).not.toBeInTheDocument();
   expect(within(outputDialog).queryByText('result_table', { selector: 'code' })).not.toBeInTheDocument();
   expect(within(outputDialog).queryByText('ASTRA address')).not.toBeInTheDocument();
-  expect(within(outputDialog).getByText('ASTRA path')).toBeInTheDocument();
-  expect(within(outputDialog).getByText('outputs.result_figure')).toBeInTheDocument();
+  expect(within(outputDialog).queryByText('ASTRA path')).not.toBeInTheDocument();
+  expect(within(outputDialog).queryByText('outputs.result_figure')).not.toBeInTheDocument();
   expect(within(outputDialog).queryByRole('button', { name: 'Back to previous details' })).not.toBeInTheDocument();
   fireEvent.click(within(outputDialog).getByRole('button', {
     name: 'View indirect decision dependency: Calibration choice',
@@ -248,18 +252,20 @@ test('renders at most a 30 by 30 table preview and reports the full dimensions',
   const table = tableSnapshot.scopes[0].records.find(
     (record) => record.path === 'outputs.result_table',
   )!;
-  table.table_data = {
-    headers: Array.from({ length: 30 }, (_, index) => `column_${index + 1}`),
+  table.table_preview = {
+    headers: Array.from({ length: 35 }, (_, index) => `column_${index + 1}`),
     rows: Array.from(
-      { length: 30 },
+      { length: 35 },
       (_, rowIndex) => Array.from(
-        { length: 30 },
+        { length: 35 },
         (_, columnIndex) => `${rowIndex + 1}:${columnIndex + 1}`,
       ),
     ),
+    total_rows: 35,
+    total_columns: 35,
+    serialized_bytes: 16_384,
+    truncated: false,
   };
-  table.table_rows_total = 31;
-  table.table_columns_total = 32;
 
   render(<InventoryOutline snapshot={tableSnapshot} />);
   fireEvent.click(screen.getByRole('button', { name: /Result table/i }));
@@ -268,7 +274,7 @@ test('renders at most a 30 by 30 table preview and reports the full dimensions',
   expect(within(dialog).getAllByRole('columnheader')).toHaveLength(30);
   expect(within(dialog).getAllByRole('row')).toHaveLength(31);
   expect(
-    within(dialog).getByText('Showing 30 of 31 rows and 30 of 32 columns.'),
+    within(dialog).getByText('Showing 30 of 35 rows and 30 of 35 columns.'),
   ).toBeInTheDocument();
 });
 
@@ -286,9 +292,12 @@ test('lists full finding claims and opens their evidence through the shared deta
   const findingDialog = screen.getByRole('dialog', { name: 'Consistent result' });
   expect(within(findingDialog).getByText('The recovered measurement is consistent with the reference analysis.')).toBeInTheDocument();
   expect(within(findingDialog).getByText('The comparison remains within the declared uncertainty across the fitted range.')).toBeInTheDocument();
-  expect(within(findingDialog).getByText('Baseline universe, full fitted range.')).toBeInTheDocument();
+  expect(within(findingDialog).queryByText('Baseline universe, full fitted range.')).not.toBeInTheDocument();
   expect(within(findingDialog).getByText('The recovered curve remains inside the reference uncertainty band.')).toBeInTheDocument();
-  expect(within(findingDialog).getByText('findings.result_is_consistent')).toBeInTheDocument();
+  expect(within(findingDialog).queryByText('findings.result_is_consistent')).not.toBeInTheDocument();
+  expect(
+    within(findingDialog).queryByRole('complementary', { name: 'Finding details' }),
+  ).not.toBeInTheDocument();
 
   fireEvent.click(within(findingDialog).getByRole('button', { name: 'View evidence output: Result figure' }));
   const outputDialog = screen.getByRole('dialog', { name: 'Result figure' });
@@ -353,7 +362,9 @@ test('orders outputs, decisions, and inputs and uses shared registry rows and de
   expect(within(insightDialog).getByText('The baseline calibration is supported by the reference analysis.')).toBeInTheDocument();
   expect(within(insightDialog).getByText('Reconstruction reduces the damping of the oscillations.')).toBeInTheDocument();
   expect(within(insightDialog).getByText('Source paper')).toBeInTheDocument();
-  expect(within(insightDialog).getByText('prior_insights.baseline_evidence')).toBeInTheDocument();
+  expect(
+    within(insightDialog).queryByText('prior_insights.baseline_evidence'),
+  ).not.toBeInTheDocument();
   expect(within(insightDialog).getByText('Fit choice')).toBeInTheDocument();
   fireEvent.click(within(insightDialog).getByRole('button', { name: 'View decision: Fit choice' }));
 
@@ -377,7 +388,10 @@ test('orders outputs, decisions, and inputs and uses shared registry rows and de
   expect(inputDialog).toBeInTheDocument();
   expect(within(inputDialog).queryByText('Used by')).not.toBeInTheDocument();
   expect(within(inputDialog).getByText('data/catalog.fits')).toBeInTheDocument();
-  expect(within(inputDialog).getByText('inputs.catalog')).toBeInTheDocument();
+  expect(within(inputDialog).queryByText('inputs.catalog')).not.toBeInTheDocument();
+  expect(
+    within(inputDialog).queryByRole('complementary', { name: 'Input details' }),
+  ).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: 'Close input details' }));
   fireEvent.click(screen.getByRole('button', { name: /10.48550\/arXiv.0812.2905, 1 insights, 1 decisions/i }));
   const paperDialog = screen.getByRole('dialog', { name: 'Reconstructing Baryon Oscillations: A Lagrangian Theory Perspective' });

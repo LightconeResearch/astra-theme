@@ -207,6 +207,8 @@ describe('AstraInlineRef', () => {
       'that persists under both binning choices and survey footprints';
     store.prior_insights.kids_s8_low = {
       id: 'kids_s8_low',
+      path: 'prior_insights.kids_s8_low',
+      kind: 'prior_insight',
       claim: long,
     };
     const { container } = renderWithProviders(

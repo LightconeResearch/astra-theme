@@ -19,6 +19,10 @@ import { useAstraStore, useEntryByIdentifier } from '../store/useAstraStore';
 import { PreviewCard } from '../card/PreviewCard';
 import { DecisionCard } from './AstraInlineRef';
 import { StoreProse } from '../storeProse';
+import {
+  TABLE_PREVIEW_DISPLAY_COLUMNS,
+  TABLE_PREVIEW_DISPLAY_ROWS,
+} from '../tablePreview';
 import type {
   SerializedOutput,
   SerializedProvenanceDecision,
@@ -165,13 +169,14 @@ const MetricStat: React.FC<{ output: SerializedOutput }> = ({ output }) => {
 };
 
 /* ------------------------------------------------------------------ *
- * Fallback table built from `output.table_data` when the carrier has
+ * Fallback table built from the bounded output preview when the carrier has
  * no stock table children to render.
  * ------------------------------------------------------------------ */
 const TableFromData: React.FC<{ output: SerializedOutput }> = ({ output }) => {
-  const data = output.table_data;
+  const data = output.table_preview ?? output.table_data;
   if (!data || !Array.isArray(data.rows) || data.rows.length === 0) return null;
-  const headers = data.headers ?? [];
+  const headers = (data.headers ?? []).slice(0, TABLE_PREVIEW_DISPLAY_COLUMNS);
+  const rows = data.rows.slice(0, TABLE_PREVIEW_DISPLAY_ROWS);
   return (
     <table className="astra-outputs">
       {headers.length > 0 ? (
@@ -184,9 +189,9 @@ const TableFromData: React.FC<{ output: SerializedOutput }> = ({ output }) => {
         </thead>
       ) : null}
       <tbody>
-        {data.rows.map((row, ri) => (
+        {rows.map((row, ri) => (
           <tr key={ri}>
-            {row.map((cell, ci) => (
+            {row.slice(0, TABLE_PREVIEW_DISPLAY_COLUMNS).map((cell, ci) => (
               <td key={ci}>{cell}</td>
             ))}
           </tr>
@@ -259,7 +264,7 @@ export function AstraOutput({ node }: AstraOutputProps): React.ReactElement {
       body = <OutputCaption output={output} />;
     }
   } else if (subtype === 'table') {
-    // Render the stock table when present; otherwise synthesize from table_data.
+    // Render the stock table when present; otherwise synthesize from preview data.
     body = hasStockChildren ? stockChildren : <TableFromData output={output} />;
   } else {
     // figure (and unknown) — render the stock figure children verbatim.

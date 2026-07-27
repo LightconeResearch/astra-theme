@@ -8,7 +8,8 @@
  * node's `data.astra`; the theme reads it and joins `node id -> store entry`
  * to render rich cards without re-implementing any ASTRA semantics.
  *
- * Mirror fields EXACTLY — do not add presentation-only fields here.
+ * Mirror current MySTRA fields exactly. Deprecated fields are retained only
+ * where the theme intentionally accepts an older serialized page contract.
  */
 
 // ── Serialized shapes ───────────────────────────────────────────────────────
@@ -34,6 +35,15 @@ export interface TableData {
   rows: (string | number)[][];
 }
 
+/** Size-bounded transport preview for a complete table artifact. */
+export interface SerializedTablePreview extends TableData {
+  total_rows: number;
+  total_columns: number;
+  serialized_bytes: number;
+  truncated: boolean;
+  cells_truncated?: boolean;
+}
+
 /** One decision on an output's transitive provenance chain. */
 export interface SerializedProvenanceDecision {
   id: string;
@@ -52,6 +62,8 @@ export interface SerializedRootInput {
 
 export interface SerializedOutput {
   id: string;
+  path: string;
+  kind: 'output';
   label?: string;
   type?: string;
   description?: string;
@@ -64,8 +76,10 @@ export interface SerializedOutput {
   decisions?: string[];
   /** Alias pointer for re-exported outputs (`from: child.out_id`). */
   from?: string;
-  /** Parsed rows for table outputs (same parser as the evidence renderer). */
+  /** @deprecated Compatibility with pre-unified MySTRA payloads. */
   table_data?: TableData;
+  /** Size-bounded preview; `resolved_path` identifies the complete artifact. */
+  table_preview?: SerializedTablePreview;
   /** Inlined value for metric outputs whose result file parses as JSON. */
   metric?: SerializedMetric;
   /** Analysis-level source inputs at the roots of the provenance chain. */
@@ -76,17 +90,26 @@ export interface SerializedOutput {
 
 export interface SerializedInput {
   id: string;
+  path: string;
+  kind: 'input';
   label?: string;
   type?: string;
   description?: string;
   source?: string;
   from?: string;
+  ref?: string;
 }
 
 export interface SerializedDecision {
   id: string;
+  path: string;
+  kind: 'decision';
   label?: string;
   rationale?: string;
+  tags?: string[];
+  from?: string;
+  when?: string[];
+  active?: boolean;
   /** The option id selected under the active universe (or the default). */
   selected?: string;
   /** All option ids → their labels. */
@@ -106,10 +129,13 @@ export interface SerializedEvidence {
   doi?: string;
   /** The exact-quote selector text, when present. */
   quote?: string;
+  page?: number;
 }
 
 export interface SerializedFinding {
   id: string;
+  path: string;
+  kind: 'finding';
   label?: string;
   claim?: string;
   notes?: string;
@@ -120,17 +146,25 @@ export interface SerializedFinding {
 
 export interface SerializedInsight {
   id: string;
+  path: string;
+  kind: 'prior_insight';
   label?: string;
   scope?: string;
   claim?: string;
+  notes?: string;
+  evidence?: SerializedEvidence[];
   /** First evidence DOI, when present (the theme can resolve the citation). */
   doi?: string;
   /** First exact-quote evidence, when present. */
   quote?: string;
+  /** Page of the first evidence item carrying a source location. */
+  page?: number;
 }
 
 export interface SerializedSubAnalysis {
   id: string;
+  path: string;
+  kind: 'analysis';
   name?: string;
   summary?: string;
   /** Page URL for the sub-analysis (e.g. `/reconstruction`). */
@@ -153,6 +187,15 @@ export interface ResolvedStore {
   prior_insights: Record<string, SerializedInsight>;
   subanalyses: Record<string, SerializedSubAnalysis>;
 }
+
+/** The one record vocabulary shared by page stores and project inventories. */
+export type ResolvedRecord =
+  | SerializedOutput
+  | SerializedInput
+  | SerializedDecision
+  | SerializedFinding
+  | SerializedInsight
+  | SerializedSubAnalysis;
 
 // ── Inline-reference vocabulary ─────────────────────────────────────────────
 

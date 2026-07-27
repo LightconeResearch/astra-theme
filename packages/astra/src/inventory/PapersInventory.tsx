@@ -19,7 +19,11 @@ import {
   inventoryScopesForView,
   type InventoryModel,
 } from './model';
-import type { InventoryRecord, InventoryScope } from './types';
+import type {
+  InventoryDecisionRecord,
+  InventoryInsightRecord,
+  InventoryScope,
+} from './types';
 
 interface PapersInventoryProps {
   model: InventoryModel;
@@ -33,8 +37,8 @@ export interface InventoryPaper {
   title: string;
   authors?: string;
   pdfUrl?: string;
-  insights: InventoryRecord[];
-  decisions: InventoryRecord[];
+  insights: InventoryInsightRecord[];
+  decisions: InventoryDecisionRecord[];
 }
 
 export interface InventoryPaperMetadata {
@@ -64,13 +68,13 @@ function paperFromDoi(doi: string, paperMetadata: InventoryPaperMetadataMap): In
   };
 }
 
-type InventoryEvidence = NonNullable<InventoryRecord['evidence']>[number];
+type InventoryEvidence = NonNullable<InventoryInsightRecord['evidence']>[number];
 
 function normalizedDoi(doi: string): string {
   return normalizeDoi(doi);
 }
 
-function insightDois(insight: InventoryRecord): string[] {
+function insightDois(insight: InventoryInsightRecord): string[] {
   const dois = [
     insight.doi,
     ...(insight.evidence ?? []).map((evidence) => evidence.doi),
@@ -83,7 +87,7 @@ function insightDois(insight: InventoryRecord): string[] {
 }
 
 function paperEvidence(
-  insight: InventoryRecord,
+  insight: InventoryInsightRecord,
   doi: string,
 ): InventoryEvidence[] {
   const matching = (insight.evidence ?? []).filter(
@@ -104,8 +108,8 @@ export function paperRecords(
   paperMetadata: InventoryPaperMetadataMap = {},
 ): InventoryPaper[] {
   const scopes = inventoryScopesForView(model, scope);
-  const insights = new Map<string, InventoryRecord>();
-  const decisions = new Map<string, InventoryRecord>();
+  const insights = new Map<string, InventoryInsightRecord>();
+  const decisions = new Map<string, InventoryDecisionRecord>();
 
   for (const candidate of scopes) {
     for (const record of inventoryRecordsOfKind(candidate, 'decision')) {
@@ -165,9 +169,9 @@ export function PaperDialog({
 }: {
   paper: InventoryPaper;
   scope: InventoryScope;
-  initialFocusInsight?: InventoryRecord;
-  onOpenInsight: (insight: InventoryRecord) => void;
-  onOpenDecision: (decision: InventoryRecord) => void;
+  initialFocusInsight?: InventoryInsightRecord;
+  onOpenInsight: (insight: InventoryInsightRecord) => void;
+  onOpenDecision: (decision: InventoryDecisionRecord) => void;
   onBack?: () => void;
   onClose: () => void;
 }) {
@@ -184,7 +188,10 @@ export function PaperDialog({
   ));
   const focusSequence = useRef(0);
 
-  const focusInsight = (insight: InventoryRecord, evidence: InventoryEvidence) => {
+  const focusInsight = (
+    insight: InventoryInsightRecord,
+    evidence: InventoryEvidence,
+  ) => {
     if (!evidence.quote) return;
     focusSequence.current += 1;
     setFocusRequest({

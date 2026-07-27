@@ -7,7 +7,6 @@ import {
 import {
   InventoryDetailDialog,
   InventoryEmptyState,
-  InventoryPath,
   InventoryRecordIdentity,
   InventoryRecordList,
 } from './InventoryPrimitives';
@@ -267,9 +266,6 @@ export function OutputDialog({
                     {record.recipe.container ? <p>Container: <code>{record.recipe.container}</code></p> : null}
                   </details>
                 ) : <p className="inventory-output-provenance__empty">No recipe is declared for this output.</p>}
-                {record.path ? (
-                  <InventoryPath path={record.path} className="inventory-output-path" />
-                ) : null}
                 <InventoryRelationList
                   title="Decision dependencies"
                   className="inventory-output-provenance__group inventory-output-dependencies"

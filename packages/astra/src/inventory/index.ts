@@ -28,6 +28,11 @@ export type {
   InventoryDiagnostic,
   InventoryKind,
   InventoryRecord,
+  InventoryDecisionRecord,
+  InventoryFindingRecord,
+  InventoryInputRecord,
+  InventoryInsightRecord,
+  InventoryOutputRecord,
   InventoryScope,
   InventorySnapshot,
 } from './types';

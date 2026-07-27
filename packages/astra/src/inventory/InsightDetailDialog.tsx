@@ -7,7 +7,6 @@ import {
   InventoryDetailMain,
   InventoryDetailProse,
   InventoryDetailRail,
-  InventoryPath,
 } from './InventoryPrimitives';
 import { InventoryRelationList } from './InventoryRelations';
 import { doiHref } from './citationMetadata';
@@ -16,7 +15,11 @@ import {
   inventoryRecordTitle,
   type InventoryModel,
 } from './model';
-import type { InventoryRecord, InventoryScope } from './types';
+import type {
+  InventoryDecisionRecord,
+  InventoryInsightRecord,
+  InventoryScope,
+} from './types';
 
 export function InsightDetailTrigger({
   insight,
@@ -24,7 +27,7 @@ export function InsightDetailTrigger({
   tag = 'prior insight',
   variant = 'title',
 }: {
-  insight: InventoryRecord;
+  insight: InventoryInsightRecord;
   onOpen: () => void;
   tag?: string;
   variant?: 'title' | 'claim';
@@ -73,11 +76,11 @@ export function InsightDetailDialog({
   onBack,
   onClose,
 }: {
-  insight: InventoryRecord;
+  insight: InventoryInsightRecord;
   model: InventoryModel;
   scope: InventoryScope;
   onOpenSource?: () => void;
-  onOpenDecision?: (decision: InventoryRecord) => void;
+  onOpenDecision?: (decision: InventoryDecisionRecord) => void;
   onBack?: () => void;
   onClose: () => void;
 }) {
@@ -123,7 +126,6 @@ export function InsightDetailDialog({
           ) : null}
         </InventoryDetailMain>
         <InventoryDetailRail label="Insight details">
-          <InventoryPath path={insight.path} />
           {insight.doi ? (
             <section className="inventory-paper-doi">
               <h4>Source paper</h4>

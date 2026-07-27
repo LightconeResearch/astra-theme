@@ -6,9 +6,7 @@ import {
   InventoryDetailLayout,
   InventoryDetailMain,
   InventoryDetailProse,
-  InventoryDetailRail,
   InventoryEmptyState,
-  InventoryPath,
   InventoryRecordList,
 } from './InventoryPrimitives';
 import {
@@ -80,7 +78,7 @@ export function FindingDialog({
       closeLabel="Close finding details"
       onClose={onClose}
     >
-      <InventoryDetailLayout className="inventory-finding-detail">
+      <InventoryDetailLayout className="inventory-finding-detail inventory-record-detail__layout--single">
         <InventoryDetailMain as="main">
           {record.claim ? (
             <InventoryDetailProse label="Finding" className="inventory-finding-detail__claim">
@@ -138,15 +136,6 @@ export function FindingDialog({
             ) : <p>No evidence artifacts are linked to this finding.</p>}
           </section>
         </InventoryDetailMain>
-        <InventoryDetailRail label="Finding details">
-          <InventoryPath path={record.path} />
-          {record.scope ? (
-            <section className="inventory-finding-detail__scope">
-              <h4>Scope</h4>
-              <p>{record.scope}</p>
-            </section>
-          ) : null}
-        </InventoryDetailRail>
       </InventoryDetailLayout>
     </InventoryDetailDialog>
   );

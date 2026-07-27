@@ -9,7 +9,6 @@ import {
   InventoryDetailProse,
   InventoryDetailRail,
   InventoryEmptyState,
-  InventoryPath,
   InventoryRecordIdentity,
   InventoryRecordList,
 } from './InventoryPrimitives';
@@ -21,7 +20,11 @@ import {
   selectedOptionLabel,
   type InventoryModel,
 } from './model';
-import type { InventoryRecord, InventoryScope } from './types';
+import type {
+  InventoryInsightRecord,
+  InventoryRecord,
+  InventoryScope,
+} from './types';
 
 interface DecisionsInventoryProps {
   model: InventoryModel;
@@ -46,7 +49,7 @@ export function DecisionDialog({
   record: InventoryRecord;
   scope: InventoryScope;
   model: InventoryModel;
-  onOpenInsight: (insight: InventoryRecord) => void;
+  onOpenInsight: (insight: InventoryInsightRecord) => void;
   onBack?: () => void;
   onClose: () => void;
 }) {
@@ -86,7 +89,6 @@ export function DecisionDialog({
           </section>
         </InventoryDetailMain>
         <InventoryDetailRail label="Decision details">
-          <InventoryPath path={record.path} />
           <section className="inventory-decision-options" aria-labelledby="inventory-decision-options-title">
             <h4 id="inventory-decision-options-title">Options</h4>
             <ul>

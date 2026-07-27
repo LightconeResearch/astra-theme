@@ -5,11 +5,18 @@ export function makeStore(): ResolvedStore {
   return {
     analysis: { id: 'demo', name: 'Demo', slug: 'demo' },
     inputs: {
-      shear_catalog: { id: 'shear_catalog', label: 'Shear catalog' },
+      shear_catalog: {
+        id: 'shear_catalog',
+        path: 'inputs.shear_catalog',
+        kind: 'input',
+        label: 'Shear catalog',
+      },
     },
     outputs: {
       sigma8_metric: {
         id: 'sigma8_metric',
+        path: 'outputs.sigma8_metric',
+        kind: 'output',
         label: 'sigma8 metric',
         type: 'metric',
         description: 'The recovered sigma8.',
@@ -17,6 +24,8 @@ export function makeStore(): ResolvedStore {
       },
       shear_plot: {
         id: 'shear_plot',
+        path: 'outputs.shear_plot',
+        kind: 'output',
         label: 'Shear correlation plot',
         type: 'figure',
         resolved_path: '/results/shear_plot.png',
@@ -25,16 +34,21 @@ export function makeStore(): ResolvedStore {
     decisions: {
       cov_source: {
         id: 'cov_source',
+        path: 'decisions.cov_source',
+        kind: 'decision',
         label: 'Covariance source',
         rationale: 'Analytic covariance is fastest and validated here.',
         selected: 'analytic',
         options: { analytic: 'Analytic', jackknife: 'Jackknife' },
         option_insights: { analytic: ['kids_s8_low'] },
+        active: true,
       },
     },
     findings: {
       s8_consistent: {
         id: 's8_consistent',
+        path: 'findings.s8_consistent',
+        kind: 'finding',
         label: 'S8 consistent with Planck',
         claim: 'The recovered S8 is consistent with the Planck 2018 value.',
         notes: 'Consistency holds across both binning choices.',
@@ -50,6 +64,8 @@ export function makeStore(): ResolvedStore {
     prior_insights: {
       kids_s8_low: {
         id: 'kids_s8_low',
+        path: 'prior_insights.kids_s8_low',
+        kind: 'prior_insight',
         label: 'KiDS S8 low',
         claim: 'KiDS reported a lower S8.',
       },
@@ -57,6 +73,8 @@ export function makeStore(): ResolvedStore {
     subanalyses: {
       calibration: {
         id: 'calibration',
+        path: 'analyses.calibration',
+        kind: 'analysis',
         name: 'Calibration',
         summary: 'Shear calibration sub-analysis.',
         url: '/calibration',

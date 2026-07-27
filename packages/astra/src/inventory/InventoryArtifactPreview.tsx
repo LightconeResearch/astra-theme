@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { inventoryRecordTitle } from './model';
 import type { InventoryRecord } from './types';
+import {
+  TABLE_PREVIEW_DISPLAY_COLUMNS,
+  TABLE_PREVIEW_DISPLAY_ROWS,
+} from '../tablePreview';
 
 export function inventoryFileName(record: InventoryRecord): string {
   const segments = record.resolved_path?.split('/').filter(Boolean);
@@ -46,22 +50,31 @@ function TablePreview({ record, compact = false }: {
   record: InventoryRecord;
   compact?: boolean;
 }) {
-  const table = record.table_data;
+  const table = record.table_preview ?? record.table_data;
   if (!table?.headers.length) {
+    const label = record.table_preview_omitted
+      ? 'Table preview omitted to keep this project page small'
+      : 'Table preview unavailable';
     return (
-      <div className="inventory-output-preview__placeholder" aria-label="Table preview unavailable">
+      <div className="inventory-output-preview__placeholder" aria-label={label}>
         <span aria-hidden="true">▤</span>
-        <span>Table preview unavailable</span>
+        <span>{label}</span>
       </div>
     );
   }
 
-  const columnLimit = compact ? 5 : 30;
-  const rowLimit = compact ? 4 : 30;
+  const columnLimit = compact ? 5 : TABLE_PREVIEW_DISPLAY_COLUMNS;
+  const rowLimit = compact ? 4 : TABLE_PREVIEW_DISPLAY_ROWS;
   const headers = table.headers.slice(0, columnLimit);
   const rows = table.rows.slice(0, rowLimit);
-  const totalRows = record.table_rows_total ?? table.rows.length;
-  const totalColumns = record.table_columns_total ?? table.headers.length;
+  const totalRows =
+    record.table_preview?.total_rows
+    ?? record.table_rows_total
+    ?? table.rows.length;
+  const totalColumns =
+    record.table_preview?.total_columns
+    ?? record.table_columns_total
+    ?? table.headers.length;
   return (
     <div className={`inventory-output-table${compact ? ' is-compact' : ''}`}>
       <table>
