@@ -46,7 +46,7 @@ jobs:
           - theme: book
             deploy_repo: EiffL/astra-book-theme
           - theme: article
-            deploy_repo: EiffL/astra-article-theme
+            deploy_repo: LightconeResearch/astra-article-theme
     steps:
       - name: Checkout source
         uses: actions/checkout@v4

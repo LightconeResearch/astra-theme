@@ -63,7 +63,7 @@ In your ASTRA project's `myst.yml`:
 ```yaml
 site:
   template: https://github.com/EiffL/astra-book-theme    # the published builds
-  # template: https://github.com/EiffL/astra-article-theme
+  # template: https://github.com/LightconeResearch/astra-article-theme
   # template: /path/to/astra-theme/themes/book           # or a built local checkout
   # template: /path/to/astra-theme/themes/article
 ```
