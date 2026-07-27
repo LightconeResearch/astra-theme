@@ -27,6 +27,7 @@ export function AnalysisModeTabs({
           aria-current={active === 'inventory' ? 'page' : undefined}
         >
           Inventory
+          <span className="analysis-mode-tabs__beta">Beta</span>
         </a>
       </nav>
     </div>

@@ -1374,6 +1374,21 @@ html.dark .astra-evidence__thumb img {
   color: var(--astra-ink);
 }
 
+.analysis-mode-tabs__beta {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid color-mix(in srgb, var(--astra-accent) 35%, transparent);
+  border-radius: 999px;
+  padding: 0.12rem 0.4rem;
+  background: color-mix(in srgb, var(--astra-accent) 9%, var(--astra-paper));
+  color: var(--astra-accent);
+  font-size: 0.61rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
 /* -----------------------------------------------------------------------------
    14. Site-chrome fixes
    -------------------------------------------------------------------------- */
