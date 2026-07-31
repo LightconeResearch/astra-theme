@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react';
+import type { CSSProperties, ReactNode, Ref } from 'react';
 import { useEffect, useId, useRef } from 'react';
 import type { InventoryKind } from './types';
 
@@ -105,7 +105,7 @@ export function InventoryRecordList({
   );
 }
 
-interface InventoryDetailDialogProps {
+export interface InventoryDetailSurfaceProps {
   className?: string;
   eyebrow: string;
   title: string;
@@ -115,9 +115,17 @@ interface InventoryDetailDialogProps {
   closeLabel: string;
   onClose: () => void;
   children: ReactNode;
+  closeRef?: Ref<HTMLButtonElement>;
+  modal?: boolean;
 }
 
-export function InventoryDetailDialog({
+/**
+ * Presentational detail frame shared by modal and embedded hosts.
+ *
+ * InventoryDetailDialog owns modal focus and dismissal behavior. This surface
+ * owns only the exact header, actions, and body presentation.
+ */
+export function InventoryDetailSurface({
   className,
   eyebrow,
   title,
@@ -127,9 +135,48 @@ export function InventoryDetailDialog({
   closeLabel,
   onClose,
   children,
+  closeRef,
+  modal = false,
+}: InventoryDetailSurfaceProps) {
+  const titleId = useId();
+
+  return (
+    <section
+      className={className}
+      role={modal ? 'dialog' : 'region'}
+      aria-modal={modal || undefined}
+      aria-labelledby={titleId}
+    >
+      <header className="inventory-detail-dialog__header">
+        <div>
+          <span>{eyebrow}</span>
+          <h3 id={titleId}>{title}</h3>
+          {identifier ? <code>{identifier}</code> : null}
+        </div>
+        <div className="inventory-detail-dialog__actions">
+          {onBack ? (
+            <button type="button" onClick={onBack} aria-label={backLabel} title="Back">
+              <span aria-hidden="true">←</span>
+            </button>
+          ) : null}
+          <button ref={closeRef} type="button" onClick={onClose} aria-label={closeLabel} title="Close all details">×</button>
+        </div>
+      </header>
+      <div className="inventory-detail-dialog__body">{children}</div>
+    </section>
+  );
+}
+
+interface InventoryDetailDialogProps extends Omit<
+  InventoryDetailSurfaceProps,
+  'closeRef' | 'modal'
+> {}
+
+export function InventoryDetailDialog({
+  className,
+  ...props
 }: InventoryDetailDialogProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
-  const titleId = useId();
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -137,7 +184,7 @@ export function InventoryDetailDialog({
     document.body.style.overflow = 'hidden';
     closeRef.current?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape') props.onClose();
     };
     document.addEventListener('keydown', onKeyDown);
     return () => {
@@ -145,30 +192,17 @@ export function InventoryDetailDialog({
       document.removeEventListener('keydown', onKeyDown);
       if (previouslyFocused instanceof HTMLElement) previouslyFocused.focus();
     };
-  }, [onClose]);
+  }, [props.onClose]);
 
   return (
     <div className={`inventory-detail-dialog${className ? ` ${className}` : ''}`} role="presentation" onMouseDown={(event) => {
-      if (event.target === event.currentTarget) onClose();
+      if (event.target === event.currentTarget) props.onClose();
     }}>
-      <section role="dialog" aria-modal="true" aria-labelledby={titleId}>
-        <header className="inventory-detail-dialog__header">
-          <div>
-            <span>{eyebrow}</span>
-            <h3 id={titleId}>{title}</h3>
-            {identifier ? <code>{identifier}</code> : null}
-          </div>
-          <div className="inventory-detail-dialog__actions">
-            {onBack ? (
-              <button type="button" onClick={onBack} aria-label={backLabel} title="Back">
-                <span aria-hidden="true">←</span>
-              </button>
-            ) : null}
-            <button ref={closeRef} type="button" onClick={onClose} aria-label={closeLabel} title="Close all details">×</button>
-          </div>
-        </header>
-        <div className="inventory-detail-dialog__body">{children}</div>
-      </section>
+      <InventoryDetailSurface
+        {...props}
+        closeRef={closeRef}
+        modal
+      />
     </div>
   );
 }

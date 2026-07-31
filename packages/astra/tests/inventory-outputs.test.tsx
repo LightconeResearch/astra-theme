@@ -196,6 +196,19 @@ test('promotes visual outputs, lists additional files, and opens declared proven
 
   const outputDialog = screen.getByRole('dialog', { name: 'Result figure' });
   expect(outputDialog).toBeInTheDocument();
+  expect(
+    outputDialog.querySelector('.inventory-output-dialog__layout'),
+  ).toHaveClass('inventory-output-dialog__layout--stacked');
+  const outputDetails = within(outputDialog).getByRole('complementary', {
+    name: 'Output details',
+  });
+  expect(
+    within(outputDetails).getByRole('heading', { name: 'Description' }),
+  ).toBeInTheDocument();
+  expect(within(outputDetails).getByText('The main result.')).toBeInTheDocument();
+  expect(
+    outputDialog.querySelector('.inventory-output-dialog__result'),
+  ).not.toHaveTextContent('The main result.');
   expect(within(outputDialog).queryByText('Declared provenance')).not.toBeInTheDocument();
   expect(within(outputDialog).getByText('Recipe')).toBeInTheDocument();
   expect(within(outputDialog).getByText('Decision dependencies')).toBeInTheDocument();
@@ -271,6 +284,9 @@ test('renders at most a 30 by 30 table preview and reports the full dimensions',
   fireEvent.click(screen.getByRole('button', { name: /Result table/i }));
 
   const dialog = screen.getByRole('dialog', { name: 'Result table' });
+  expect(
+    dialog.querySelector('.inventory-output-dialog__layout'),
+  ).toHaveClass('inventory-output-dialog__layout--stacked');
   expect(within(dialog).getAllByRole('columnheader')).toHaveLength(30);
   expect(within(dialog).getAllByRole('row')).toHaveLength(31);
   expect(
@@ -339,6 +355,14 @@ test('orders outputs, decisions, and inputs and uses shared registry rows and de
   fireEvent.click(screen.getByRole('button', { name: /Fit choice, selected option Baseline fit/i }));
   const decisionDialog = screen.getByRole('dialog', { name: 'Fit choice' });
   expect(decisionDialog).toBeInTheDocument();
+  expect(
+    decisionDialog.querySelector('.inventory-record-detail__layout'),
+  ).toHaveClass('inventory-record-detail__layout--single');
+  expect(
+    within(decisionDialog).queryByRole('complementary', {
+      name: 'Decision details',
+    }),
+  ).not.toBeInTheDocument();
   expect(within(decisionDialog).queryByText('Affects')).not.toBeInTheDocument();
   expect(within(decisionDialog).getByText('Insights')).toBeInTheDocument();
   expect(within(decisionDialog).queryByText('Baseline calibration evidence')).not.toBeInTheDocument();

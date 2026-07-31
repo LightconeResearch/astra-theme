@@ -20,11 +20,12 @@ import {
 import { normalizeDoi } from './citationMetadata';
 import type {
   InventoryInsightRecord,
+  InventoryOpenReference,
   InventoryRecord,
-  InventoryRecordReference,
-  InventoryScope,
   InventorySnapshot,
 } from './types';
+
+const EMPTY_PAPER_METADATA: InventoryPaperMetadataMap = {};
 
 type InventoryModalEntry =
   | { kind: 'output'; record: InventoryRecord; scopeId: string }
@@ -43,18 +44,34 @@ export interface InventoryOutlineProps {
   snapshot?: InventorySnapshot;
   scopeId?: string;
   paperMetadata?: InventoryPaperMetadataMap;
+  /** Host-specific directory containing the PDF.js runtime assets. */
+  paperPdfAssetBaseUrl?: string;
   decisionTagLabels?: Readonly<Record<string, string>>;
   dialogsOnly?: boolean;
-  openReference?: InventoryRecordReference;
+  openReference?: InventoryOpenReference;
+  /** Notified when the shared detail stack closes from its UI. */
+  onClose?: () => void;
+  /**
+   * Optional host boundary for selections made from the inventory overview.
+   * When provided, initial selections are delegated to the host while links
+   * inside an open detail continue to use this component's back stack.
+   */
+  onOpenReference?: (
+    reference: InventoryOpenReference,
+    scopeId: string,
+  ) => void;
 }
 
 export function InventoryExplorer({
   snapshot,
   scopeId = 'root',
-  paperMetadata = {},
+  paperMetadata = EMPTY_PAPER_METADATA,
+  paperPdfAssetBaseUrl,
   decisionTagLabels = {},
   dialogsOnly = false,
   openReference,
+  onClose,
+  onOpenReference,
 }: InventoryOutlineProps) {
   const [modalStack, setModalStack] = useState<InventoryModalEntry[]>([]);
   const model = useMemo(() => snapshot ? createInventoryModel(snapshot) : undefined, [snapshot]);
@@ -65,6 +82,19 @@ export function InventoryExplorer({
     const fallbackScope = getInventoryScope(model, scopeId)
       ?? model.snapshot.scopes[0];
     if (!fallbackScope) return;
+    if (openReference.kind === 'paper') {
+      const paper = paperRecords(model, fallbackScope, paperMetadata)
+        .find((candidate) =>
+          normalizeDoi(candidate.doi) === normalizeDoi(openReference.doi)
+        );
+      if (!paper) return;
+      setModalStack([{
+        kind: 'paper',
+        paper,
+        scopeId: fallbackScope.id,
+      }]);
+      return;
+    }
     const located = (
       openReference.path
         ? model.recordByPath.get(openReference.path)
@@ -86,12 +116,39 @@ export function InventoryExplorer({
     } else {
       setModalStack([{ kind: record.kind, record, scopeId: scope.id }]);
     }
-  }, [model, openReference, scopeId]);
+  }, [model, openReference, paperMetadata, scopeId]);
 
   const startModal = (entry: InventoryModalEntry) => setModalStack([entry]);
+  const openFromOverview = (entry: InventoryModalEntry) => {
+    if (!onOpenReference) {
+      startModal(entry);
+      return;
+    }
+    if (entry.kind === 'paper') {
+      onOpenReference(
+        { kind: 'paper', doi: entry.paper.doi },
+        entry.scopeId,
+      );
+      return;
+    }
+    onOpenReference(
+      {
+        kind:
+          entry.kind === 'insight'
+            ? 'prior_insight'
+            : entry.kind,
+        id: entry.record.id,
+        path: entry.record.path,
+      },
+      entry.scopeId,
+    );
+  };
   const pushModal = (entry: InventoryModalEntry) => setModalStack((stack) => [...stack, entry]);
   const goBack = () => setModalStack((stack) => stack.slice(0, -1));
-  const closeAll = () => setModalStack([]);
+  const closeAll = () => {
+    setModalStack([]);
+    onClose?.();
+  };
   const activeModal = modalStack[modalStack.length - 1];
   const activeScope = model && activeModal
     ? getInventoryScope(model, activeModal.scopeId)
@@ -190,6 +247,7 @@ export function InventoryExplorer({
           paper={activeModal.paper}
           scope={activeScope}
           initialFocusInsight={activeModal.focusInsight}
+          pdfAssetBaseUrl={paperPdfAssetBaseUrl}
           onOpenInsight={(insight) => pushModal({
             kind: 'insight',
             record: insight,
@@ -217,7 +275,7 @@ export function InventoryExplorer({
         <OutputsInventory
           model={model}
           scopeId={scopeId}
-          onOpenOutput={(record, scope) => startModal({
+          onOpenOutput={(record, scope) => openFromOverview({
             kind: 'output',
             record,
             scopeId: scope.id,
@@ -233,7 +291,7 @@ export function InventoryExplorer({
           model={model}
           scopeId={scopeId}
           tagLabels={decisionTagLabels}
-          onOpenDecision={(record, scope) => startModal({
+          onOpenDecision={(record, scope) => openFromOverview({
             kind: 'decision',
             record,
             scopeId: scope.id,
@@ -248,7 +306,7 @@ export function InventoryExplorer({
         <InputsInventory
           model={model}
           scopeId={scopeId}
-          onOpenInput={(record, scope) => startModal({
+          onOpenInput={(record, scope) => openFromOverview({
             kind: 'input',
             record,
             scopeId: scope.id,
@@ -263,7 +321,7 @@ export function InventoryExplorer({
         <FindingsInventory
           model={model}
           scopeId={scopeId}
-          onOpenFinding={(record, scope) => startModal({
+          onOpenFinding={(record, scope) => openFromOverview({
             kind: 'finding',
             record,
             scopeId: scope.id,
@@ -279,7 +337,7 @@ export function InventoryExplorer({
           model={model}
           scopeId={scopeId}
           paperMetadata={paperMetadata}
-          onOpenPaper={(paper, scope) => startModal({
+          onOpenPaper={(paper, scope) => openFromOverview({
             kind: 'paper',
             paper,
             scopeId: scope.id,

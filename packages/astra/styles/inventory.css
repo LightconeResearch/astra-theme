@@ -1324,6 +1324,27 @@
   align-items: stretch;
 }
 
+.inventory-output-dialog__layout--stacked {
+  display: block;
+  overflow-y: auto;
+}
+
+.inventory-output-dialog__layout--stacked .inventory-output-dialog__result {
+  overflow: visible;
+}
+
+.inventory-output-dialog__layout--stacked .inventory-output-provenance-slot {
+  min-height: auto;
+}
+
+.inventory-output-dialog__layout--stacked .inventory-output-provenance {
+  position: static;
+  overflow: visible;
+  border-top: 1px solid var(--astra-rule);
+  border-left: 0;
+  padding: clamp(1rem, 2.6vw, 2rem);
+}
+
 .inventory-output-dialog__result {
   min-width: 0;
   min-height: 0;
@@ -1358,17 +1379,23 @@
 }
 
 .inventory-output-description {
-  margin-top: 1rem;
-  border-top: 1px solid var(--astra-rule);
-  padding-top: 0.85rem;
+  margin: 0 0 1.2rem;
+}
+
+.inventory-output-description h4 {
+  margin: 0 0 0.5rem;
+  color: var(--astra-ink);
+  font-family: var(--astra-label);
+  font-size: 0.82rem;
 }
 
 .inventory-output-description__text {
   width: 100%;
   max-width: none;
-  margin: 0.45rem 0 0;
+  margin: 0;
   color: var(--astra-ink-soft);
-  font-size: 0.92rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
   white-space: normal;
 }
 
@@ -1397,6 +1424,37 @@
   border-left: 1px solid var(--astra-rule);
   background: var(--astra-surface);
   padding: 1.35rem 1.2rem;
+}
+
+.inventory-output-provenance__header {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--astra-rule);
+  padding-bottom: 0.85rem;
+}
+
+.inventory-output-provenance__header > span {
+  color: var(--astra-accent);
+  font-family: var(--astra-label);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.inventory-output-provenance__header > strong {
+  border: 1px solid var(--astra-rule-strong);
+  border-radius: 999px;
+  background: var(--astra-paper);
+  color: var(--astra-muted);
+  padding: 0.2rem 0.45rem;
+  font-family: var(--astra-label);
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .inventory-output-provenance__group {

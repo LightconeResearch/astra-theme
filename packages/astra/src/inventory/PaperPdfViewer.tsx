@@ -9,7 +9,12 @@ function pdfAssetUrl(baseurl: string | undefined, filename: string): string {
 }
 
 function loadPdfJs(baseurl: string | undefined): Promise<PdfJs> {
-  return import(pdfAssetUrl(baseurl, 'pdf.mjs')) as Promise<PdfJs>;
+  // The host serves this module at runtime; bundlers must not turn the URL into
+  // a compile-time module-context lookup.
+  return import(
+    /* webpackIgnore: true */
+    pdfAssetUrl(baseurl, 'pdf.mjs')
+  ) as Promise<PdfJs>;
 }
 
 export interface PaperQuoteFocusRequest {
@@ -23,6 +28,11 @@ interface PaperPdfViewerProps {
   pdfUrl: string;
   title: string;
   focusRequest?: PaperQuoteFocusRequest;
+  /**
+   * Host-provided directory containing pdf.mjs and pdf.worker.min.mjs.
+   * MyST leaves this unset so the files continue to resolve from its base URL.
+   */
+  pdfAssetBaseUrl?: string;
 }
 
 interface MatchOrigin {
@@ -155,8 +165,14 @@ function pageStrings(
   return pending;
 }
 
-export function PaperPdfViewer({ pdfUrl, title, focusRequest }: PaperPdfViewerProps) {
+export function PaperPdfViewer({
+  pdfUrl,
+  title,
+  focusRequest,
+  pdfAssetBaseUrl,
+}: PaperPdfViewerProps) {
   const baseurl = useBaseurl();
+  const assetBaseUrl = pdfAssetBaseUrl ?? baseurl;
   const [pdf, setPdf] = useState<PDFDocumentProxy>();
   const [pageNumber, setPageNumber] = useState(1);
   const [zoomIndex, setZoomIndex] = useState(1);
@@ -199,8 +215,8 @@ export function PaperPdfViewer({ pdfUrl, title, focusRequest }: PaperPdfViewerPr
 
     void (async () => {
       try {
-        const pdfjs = await loadPdfJs(baseurl);
-        pdfjs.GlobalWorkerOptions.workerSrc = pdfAssetUrl(baseurl, 'pdf.worker.min.mjs');
+        const pdfjs = await loadPdfJs(assetBaseUrl);
+        pdfjs.GlobalWorkerOptions.workerSrc = pdfAssetUrl(assetBaseUrl, 'pdf.worker.min.mjs');
         loadingTask = pdfjs.getDocument({ url: pdfUrl.split('#')[0] });
         loadedDocument = await loadingTask.promise;
         if (disposed) return;
@@ -217,7 +233,7 @@ export function PaperPdfViewer({ pdfUrl, title, focusRequest }: PaperPdfViewerPr
       void loadingTask?.destroy();
       void loadedDocument?.destroy();
     };
-  }, [baseurl, pdfUrl]);
+  }, [assetBaseUrl, pdfUrl]);
 
   useEffect(() => {
     if (!pdf) return;
@@ -233,7 +249,7 @@ export function PaperPdfViewer({ pdfUrl, title, focusRequest }: PaperPdfViewerPr
       if (!canvas || !pageElement || !scrollElement || !textLayerElement) return;
 
       try {
-        const pdfjs = await loadPdfJs(baseurl);
+        const pdfjs = await loadPdfJs(assetBaseUrl);
         const page = await pdf.getPage(pageNumber);
         if (disposed) return;
         const baseViewport = page.getViewport({ scale: 1 });
@@ -303,7 +319,7 @@ export function PaperPdfViewer({ pdfUrl, title, focusRequest }: PaperPdfViewerPr
       renderTask?.cancel();
       textLayer?.cancel();
     };
-  }, [baseurl, pageNumber, pdf, pendingHighlight, zoomIndex]);
+  }, [assetBaseUrl, pageNumber, pdf, pendingHighlight, zoomIndex]);
 
   useEffect(() => {
     if (!pdf || !focusRequest?.quote) return;

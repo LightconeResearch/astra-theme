@@ -20,6 +20,17 @@ export interface InventoryRecordReference {
   path?: string;
 }
 
+/** Papers are derived from prior-insight DOI evidence, not ASTRA records. */
+export interface InventoryPaperReference {
+  kind: 'paper';
+  doi: string;
+}
+
+/** Any detail target the shared inventory dialog stack can open directly. */
+export type InventoryOpenReference =
+  | InventoryRecordReference
+  | InventoryPaperReference;
+
 export interface InventoryDiagnostic {
   severity: 'error' | 'warning' | 'info';
   message: string;

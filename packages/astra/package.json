@@ -10,20 +10,36 @@
     "*": {
       "inventory": [
         "./src/inventory/index.ts"
+      ],
+      "inventory/output-detail": [
+        "./src/inventory/output-detail.ts"
+      ],
+      "inventory/record-detail": [
+        "./src/inventory/record-detail.ts"
       ]
     }
   },
   "exports": {
     ".": "./src/index.ts",
     "./inventory": "./src/inventory/index.ts",
+    "./inventory/output-detail": {
+      "types": "./src/inventory/output-detail.ts",
+      "default": "./dist/inventory/output-detail.js"
+    },
+    "./inventory/record-detail": {
+      "types": "./src/inventory/record-detail.ts",
+      "default": "./dist/inventory/record-detail.js"
+    },
     "./styles/astra.css": "./styles/astra.css",
     "./styles/inventory.css": "./styles/inventory.css"
   },
   "files": [
+    "dist",
     "src",
     "styles"
   ],
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit --skipLibCheck"
   },
   "dependencies": {

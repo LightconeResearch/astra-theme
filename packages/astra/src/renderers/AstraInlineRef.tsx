@@ -42,6 +42,7 @@ import type {
   SerializedInsight,
   SerializedSubAnalysis,
   SerializedOutput,
+  ResolvedRecord,
 } from '@astra-spec/store-types';
 
 /* ------------------------------------------------------------------ *
@@ -377,6 +378,17 @@ function renderCardBody(
       return null;
   }
 }
+
+/**
+ * Host-neutral access to the exact card body used by MyST inline references.
+ *
+ * The MyST adapter below supplies a record joined from its page store. Other
+ * hosts can pass the same serialized record directly without manufacturing a
+ * MyST node.
+ */
+export const AstraRecordPreview: React.FC<{ record: ResolvedRecord }> = ({
+  record,
+}) => <>{renderCardBody(record.kind, record)}</>;
 
 /* ------------------------------------------------------------------ *
  * The renderer component

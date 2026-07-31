@@ -183,6 +183,7 @@ export function PaperDialog({
   paper,
   scope,
   initialFocusInsight,
+  pdfAssetBaseUrl,
   onOpenInsight,
   onOpenDecision,
   onBack,
@@ -191,6 +192,7 @@ export function PaperDialog({
   paper: InventoryPaper;
   scope: InventoryScope;
   initialFocusInsight?: InventoryInsightRecord;
+  pdfAssetBaseUrl?: string;
   onOpenInsight: (insight: InventoryInsightRecord) => void;
   onOpenDecision: (decision: InventoryDecisionRecord) => void;
   onBack?: () => void;
@@ -234,7 +236,12 @@ export function PaperDialog({
     >
       <div className="inventory-paper-dialog__layout">
         {paper.pdfUrl ? (
-          <PaperPdfViewer pdfUrl={paper.pdfUrl} title={paper.title} focusRequest={focusRequest} />
+          <PaperPdfViewer
+            pdfUrl={paper.pdfUrl}
+            title={paper.title}
+            focusRequest={focusRequest}
+            pdfAssetBaseUrl={pdfAssetBaseUrl}
+          />
         ) : <p className="inventory-paper-dialog__unavailable">No PDF source is available for this paper.</p>}
         <aside className="inventory-paper-dialog__rail" aria-label="Paper insights and decisions">
           <section className="inventory-insight-list">

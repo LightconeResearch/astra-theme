@@ -200,21 +200,26 @@ function upstreamRecords(
   return [...records.values()];
 }
 
-export function OutputDialog({
+export interface OutputDetailProps {
+  record: InventoryRecord;
+  scope: InventoryScope;
+  model: InventoryModel;
+  onOpenDependency?: (record: InventoryRecord, scope: InventoryScope) => void;
+}
+
+/**
+ * Host-neutral output detail body.
+ *
+ * MyST renders this inside InventoryDetailDialog. Other hosts, such as
+ * JupyterLab, can supply their own panel chrome while preserving the exact
+ * ASTRA result, description, recipe, and provenance presentation.
+ */
+export function OutputDetail({
   record,
   scope,
   model,
   onOpenDependency,
-  onBack,
-  onClose,
-}: {
-  record: InventoryRecord;
-  scope: InventoryScope;
-  model: InventoryModel;
-  onOpenDependency: (record: InventoryRecord, scope: InventoryScope) => void;
-  onBack?: () => void;
-  onClose: () => void;
-}) {
+}: OutputDetailProps) {
   const inputs = upstreamRecords(model, scope, record);
   const dependencies = decisionDependencies(model, scope, record);
   const directDependencies = dependencies.filter(
@@ -234,6 +239,98 @@ export function OutputDialog({
     : directDependencies;
 
   return (
+    <div className="inventory-output-dialog__layout inventory-output-dialog__layout--stacked">
+      <div className="inventory-output-dialog__result">
+        <div className={`inventory-output-dialog__preview is-${record.type ?? 'output'}`}>
+          <InventoryArtifactPreview record={record} />
+        </div>
+      </div>
+
+      <div className="inventory-output-provenance-slot">
+        <aside className="inventory-output-provenance" aria-label="Output details">
+          <header className="inventory-output-provenance__header">
+            <span>Output details</span>
+            <strong>{record.type ?? 'output'}</strong>
+          </header>
+          {record.description ? (
+            <section className="inventory-output-description">
+              <h4>Description</h4>
+              <div className="inventory-output-description__text">
+                <InventoryProse text={record.description} />
+              </div>
+            </section>
+          ) : null}
+          {record.recipe?.command ? (
+            <details className="inventory-output-recipe" open>
+              <summary>Recipe</summary>
+              <pre><code>{record.recipe.command}</code></pre>
+              {record.recipe.container ? <p>Container: <code>{record.recipe.container}</code></p> : null}
+            </details>
+          ) : <p className="inventory-output-provenance__empty">No recipe is declared for this output.</p>}
+          <InventoryRelationList
+            title="Decision dependencies"
+            className="inventory-output-provenance__group inventory-output-dependencies"
+            headerAction={indirectDependencies.length ? (
+              <label
+                className="inventory-dependency-toggle"
+              >
+                <input
+                  type="checkbox"
+                  aria-label="Include indirect decision dependencies"
+                  checked={showIndirectDependencies}
+                  onChange={(event) => setShowIndirectDependencies(event.target.checked)}
+                />
+                <span>Include indirect</span>
+              </label>
+            ) : undefined}
+            items={visibleDependencies.map((dependency) => ({
+              key: `${dependency.relationship}-${dependency.via ?? 'local'}-${dependency.id}`,
+              label: dependency.label,
+              accessibleLabel: dependency.record
+                ? `View ${dependency.relationship} decision dependency: ${dependency.label}`
+                : undefined,
+              onOpen: dependency.record && dependency.scope && onOpenDependency
+                ? () => onOpenDependency(dependency.record!, dependency.scope!)
+                : undefined,
+            }))}
+            empty={indirectDependencies.length
+              ? 'No decisions are referenced directly by this output recipe.'
+              : 'No decision dependencies are resolved in this snapshot.'}
+          />
+          <InventoryRelationList
+            title="Inputs and upstream outputs"
+            className="inventory-output-provenance__group inventory-output-provenance__group--scrollable"
+            items={inputs.map((input) => ({
+              key: input.id,
+              label: input.label ?? input.id,
+              accessibleLabel: input.record
+                ? `View ${input.record.kind}: ${input.label ?? input.id}`
+                : undefined,
+              onOpen: input.record && input.scope && onOpenDependency
+                ? () => onOpenDependency(input.record!, input.scope!)
+                : undefined,
+            }))}
+            empty="No upstream dependencies are resolved in this snapshot."
+          />
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+export function OutputDialog({
+  record,
+  scope,
+  model,
+  onOpenDependency,
+  onBack,
+  onClose,
+}: OutputDetailProps & {
+  onOpenDependency: (record: InventoryRecord, scope: InventoryScope) => void;
+  onBack?: () => void;
+  onClose: () => void;
+}) {
+  return (
     <InventoryDetailDialog
       eyebrow={`${record.type ?? 'output'} · ${scope.name}`}
       title={inventoryRecordTitle(record)}
@@ -242,78 +339,12 @@ export function OutputDialog({
       closeLabel="Close output details"
       onClose={onClose}
     >
-          <div className="inventory-output-dialog__layout">
-            <div className="inventory-output-dialog__result">
-              <div className={`inventory-output-dialog__preview is-${record.type ?? 'output'}`}>
-                <InventoryArtifactPreview record={record} />
-              </div>
-              {record.description ? (
-                <div className="inventory-output-description">
-                  <span>Description</span>
-                  <div className="inventory-output-description__text">
-                    <InventoryProse text={record.description} />
-                  </div>
-                </div>
-              ) : null}
-            </div>
-
-            <div className="inventory-output-provenance-slot">
-              <aside className="inventory-output-provenance" aria-label="Output details">
-                {record.recipe?.command ? (
-                  <details className="inventory-output-recipe" open>
-                    <summary>Recipe</summary>
-                    <pre><code>{record.recipe.command}</code></pre>
-                    {record.recipe.container ? <p>Container: <code>{record.recipe.container}</code></p> : null}
-                  </details>
-                ) : <p className="inventory-output-provenance__empty">No recipe is declared for this output.</p>}
-                <InventoryRelationList
-                  title="Decision dependencies"
-                  className="inventory-output-provenance__group inventory-output-dependencies"
-                  headerAction={indirectDependencies.length ? (
-                    <label
-                      className="inventory-dependency-toggle"
-                    >
-                      <input
-                        type="checkbox"
-                        aria-label="Include indirect decision dependencies"
-                        checked={showIndirectDependencies}
-                        onChange={(event) => setShowIndirectDependencies(event.target.checked)}
-                      />
-                      <span>Include indirect</span>
-                    </label>
-                  ) : undefined}
-                  items={visibleDependencies.map((dependency) => ({
-                    key: `${dependency.relationship}-${dependency.via ?? 'local'}-${dependency.id}`,
-                    label: dependency.label,
-                    accessibleLabel: dependency.record
-                      ? `View ${dependency.relationship} decision dependency: ${dependency.label}`
-                      : undefined,
-                    onOpen: dependency.record && dependency.scope
-                      ? () => onOpenDependency(dependency.record!, dependency.scope!)
-                      : undefined,
-                  }))}
-                  empty={indirectDependencies.length
-                    ? 'No decisions are referenced directly by this output recipe.'
-                    : 'No decision dependencies are resolved in this snapshot.'}
-                />
-                <InventoryRelationList
-                  title="Inputs and upstream outputs"
-                  className="inventory-output-provenance__group inventory-output-provenance__group--scrollable"
-                  items={inputs.map((input) => ({
-                    key: input.id,
-                    label: input.label ?? input.id,
-                    accessibleLabel: input.record
-                      ? `View ${input.record.kind}: ${input.label ?? input.id}`
-                      : undefined,
-                    onOpen: input.record && input.scope
-                      ? () => onOpenDependency(input.record!, input.scope!)
-                      : undefined,
-                  }))}
-                  empty="No upstream dependencies are resolved in this snapshot."
-                />
-              </aside>
-            </div>
-          </div>
+      <OutputDetail
+        record={record}
+        scope={scope}
+        model={model}
+        onOpenDependency={onOpenDependency}
+      />
     </InventoryDetailDialog>
   );
 }

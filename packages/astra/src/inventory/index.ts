@@ -7,8 +7,15 @@ export {
   useInventoryDialogTrigger,
 } from './DialogContext';
 export { OverviewInventory } from './OverviewInventory';
+export { OutputDetail } from './OutputsInventory';
+export type { OutputDetailProps } from './OutputsInventory';
+export { AstraRecordReference } from './AstraRecordReference';
+export type { AstraRecordReferenceProps } from './AstraRecordReference';
+export { AstraPaperReference } from './AstraPaperReference';
+export type { AstraPaperReferenceProps } from './AstraPaperReference';
 export {
   PapersInventory,
+  paperRecords,
   paperMetadataFromCitations,
 } from './PapersInventory';
 export { findInventorySnapshot, hasInventorySnapshot } from './snapshot';
@@ -19,6 +26,7 @@ export {
   normalizeDoi,
 } from './citationMetadata';
 export type {
+  InventoryPaper,
   InventoryPaperMetadata,
   InventoryPaperMetadataMap,
 } from './PapersInventory';
@@ -34,6 +42,8 @@ export type { InventoryModel, LocatedInventoryRecord } from './model';
 export type {
   InventoryDiagnostic,
   InventoryKind,
+  InventoryOpenReference,
+  InventoryPaperReference,
   InventoryRecord,
   InventoryRecordReference,
   InventoryDecisionRecord,

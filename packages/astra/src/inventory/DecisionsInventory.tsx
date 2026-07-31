@@ -7,7 +7,6 @@ import {
   InventoryDetailLayout,
   InventoryDetailMain,
   InventoryDetailProse,
-  InventoryDetailRail,
   InventoryEmptyState,
   InventoryRecordIdentity,
   InventoryRecordList,
@@ -64,31 +63,13 @@ export function DecisionDialog({
       closeLabel="Close decision details"
       onClose={onClose}
     >
-      <InventoryDetailLayout>
+      <InventoryDetailLayout className="inventory-record-detail__layout--single">
         <InventoryDetailMain>
           {record.rationale ? (
             <InventoryDetailProse label="Rationale">
               <InventoryProse text={record.rationale} />
             </InventoryDetailProse>
           ) : null}
-          <section className="inventory-insight-list">
-            <InventoryCountHeading title="Insights" count={insights.length} />
-            {insights.length ? (
-              <ul className="inventory-decision-insights">
-                {insights.map((insight) => (
-                  <li key={insight.path}>
-                    <InsightDetailTrigger
-                      insight={insight}
-                      variant="claim"
-                      onOpen={() => onOpenInsight(insight)}
-                    />
-                  </li>
-                ))}
-              </ul>
-            ) : <p>No prior insights are linked to this decision.</p>}
-          </section>
-        </InventoryDetailMain>
-        <InventoryDetailRail label="Decision details">
           <section className="inventory-decision-options" aria-labelledby="inventory-decision-options-title">
             <h4 id="inventory-decision-options-title">Options</h4>
             <ul>
@@ -109,7 +90,23 @@ export function DecisionDialog({
               })}
             </ul>
           </section>
-        </InventoryDetailRail>
+          <section className="inventory-insight-list">
+            <InventoryCountHeading title="Insights" count={insights.length} />
+            {insights.length ? (
+              <ul className="inventory-decision-insights">
+                {insights.map((insight) => (
+                  <li key={insight.path}>
+                    <InsightDetailTrigger
+                      insight={insight}
+                      variant="claim"
+                      onOpen={() => onOpenInsight(insight)}
+                    />
+                  </li>
+                ))}
+              </ul>
+            ) : <p>No prior insights are linked to this decision.</p>}
+          </section>
+        </InventoryDetailMain>
       </InventoryDetailLayout>
     </InventoryDetailDialog>
   );

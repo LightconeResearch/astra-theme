@@ -360,6 +360,7 @@ hr.astra-rule {
 .astra-ref--analysis      { --astra-kind: var(--astra-c-analysis); --astra-glyph: "\25D0"; } /* ◐ */
 .astra-ref--output        { --astra-kind: var(--astra-c-output);   --astra-glyph: "\25C6"; } /* ◆ */
 .astra-ref--input         { --astra-kind: var(--astra-c-input);    --astra-glyph: "\25A4"; } /* ▤ */
+.astra-ref--paper         { --astra-kind: var(--astra-c-insight);  --astra-glyph: "\25A7"; } /* ▧ */
 /* an option shares its decision's open-diamond family */
 .astra-ref--option        { --astra-kind: var(--astra-c-decision); --astra-glyph: "\25C7"; } /* ◇ */
 
@@ -602,7 +603,21 @@ hr.astra-rule {
 .astra-card--subanalysis   { --astra-kind: var(--astra-c-analysis); --astra-glyph: "\25D0"; }
 .astra-card--output        { --astra-kind: var(--astra-c-output);   --astra-glyph: "\25C6"; }
 .astra-card--input         { --astra-kind: var(--astra-c-input);    --astra-glyph: "\25A4"; }
+.astra-card--paper         { --astra-kind: var(--astra-c-insight);  --astra-glyph: "\25A7"; }
 .astra-card--value         { --astra-kind: var(--astra-c-value);    --astra-glyph: ""; }
+
+.astra-paper-card__counts {
+  color: var(--astra-ink-soft);
+  font-family: var(--astra-label);
+  font-size: 13px;
+}
+
+.astra-paper-card__doi {
+  display: block;
+  margin-top: 0.65rem;
+  color: var(--astra-muted);
+  overflow-wrap: anywhere;
+}
 
 /* -----------------------------------------------------------------------------
    5. Card diagrams — data flow: a row of mono boxes joined by arrows
