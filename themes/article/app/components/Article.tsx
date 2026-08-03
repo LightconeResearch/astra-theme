@@ -77,6 +77,23 @@ export function Article({
   );
   const [openInventoryReference, setOpenInventoryReference] =
     React.useState<InventoryRecordReference>();
+  const [isEmbedded, setIsEmbedded] = React.useState(false);
+  React.useEffect(() => {
+    setIsEmbedded(window.parent !== window);
+  }, []);
+  const openInventoryDetail = React.useCallback(
+    (reference: InventoryRecordReference) => {
+      if (typeof window !== 'undefined' && window.parent !== window) {
+        window.parent.postMessage(
+          { type: 'astra:open-reference', reference },
+          '*',
+        );
+        return;
+      }
+      setOpenInventoryReference(reference);
+    },
+    [],
+  );
   const { title, subtitle } = article.frontmatter;
   const compute = useComputeOptions();
   const top = useThemeTop();
@@ -127,7 +144,11 @@ export function Article({
               and its astra refs need the store context for preview cards. */}
           <AstraStoreProvider mdast={tree}>
             <InventoryDialogTriggerProvider
-              onOpen={inventorySnapshot ? setOpenInventoryReference : undefined}
+              onOpen={
+                inventorySnapshot || isEmbedded
+                  ? openInventoryDetail
+                  : undefined
+              }
             >
               <FrontmatterParts parts={parts} keywords={keywords} hideKeywords={hideKeywords} />
               <MyST ast={tree} />

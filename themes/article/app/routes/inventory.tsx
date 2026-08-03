@@ -30,7 +30,6 @@ import {
   type InventorySnapshot,
 } from '@astra-spec/theme-astra/inventory';
 import inventoryStyles from '@astra-spec/theme-astra/styles/inventory.css';
-import { AnalysisModeTabs } from '../components/AnalysisModeTabs';
 import { ArticlePageAndNavigation } from '../components/ArticlePageAndNavigation';
 import { getConfig, getPage } from '../utils/loaders.server';
 
@@ -127,8 +126,9 @@ export default function InventoryPage() {
   return (
     <ArticlePageAndNavigation>
       <ProjectProvider>
-        <ArticleHeader frontmatter={project} />
-        <AnalysisModeTabs active="inventory" />
+        <ArticleHeader frontmatter={project}>
+          <div className="pt-5 md:self-center h-fit lg:pt-0 col-body lg:col-margin-right-inset" />
+        </ArticleHeader>
         <article
           id="skip-to-article"
           className="myst-article article article-left-grid subgrid-gap col-screen pt-10"
