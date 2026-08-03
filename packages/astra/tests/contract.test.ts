@@ -47,7 +47,7 @@ const route = (node: GenericNode) => selectRenderer(RENDERERS, node);
 /* ── A. Carrier & store shape ──────────────────────────────────────────────── */
 describe('A. carrier & store shape', () => {
   it('has exactly one astra-store carrier (a hidden div)', () => {
-    const carriers = collect((n) => n.identifier === 'astra-store');
+    const carriers = collect((n) => String(n.class).split(/\s+/).includes('astra-store'));
     expect(carriers).toHaveLength(1);
     const carrier = carriers[0];
     expect(carrier.type).toBe('div');
@@ -192,7 +192,7 @@ describe('D. graceful fallback', () => {
     const noCarrier = JSON.parse(JSON.stringify(mdast)) as GenericNode;
     walk(noCarrier, (n) => {
       n.children = (n.children ?? []).filter(
-        (c) => (c as GenericNode).identifier !== 'astra-store',
+        (c) => !String((c as GenericNode).class).split(/\s+/).includes('astra-store'),
       );
     });
     expect(findAstraStore(noCarrier)).toBeUndefined();

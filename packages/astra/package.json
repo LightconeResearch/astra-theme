@@ -1,7 +1,7 @@
 {
   "name": "@astra-spec/theme-astra",
   "version": "0.0.8",
-  "description": "The ASTRA overlay shared by the astra themes: glyph-tagged inline references, preview cards, decision/finding/output renderers, the resolved-store provider, and the ASTRA stylesheet. Consumed as TypeScript source — the themes' Remix builds bundle it.",
+  "description": "The paper-only ASTRA overlay shared by the MyST article and book themes: inline references, publication renderers, the page-store provider, and paper styles.",
   "license": "BSD-3-Clause",
   "type": "module",
   "main": "./src/index.ts",

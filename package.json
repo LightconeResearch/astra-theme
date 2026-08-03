@@ -1,7 +1,7 @@
 {
   "name": "@astra-spec/astra-theme",
   "version": "0.0.8",
-  "description": "Rich MyST web themes for ASTRA analyses — the presentation half of the @astra-spec/mystra pair. One repo, two templates: an article theme (extends @myst-theme/article) and a book theme (extends @myst-theme/book), both layering the shared ASTRA overlay (packages/astra).",
+  "description": "Paper-only MyST publication themes for ASTRA analyses: article and book templates layered over the MySTRA document projection.",
   "license": "BSD-3-Clause",
   "private": true,
   "engines": {

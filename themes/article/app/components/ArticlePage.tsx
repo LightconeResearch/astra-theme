@@ -10,6 +10,7 @@ import {
   useGridSystemProvider,
   useLinkProvider,
   useSiteManifest,
+  useThemeSwitcher,
 } from '@myst-theme/providers';
 import classNames from 'classnames';
 import { BusyScopeProvider, ExecuteScopeProvider } from '@myst-theme/jupyter';
@@ -26,6 +27,7 @@ export function ArticlePage({ article }: { article: PageLoader }) {
   const { hide_footer_links, hide_outline, outline_maxdepth, hide_authors } =
     useTemplateOptions<TemplateOptions>(article.frontmatter);
   const Link = useLinkProvider();
+  const { theme } = useThemeSwitcher();
   const baseurl = useBaseurl();
   const compute = useComputeOptions();
   const project = projects?.[0];
@@ -55,9 +57,18 @@ export function ArticlePage({ article }: { article: PageLoader }) {
           </ArticleHeader>
           <article
             data-name="article-page-main"
-            className={classNames('myst-article', 'article', grid, 'subgrid-gap col-screen', {
-              'pt-10': isIndex,
-            })}
+            data-astra-color-scheme={theme ?? undefined}
+            suppressHydrationWarning
+            className={classNames(
+              'astra-brand',
+              'myst-article',
+              'article',
+              grid,
+              'subgrid-gap col-screen',
+              {
+                'pt-10': isIndex,
+              },
+            )}
           >
             {!isIndex && (
               <div className="flex items-center p-3 mb-10 border-y bg-slate-50 dark:bg-slate-600 border-y-slate-300 col-screen">

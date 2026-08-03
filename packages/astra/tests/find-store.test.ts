@@ -1,5 +1,5 @@
 /**
- * findAstraStore — depth-first search for the [identifier=astra-store] carrier's
+ * findAstraStore — depth-first search for the `.astra-store` carrier's
  * data.astra in a page mdast. Tolerates any tree shape; undefined when absent.
  */
 import { describe, it, expect } from 'vitest';
@@ -29,7 +29,8 @@ describe('findAstraStore', () => {
   it('finds the carrier deep in the tree and returns data.astra', () => {
     const carrier: GenericNode = {
       type: 'div',
-      identifier: 'astra-store',
+      identifier: 'astra-store-index',
+      class: 'astra-store',
       data: { astra: store },
     };
     expect(findAstraStore(tree(carrier))).toBe(store);
@@ -38,7 +39,8 @@ describe('findAstraStore', () => {
   it('accepts an array of roots', () => {
     const carrier: GenericNode = {
       type: 'div',
-      identifier: 'astra-store',
+      identifier: 'astra-store-index',
+      class: 'astra-store',
       data: { astra: store },
     };
     expect(findAstraStore([{ type: 'paragraph' }, carrier])).toBe(store);
@@ -54,10 +56,11 @@ describe('findAstraStore', () => {
     expect(findAstraStore([])).toBeUndefined();
   });
 
-  it('ignores a node with the right identifier but no data.astra', () => {
+  it('ignores a node with the right class but no data.astra', () => {
     const carrier: GenericNode = {
       type: 'div',
-      identifier: 'astra-store',
+      identifier: 'astra-store-index',
+      class: 'astra-store',
       data: {},
     };
     expect(findAstraStore(tree(carrier))).toBeUndefined();
@@ -76,7 +79,8 @@ describe('findAstraStore', () => {
     };
     const carrier: GenericNode = {
       type: 'div',
-      identifier: 'astra-store',
+      identifier: 'astra-store-index',
+      class: 'astra-store',
       data: { astra: withOutput },
     };
     const assets: GenericNode = {
@@ -100,5 +104,14 @@ describe('findAstraStore', () => {
     expect(withOutput.outputs.plot.resolved_path).toBe(
       'results/baseline/plot/plot.png',
     );
+  });
+
+  it('continues to read legacy identifier-only carriers', () => {
+    const carrier: GenericNode = {
+      type: 'div',
+      identifier: 'astra-store',
+      data: { astra: store },
+    };
+    expect(findAstraStore(tree(carrier))).toBe(store);
   });
 });

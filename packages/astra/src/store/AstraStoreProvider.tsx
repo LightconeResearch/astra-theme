@@ -3,7 +3,10 @@
  *
  * Integration point (CONTRACT.md §3-4):
  *   The plugin emits ONE hidden carrier per page:
- *     div { identifier: 'astra-store', data: { astra: ResolvedStore } }
+ *     div.astra-store {
+ *       identifier: 'astra-store-<page>',
+ *       data: { astra: ResolvedStore }
+ *     }
  *   It survives the engine's content-JSON serialization intact. This provider
  *   walks the page mdast, finds that carrier, reads `node.data.astra`, and makes
  *   it available to every ASTRA renderer through `useAstraStore()`.
@@ -22,11 +25,22 @@ export const AstraStoreContext = createContext<ResolvedStore | undefined>(
   undefined,
 );
 
-const STORE_IDENTIFIER = 'astra-store';
+const STORE_CLASS = 'astra-store';
+const LEGACY_STORE_IDENTIFIER = 'astra-store';
+
+function hasClass(node: GenericNode, className: string): boolean {
+  const value = (node as GenericNode).class;
+  if (typeof value === 'string') return value.split(/\s+/).includes(className);
+  if (Array.isArray(value)) return value.includes(className);
+  return false;
+}
 
 /**
- * Depth-first search for the `[identifier=astra-store]` carrier and return its
- * `data.astra`. Tolerates any tree shape; returns `undefined` if absent.
+ * Depth-first search for the `.astra-store` carrier and return its `data.astra`.
+ * The class is stable while the identifier is deliberately page-unique, so
+ * MyST does not report a duplicate target across multi-page publications.
+ * Legacy `[identifier=astra-store]` carriers remain readable. Tolerates any
+ * tree shape; returns `undefined` if absent.
  *
  * The same walk collects the plugin's hidden `astra-assets` image nodes
  * (`data.astraAsset = <output id>`): MyST's asset pipeline copies those images
@@ -47,7 +61,8 @@ export function findAstraStore(
     const node = stack.pop();
     if (!node || typeof node !== 'object') continue;
     if (
-      (node as GenericNode).identifier === STORE_IDENTIFIER &&
+      (hasClass(node as GenericNode, STORE_CLASS) ||
+        (node as GenericNode).identifier === LEGACY_STORE_IDENTIFIER) &&
       (node as GenericNode).data?.astra
     ) {
       store ??= (node as GenericNode).data!.astra as ResolvedStore;

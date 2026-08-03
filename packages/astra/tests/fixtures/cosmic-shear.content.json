@@ -14,7 +14,7 @@
     "children": [
       {
         "type": "div",
-        "identifier": "astra-store",
+        "identifier": "astra-store-index",
         "class": "astra-store",
         "style": { "display": "none" },
         "data": {

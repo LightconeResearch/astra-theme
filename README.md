@@ -1,6 +1,6 @@
 # astra-theme
 
-**Rich [MyST](https://mystmd.org/) web themes for [ASTRA](https://github.com/LightconeResearch/ASTRA) analyses.**
+**Rich, paper-only [MyST](https://mystmd.org/) web themes for [ASTRA](https://github.com/LightconeResearch/ASTRA) analyses.**
 
 `astra-theme` is the presentation half of a pair. You author an ASTRA report with
 the [`@astra-spec/mystra`](https://github.com/LightconeResearch/MySTRA) plugin —
@@ -8,7 +8,7 @@ Markdown that imports and cites ASTRA components by reference — and that docum
 renders cleanly on any stock MyST theme. Switch to one of the astra themes and
 the same document gains the **rich** experience: glyph-tagged inline references
 with hover preview cards, decision/finding/output treatments, live-value
-provenance, and author-placed dependency graphs.
+provenance, and publication result surfaces.
 
 This repo produces **two site templates**, mirroring the upstream
 [myst-theme](https://github.com/jupyter-book/myst-theme) pair:
@@ -19,6 +19,37 @@ This repo produces **two site templates**, mirroring the upstream
   article with supporting notebooks.
 
 Both layer the same ASTRA overlay, [`packages/astra`](./packages/astra).
+
+## Scope
+
+This repository owns publication rendering: article/book layout, prose
+typography, citations, inline ASTRA references, and author-placed result
+surfaces. It deliberately does **not** own a project inventory, graph explorer,
+whole-project payload, JupyterLab integration, or IDE integration. Those
+interactive project surfaces belong to `astra-viewer` and its host adapters.
+
+Where a paper and an interactive viewer need the same visual language, the
+theme consumes only the host-neutral brand-token export. It never imports the
+inventory application, host-aware Jupyter/VS Code mapping, or Jupyter-specific
+code. Narrow shared record/result components can be adopted separately once
+they have a versioned, publication-safe entry point.
+
+The release-time dependency boundary is deliberately explicit:
+
+```json
+{
+  "@lightcone-research/astra-viewer-tokens": "^0.1.0"
+}
+```
+
+Once the token package is published, the themes will load exactly
+`@lightcone-research/astra-viewer-tokens/brand.css`, opt the publication wrapper
+into `.astra-brand`, and synchronize `data-astra-color-scheme` with MyST's theme
+switcher. They do not load the portable host mapping (`theme.css`) or any
+inventory/application entry point. This checkout retains the same canonical
+variables locally until then, so it remains buildable from a clean install. The
+release change is a normal semver dependency and one CSS import—not a `file:`
+path, git submodule, or sibling-checkout requirement.
 
 ```yaml
 site:

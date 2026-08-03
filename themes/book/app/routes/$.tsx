@@ -24,6 +24,7 @@ import {
   UiStateProvider,
   useBaseurl,
   useSiteManifest,
+  useThemeSwitcher,
   useThemeTop,
   ProjectProvider,
   BannerStateProvider,
@@ -167,6 +168,7 @@ export default function Page() {
   const { container } = useOutlineHeight();
   const data = useLoaderData() as { page: PageLoader; project: ManifestProject };
   const baseurl = useBaseurl();
+  const { theme } = useThemeSwitcher();
   const { hide_toc, hide_search, hide_footer_links } = useTemplateOptions<TemplateOptions>(data.page.frontmatter);
   return (
     <ArticlePageAndNavigation
@@ -181,7 +183,9 @@ export default function Page() {
           <ThebeLoaderAndServer baseurl={baseurl}>
             <article
               ref={container}
-              className="article-grid subgrid-gap col-screen article content"
+              className="astra-brand article-grid subgrid-gap col-screen article content"
+              data-astra-color-scheme={theme ?? undefined}
+              suppressHydrationWarning
             >
               <ArticlePage article={data.page} hide_all_footer_links={hide_footer_links} />
             </article>

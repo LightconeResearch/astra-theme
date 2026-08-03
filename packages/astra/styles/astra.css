@@ -75,7 +75,7 @@
 }
 
 /* -----------------------------------------------------------------------------
-   1b. Global page theme — applies the Lightcone palette + brand typefaces to
+   1a. Global page theme — applies the Lightcone palette + brand typefaces to
    the host book-theme app's DOM (this theme extends book-theme; these are
    ordinary theme rules, not a hack — the ASTRA block/inline elements are
    rendered by our React renderers and styled by the component rules further
@@ -1309,6 +1309,7 @@ html.dark {
   --astra-c-insight: #C97F66;  /* Wax Red        */
   --astra-c-analysis: #6FA0AE; /* Slate Blue     */
   --astra-c-output: #93A1BC;   /* Blue Ink       */
+  --astra-c-input: #93A1BC;    /* Blue Ink       */
   --astra-c-value: #6FA0AE;
 
   --astra-shadow: 0 6px 18px rgba(0, 0, 0, .45);
