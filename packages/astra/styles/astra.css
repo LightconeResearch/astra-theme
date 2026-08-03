@@ -1,16 +1,14 @@
 /* =============================================================================
    ASTRA — the Lightcone Research design system
-   Editorial, narrative-first, parchment presentation layer for the
-   @astra-spec/mystra plugin. All appearance lives here; the AST stays neutral.
-
-   Palette + typography follow the Lightcone Research brand guidelines:
-   Antique Gold / Blue Ink / Charcoal / Slate Blue primaries,
-   Vert de Gris / Wax Red / Mushroom Cap secondaries, parchment neutrals;
-   Quattrocento headings, Alegreya subheadings, Newsreader body.
+   Editorial, narrative-first presentation layer for the @astra-spec/mystra
+   plugin. All appearance lives here; the AST stays neutral. The long-form
+   paper keeps its publication typography while ASTRA-specific chrome follows
+   the compact technical language shared with astra-viewer.
 
    Conventions
    -----------
-   - Every token is a CSS custom property on :root, prefixed --astra-.
+   - Every token is prefixed --astra-. :root/html provide a temporary fallback
+     for legacy site chrome; .astra-brand can select light/dark explicitly.
    - Every class below is part of the theme's internal contract: the renderers in
      packages/astra/src/ emit these classes, this file styles them.
    - Restrained, print-like. Hairline rules over heavy borders, no loud colour.
@@ -18,60 +16,87 @@
 
 /* Fonts (Quattrocento / Alegreya / Newsreader / JetBrains Mono) are linked by
    the theme in app/root.tsx (<link rel="stylesheet">), not @import-ed here, so
-   this file can be bundled at any position by the Remix/esbuild CSS pipeline. */
+   this file can be bundled at any position by the Remix/esbuild CSS pipeline.
+   Technical chrome uses --astra-ui, whose system fallbacks require no new font
+   download. */
 
 /* -----------------------------------------------------------------------------
    1. Tokens
    -------------------------------------------------------------------------- */
-:root {
-  /* surfaces — the brand's Background Neutrals ramp */
-  --astra-paper: #FFFFFF;     /* page background — white; parchment is reserved
-                                 for raised chrome (header band, cards, rail) */
-  --astra-surface: #F1EFE9;   /* cards, rail, header band — Darker Parchment */
-  --astra-surface-2: #E9E6DD; /* recessed insets: figure frames, diagram wells
-                                 (Darker Parchment, deepened one step) */
+/* `@lightcone-research/astra-viewer-tokens` is not published yet. These values
+   intentionally mirror its host-neutral brand contract so this released MyST
+   template remains self-contained. Once that package is published this block
+   becomes one `brand.css` import; never replace it with a sibling `file:` dep. */
+:root,
+.astra-brand[data-astra-color-scheme="light"] {
+  /* Viewer-aligned canvas -> paper panel -> raised surface hierarchy. */
+  --astra-canvas: #E9E7E2;
+  --astra-panel: #FFFDFA;
+  --astra-raised: #FFFFFF;
+  --astra-hover: #FAF8F4;
+  --astra-artifact-paper: #FFFFFF;
+  --astra-artifact-ink: #1E1C19;
 
-  /* ink */
-  --astra-ink: #221F20;       /* Charcoal */
-  --astra-ink-soft: #4E5A70;  /* Blue Ink — secondary text, per the type-style page */
-  --astra-muted: #8B7D70;     /* Mushroom Cap */
-  --astra-faint: #BCB2A6;     /* Mushroom Cap, lightened */
+  --astra-paper: var(--astra-panel);
+  --astra-surface: var(--astra-raised);
+  --astra-surface-2: var(--astra-hover);
 
-  /* rules — cool parchment hairlines */
-  --astra-rule: #E4E1D7;
-  --astra-rule-strong: #D2CCBF;
+  --astra-ink: #1E1C19;
+  --astra-ink-soft: #5C584F;
+  --astra-muted: #8A857A;
+  --astra-faint: #AAA59B;
 
-  /* brand accent — Antique Gold (rail mark + inline links + headings) */
-  --astra-accent: #A67C3C;
-  --astra-link: #A67C3C;
-  --astra-accent-soft: rgba(166, 124, 60, 0.12); /* the warm hover hotspot */
+  --astra-rule-subtle: #F0EDE6;
+  --astra-rule: #EAE7E0;
+  --astra-rule-strong: #D5D2CB;
 
-  /* kickers / uppercase labels — Slate Blue, as in the brand's type-style page */
-  --astra-kicker: #3F7280;
+  /* Generic links/actions are blue; methodological decisions remain amber. */
+  --astra-action: #3563A8;
+  --astra-focus: #3563A8;
+  --astra-accent: var(--astra-action);
+  --astra-link: var(--astra-action);
+  --astra-accent-soft: rgba(53, 99, 168, 0.10);
+  --astra-kicker: #3B7F8C;
 
-  /* per-kind accents — mapped onto the brand palette */
-  --astra-c-decision: #A67C3C; /* ◇ Antique Gold  */
-  --astra-c-finding:  #3B7A73; /* ● Vert de Gris  */
-  --astra-c-insight:  #A45A43; /* ◈ Wax Red       */
-  --astra-c-analysis: #3F7280; /* ◐ Slate Blue    */
-  --astra-c-output:   #4E5A70; /* ◆ Blue Ink      */
-  --astra-c-input:    #4E5A70; /* ▤ Blue Ink (inputs share the data family) */
-  --astra-c-value:    #3F7280; /* Slate Blue      */
+  /* shared ASTRA semantic palette from the provenance overview */
+  --astra-c-input: #3563A8;
+  --astra-c-analysis: #3B7F8C;
+  --astra-c-output: #2E7D5B;
+  --astra-c-decision: #B07818;
+  --astra-c-decision-ink: #7A5410;
+  --astra-c-finding: #7A4FAE;
+  --astra-c-insight: #8C72A8;
+  --astra-c-insight-ink: #6F4A91;
+  --astra-c-result: #26241F;
+  --astra-c-value: #3B7F8C;
+  --astra-c-danger: #A34E4E;
+  --astra-c-constraint: var(--astra-c-danger);
+
+  --astra-c-input-soft: rgba(53, 99, 168, 0.10);
+  --astra-c-analysis-soft: rgba(59, 127, 140, 0.10);
+  --astra-c-output-soft: rgba(46, 125, 91, 0.10);
+  --astra-c-decision-soft: #FBF6EB;
+  --astra-c-finding-soft: rgba(122, 79, 174, 0.10);
+  --astra-c-insight-soft: rgba(140, 114, 168, 0.11);
+  --astra-c-value-soft: rgba(59, 127, 140, 0.10);
+  --astra-c-danger-soft: #FFF7F5;
 
   /* layout + type — the three brand typefaces by role */
   --astra-measure: 40rem;      /* the 640px editorial column */
   --astra-heading: "Quattrocento", Georgia, "Times New Roman", serif;
   --astra-serif: "Newsreader", Georgia, "Times New Roman", serif; /* body */
   --astra-label: "Alegreya", Georgia, serif; /* subheadings, kickers, UI labels */
+  --astra-ui: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --astra-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
-  /* card — sharp editorial corners, soft warm shadow (exact mock values) */
+  /* compact technical chrome; paper measure remains unchanged */
   --astra-card-w: 27.5rem;     /* 440px overlay width */
-  --astra-radius: 3px;
-  --astra-shadow: 0 6px 18px rgba(38, 28, 15, 0.10);
+  --astra-radius: 5px;
+  --astra-radius-panel: 10px;
+  --astra-shadow: 0 4px 14px rgba(40, 36, 28, 0.10);
 
   /* the kind accent in scope — overridden by .astra-card--<kind> etc. */
-  --astra-kind: var(--astra-accent);
+  --astra-kind: var(--astra-action);
 }
 
 /* -----------------------------------------------------------------------------
@@ -136,15 +161,18 @@ article :is(h1, h2, h3, h4, h5, h6),
 :root:root .myst-fm-block-title {
   color: var(--astra-ink);
 }
-/* Title + section headings carry Antique Gold, per the brand type-style page.
-   (The doc title is an `h1.myst-fm-block-title`; the class branch keeps this
-   rule's specificity above the `.myst-fm-block-title` ink rule just before.) */
+/* Publication headings remain editorial ink; generic links carry action blue. */
 :root:root article :is(h1, h2),
 :root:root h1.myst-fm-block-title {
-  color: var(--astra-accent);
+  color: var(--astra-ink);
 }
-:root:root article :is(p, li, blockquote) a { color: var(--astra-accent); }
+:root:root article :is(p, li, blockquote) a { color: var(--astra-link); }
 :root:root article hr { border-color: var(--astra-rule); }
+
+.astra-brand :where(button, a, input, select, textarea):focus-visible {
+  outline: 2px solid var(--astra-focus);
+  outline-offset: 2px;
+}
 
 /* -----------------------------------------------------------------------------
    2. Base / page chrome (used by standalone ASTRA pages / the .astra-doc wrapper)
@@ -190,19 +218,19 @@ article :is(h1, h2, h3, h4, h5, h6),
   line-height: 1.2;
   letter-spacing: -0.01em;
 }
-/* title + section headings carry Antique Gold, per the brand type-style page */
+/* title + section headings remain paper ink */
 .astra-doc h1,
 .astra-doc h2 {
-  color: var(--astra-accent);
+  color: var(--astra-ink);
 }
 
 .astra-doc a {
-  color: var(--astra-accent);
+  color: var(--astra-link);
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
 }
 
-/* left rail — a slim parchment strip with a gold wordmark near the top */
+/* left rail — a slim paper strip with the generic action mark near the top */
 .astra-rail {
   position: fixed;
   top: 0;
@@ -223,13 +251,13 @@ article :is(h1, h2, h3, h4, h5, h6),
   font-weight: 700;
   font-size: 18px;
   line-height: 1;
-  color: var(--astra-accent);
+  color: var(--astra-action);
   white-space: nowrap;
 }
 
 /* breadcrumb */
 .astra-breadcrumb {
-  font-family: var(--astra-label);
+  font-family: var(--astra-ui);
   font-size: 11px;
   letter-spacing: 0.04em;
   color: var(--astra-muted);
@@ -246,7 +274,7 @@ article :is(h1, h2, h3, h4, h5, h6),
 }
 
 .astra-breadcrumb a:hover {
-  color: var(--astra-accent);
+  color: var(--astra-action);
 }
 
 .astra-breadcrumb > * + *::before {
@@ -255,19 +283,19 @@ article :is(h1, h2, h3, h4, h5, h6),
   color: var(--astra-faint);
 }
 
-/* document title + meta — Quattrocento regular in Antique Gold */
+/* document title + meta — editorial title plus compact technical metadata */
 .astra-doc-title {
   font-family: var(--astra-heading);
   font-weight: 400;
   font-size: clamp(1.9rem, 1.4rem + 2vw, 2.8rem);
   line-height: 1.12;
   letter-spacing: -0.015em;
-  color: var(--astra-accent);
+  color: var(--astra-ink);
   margin: 0 0 0.5rem;
 }
 
 .astra-doc-meta {
-  font-family: var(--astra-label);
+  font-family: var(--astra-ui);
   font-size: 11px;
   letter-spacing: 0.02em;
   color: var(--astra-ink-soft);
@@ -280,12 +308,11 @@ article :is(h1, h2, h3, h4, h5, h6),
 /* the leading status glyph in the meta line (◐ active) carries the analysis hue */
 .astra-doc-meta__glyph { color: var(--astra-c-analysis); }
 
-/* section labels (the uppercase kicker used across cards + page) —
-   Alegreya caps in Slate Blue, as in the brand's "POSITION PAPER" kicker */
+/* section labels use the same compact technical eyebrow as the graph. */
 .astra-section-label {
-  font-family: var(--astra-label);
-  font-size: 11px;
-  font-weight: 600;
+  font-family: var(--astra-ui);
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--astra-kicker);
@@ -307,15 +334,16 @@ hr.astra-rule {
    -------------------------------------------------------------------------- */
 .astra-ref {
   --astra-kind: var(--astra-ink-soft);
+  --astra-kind-ink: var(--astra-kind);
   font-family: inherit;
-  font-weight: 600;                 /* a semibold run inside the Newsreader prose */
-  color: var(--astra-link);         /* uniform warm-gold link */
+  font-weight: 600;
+  color: var(--astra-kind-ink);
   text-decoration: underline;
   text-decoration-thickness: 1px;
-  text-decoration-color: color-mix(in srgb, var(--astra-link) 55%, transparent);
+  text-decoration-color: color-mix(in srgb, var(--astra-kind) 48%, transparent);
   text-underline-offset: 2px;
   padding: 0.05em 0.1em;
-  border-radius: 3px;
+  border-radius: var(--astra-radius);
   cursor: pointer;
   transition: background-color 120ms ease;
 }
@@ -336,8 +364,8 @@ hr.astra-rule {
 
 .astra-ref:hover,
 .astra-ref[data-open="true"] {
-  background: var(--astra-accent-soft);
-  text-decoration-color: var(--astra-link);
+  background: color-mix(in srgb, var(--astra-kind) 10%, transparent);
+  text-decoration-color: var(--astra-kind);
 }
 
 /* the auto-appended "(Chen et al., 2024)" after inline prior-insight tokens */
@@ -346,14 +374,14 @@ hr.astra-rule {
 }
 
 /* per-kind glyph + colour */
-.astra-ref--decision      { --astra-kind: var(--astra-c-decision); --astra-glyph: "\25C7"; } /* ◇ */
-.astra-ref--prior_insight { --astra-kind: var(--astra-c-insight);  --astra-glyph: "\25C8"; } /* ◈ */
+.astra-ref--decision      { --astra-kind: var(--astra-c-decision); --astra-kind-ink: var(--astra-c-decision-ink); --astra-glyph: "\25C7"; } /* ◇ */
+.astra-ref--prior_insight { --astra-kind: var(--astra-c-insight);  --astra-kind-ink: var(--astra-c-insight-ink); --astra-glyph: "\25C8"; } /* ◈ */
 .astra-ref--finding       { --astra-kind: var(--astra-c-finding);  --astra-glyph: "\25CF"; } /* ● */
 .astra-ref--analysis      { --astra-kind: var(--astra-c-analysis); --astra-glyph: "\25D0"; } /* ◐ */
 .astra-ref--output        { --astra-kind: var(--astra-c-output);   --astra-glyph: "\25C6"; } /* ◆ */
 .astra-ref--input         { --astra-kind: var(--astra-c-input);    --astra-glyph: "\25A4"; } /* ▤ */
 /* an option shares its decision's open-diamond family */
-.astra-ref--option        { --astra-kind: var(--astra-c-decision); --astra-glyph: "\25C7"; } /* ◇ */
+.astra-ref--option        { --astra-kind: var(--astra-c-decision); --astra-kind-ink: var(--astra-c-decision-ink); --astra-glyph: "\25C7"; } /* ◇ */
 
 /* value token — self-describing number, no glyph, tabular figures.
    Reads as inline prose (inherits ink), with a quiet teal dotted underline. */
@@ -393,19 +421,20 @@ hr.astra-rule {
 
 .astra-card {
   --astra-kind: var(--astra-accent);
+  --astra-kind-ink: var(--astra-kind);
+  --astra-kind-soft: var(--astra-accent-soft);
   width: var(--astra-card-w);
   max-width: calc(100vw - 2rem);
   box-sizing: border-box;
   background: var(--astra-surface);
-  /* translucent kind-coloured hairline — the signature card edge in the mocks */
-  border: 1px solid color-mix(in srgb, var(--astra-kind) 55%, transparent);
-  border-radius: var(--astra-radius);
+  border: 1px solid var(--astra-rule-strong);
+  border-radius: var(--astra-radius-panel);
   box-shadow: var(--astra-shadow);
-  padding: 19px 20px;
+  padding: 14px 16px;
   font-family: var(--astra-serif);
   color: var(--astra-ink);
-  font-size: 15px;
-  line-height: 1.5;
+  font-size: 14px;
+  line-height: 1.52;
   /* Height cap set by PreviewCard's `size` middleware (viewport-available
      space); the inner scroll layer absorbs the overflow. Unset for placed
      (non-floating) cards, where the var never gets defined. */
@@ -426,16 +455,22 @@ hr.astra-rule {
 }
 
 .astra-card__kind {
-  font-family: var(--astra-label);
-  font-size: 10px;
-  font-weight: 500;
+  align-self: flex-start;
+  width: fit-content;
+  font-family: var(--astra-ui);
+  font-size: 9px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--astra-kind);
+  color: var(--astra-kind-ink);
+  background: var(--astra-kind-soft);
+  border: 1px solid color-mix(in srgb, var(--astra-kind) 28%, var(--astra-rule));
+  border-radius: 3px;
+  padding: 2px 6px;
   display: flex;
   align-items: center;
   gap: 0.55em;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.45rem;
 }
 
 .astra-card__kind::before {
@@ -445,10 +480,10 @@ hr.astra-rule {
 }
 
 .astra-card__title {
-  font-family: var(--astra-label); /* Alegreya — the brand's subheading face */
-  font-weight: 600;
-  font-size: 20px;
-  line-height: 1.25;
+  font-family: var(--astra-ui);
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1.3;
   letter-spacing: -0.01em;
   color: var(--astra-ink);
   margin: 0 0 0.4rem;
@@ -456,12 +491,12 @@ hr.astra-rule {
 
 .astra-card__desc {
   color: var(--astra-ink-soft);
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.65rem;
 }
 
 /* small muted unit appended to a value/title (e.g. "Mpc", "km/s") */
 .astra-card__unit {
-  font-family: var(--astra-label);
+  font-family: var(--astra-ui);
   font-size: 0.7em;
   color: var(--astra-muted);
   margin-left: 0.25em;
@@ -476,8 +511,8 @@ hr.astra-rule {
   align-items: baseline;
   gap: 0.5em;
   margin: -0.35rem 0 0.6rem;
-  font-family: var(--astra-label);
-  font-size: 12px;
+  font-family: var(--astra-ui);
+  font-size: 11px;
   color: var(--astra-muted);
 }
 .astra-value__col,
@@ -496,9 +531,9 @@ hr.astra-rule {
 }
 
 .astra-card__section {
-  font-family: var(--astra-label);
-  font-size: 10px;
-  font-weight: 500;
+  font-family: var(--astra-ui);
+  font-size: 9px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--astra-muted);
@@ -519,13 +554,14 @@ hr.astra-rule {
 }
 .astra-evidence__item {
   background: var(--astra-surface-2);
+  border: 1px solid var(--astra-rule);
   border-radius: var(--astra-radius);
   padding: 8px 12px;
 }
 .astra-evidence__title {
-  font-family: var(--astra-label);
-  font-weight: 500;
-  font-size: 14px;
+  font-family: var(--astra-ui);
+  font-weight: 600;
+  font-size: 13px;
   color: var(--astra-ink);
   display: flex;
   align-items: baseline;
@@ -536,25 +572,24 @@ hr.astra-rule {
 .astra-evidence__glyph--insight { color: var(--astra-c-insight); font-size: 0.85em; }
 .astra-evidence__glyph--output  { color: var(--astra-c-output);  font-size: 0.85em; }
 .astra-evidence__tag {
-  font-family: var(--astra-label);
-  font-size: 11px;
+  font-family: var(--astra-ui);
+  font-size: 10px;
   font-weight: 400;
   color: var(--astra-muted);
 }
-/* hoverable evidence names share the inline-ref affordance language: warm-
-   gold underline, accent-soft wash on hover (the row opens a nested card) */
+/* Hoverable evidence names keep the insight colour wherever they appear. */
 .astra-ref-trigger .astra-evidence__name {
-  color: var(--astra-link);
+  color: var(--astra-c-insight-ink);
   text-decoration: underline;
   text-decoration-thickness: 1px;
-  text-decoration-color: color-mix(in srgb, var(--astra-link) 45%, transparent);
+  text-decoration-color: color-mix(in srgb, var(--astra-c-insight-ink) 45%, transparent);
   text-underline-offset: 2px;
   cursor: pointer;
 }
 .astra-ref-trigger:hover .astra-evidence__name,
 .astra-ref-trigger:focus-visible .astra-evidence__name {
-  background: var(--astra-accent-soft);
-  text-decoration-color: var(--astra-link);
+  background: color-mix(in srgb, var(--astra-c-insight) 10%, transparent);
+  text-decoration-color: var(--astra-c-insight-ink);
 }
 .astra-evidence__note {
   font-family: var(--astra-serif);
@@ -581,20 +616,20 @@ hr.astra-rule {
   border: 1px solid var(--astra-rule);
 }
 .astra-evidence__more {
-  font-family: var(--astra-label);
+  font-family: var(--astra-ui);
   font-size: 11px;
   color: var(--astra-muted);
 }
 
 /* kind modifiers set the accent the kind label + glyph + diagrams use */
-.astra-card--decision      { --astra-kind: var(--astra-c-decision); --astra-glyph: "\25C7"; }
-.astra-card--prior_insight { --astra-kind: var(--astra-c-insight);  --astra-glyph: "\25C8"; }
-.astra-card--finding       { --astra-kind: var(--astra-c-finding);  --astra-glyph: "\25CF"; }
+.astra-card--decision      { --astra-kind: var(--astra-c-decision); --astra-kind-ink: var(--astra-c-decision-ink); --astra-kind-soft: var(--astra-c-decision-soft); --astra-glyph: "\25C7"; }
+.astra-card--prior_insight { --astra-kind: var(--astra-c-insight);  --astra-kind-ink: var(--astra-c-insight-ink); --astra-kind-soft: var(--astra-c-insight-soft); --astra-glyph: "\25C8"; }
+.astra-card--finding       { --astra-kind: var(--astra-c-finding);  --astra-kind-soft: var(--astra-c-finding-soft); --astra-glyph: "\25CF"; }
 .astra-card--analysis,
-.astra-card--subanalysis   { --astra-kind: var(--astra-c-analysis); --astra-glyph: "\25D0"; }
-.astra-card--output        { --astra-kind: var(--astra-c-output);   --astra-glyph: "\25C6"; }
-.astra-card--input         { --astra-kind: var(--astra-c-input);    --astra-glyph: "\25A4"; }
-.astra-card--value         { --astra-kind: var(--astra-c-value);    --astra-glyph: ""; }
+.astra-card--subanalysis   { --astra-kind: var(--astra-c-analysis); --astra-kind-soft: var(--astra-c-analysis-soft); --astra-glyph: "\25D0"; }
+.astra-card--output        { --astra-kind: var(--astra-c-output);   --astra-kind-soft: var(--astra-c-output-soft); --astra-glyph: "\25C6"; }
+.astra-card--input         { --astra-kind: var(--astra-c-input);    --astra-kind-soft: var(--astra-c-input-soft); --astra-glyph: "\25A4"; }
+.astra-card--value         { --astra-kind: var(--astra-c-value);    --astra-kind-soft: var(--astra-c-value-soft); --astra-glyph: ""; }
 
 /* -----------------------------------------------------------------------------
    5. Card diagrams — data flow: a row of mono boxes joined by arrows
@@ -649,12 +684,13 @@ details.astra-decision + details.myst-dropdown {
 
 .astra-decision {
   --astra-kind: var(--astra-c-decision);
+  --astra-kind-ink: var(--astra-c-decision-ink);
   --astra-glyph: "\25C7";
   background: var(--astra-surface);
-  border: 1px solid var(--astra-rule);
+  border: 1px solid var(--astra-rule-strong);
   border-left: 3px solid var(--astra-kind);
-  border-radius: var(--astra-radius);
-  padding: 1.1rem 1.25rem;
+  border-radius: var(--astra-radius-panel);
+  padding: 0.9rem 1rem;
   margin: 1.5rem 0;
   max-width: var(--astra-measure);
 }
@@ -663,12 +699,12 @@ details.astra-decision + details.myst-dropdown {
 .astra-decision__head {
   list-style: none;
   cursor: pointer;
-  font-family: var(--astra-label);
-  font-size: 11px;
-  font-weight: 600;
+  font-family: var(--astra-ui);
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.09em;
-  color: var(--astra-kind);
+  color: var(--astra-kind-ink);
   display: flex;
   align-items: center;
   gap: 0.4em;
@@ -677,9 +713,9 @@ details.astra-decision + details.myst-dropdown {
 .astra-decision > summary::before { content: var(--astra-glyph); }
 
 .astra-decision__title {
-  font-family: var(--astra-label);
-  font-weight: 600;
-  font-size: 19px;
+  font-family: var(--astra-ui);
+  font-weight: 700;
+  font-size: 16px;
   color: var(--astra-ink);
   margin: 0.35rem 0 0.6rem;
 }
@@ -688,11 +724,11 @@ details.astra-decision + details.myst-dropdown {
 .astra-decision__toggle {
   display: inline-flex;
   border: 1px solid var(--astra-rule-strong);
-  border-radius: 7px;
+  border-radius: var(--astra-radius);
   overflow: hidden;
   margin: 0.4rem 0 0.9rem;
-  font-family: var(--astra-label);
-  font-size: 12px;
+  font-family: var(--astra-ui);
+  font-size: 11px;
 }
 .astra-decision__toggle button {
   appearance: none;
@@ -707,21 +743,22 @@ details.astra-decision + details.myst-dropdown {
 .astra-decision__toggle button + button { border-left: 1px solid var(--astra-rule); }
 .astra-decision__toggle button[aria-selected="true"],
 .astra-decision__toggle button.is-active {
-  background: color-mix(in srgb, var(--astra-kind) 12%, var(--astra-surface));
-  color: var(--astra-kind);
+  background: var(--astra-c-decision-soft);
+  color: var(--astra-kind-ink);
   font-weight: 600;
 }
 
 .astra-decision__rationale {
   color: var(--astra-ink-soft);
-  font-size: 16px;
+  font-size: 15px;
+  line-height: 1.55;
   margin: 0.4rem 0;
 }
 
 /* muted footer meta line (default selection · option count) */
 .astra-decision__meta {
-  font-family: var(--astra-label);
-  font-size: 11px;
+  font-family: var(--astra-mono);
+  font-size: 10px;
   color: var(--astra-muted);
   letter-spacing: 0.08em;
   margin-top: 0.7rem;
@@ -742,7 +779,7 @@ details.astra-decision + details.myst-dropdown {
 .astra-option {
   position: relative;
   padding: 0.5rem 0.5rem 0.5rem 1.4rem;
-  border-radius: 7px;
+  border-radius: var(--astra-radius);
   border: 1px solid var(--astra-rule);
   background: var(--astra-surface-2);
 }
@@ -761,9 +798,9 @@ details.astra-decision + details.myst-dropdown {
 }
 
 .astra-option__label {
-  font-family: var(--astra-label);
-  font-weight: 500;
-  font-size: 16px;
+  font-family: var(--astra-ui);
+  font-weight: 600;
+  font-size: 13px;
   color: var(--astra-ink);
 }
 
@@ -781,8 +818,8 @@ details.astra-decision + details.myst-dropdown {
 }
 
 .astra-option__backed {
-  font-family: var(--astra-label);
-  font-size: 11px;
+  font-family: var(--astra-ui);
+  font-size: 10px;
   color: var(--astra-muted);
   margin-top: 0.3rem;
 }
@@ -822,6 +859,10 @@ details.astra-decision + details.myst-dropdown {
   --astra-glyph: "\25C6";
   margin: 1.75rem 0;
   max-width: var(--astra-measure);
+  padding: 0.75rem;
+  background: var(--astra-surface);
+  border: 1px solid var(--astra-rule-strong);
+  border-radius: var(--astra-radius-panel);
 }
 
 .astra-output figure,
@@ -829,10 +870,29 @@ details.astra-decision + details.myst-dropdown {
   max-width: 100%;
 }
 
+/* Results keep a paper-and-ink inspection canvas in both colour schemes. This
+   is especially important for transparent scientific figures and tables when
+   the surrounding publication is dark. */
+.astra-output--figure img,
+.astra-output__thumb,
+.astra-evidence__thumb img {
+  background: var(--astra-artifact-paper);
+}
+
+.astra-output--table table {
+  background: var(--astra-artifact-paper);
+  color: var(--astra-artifact-ink);
+}
+
+.astra-output--table .astra-outputs :is(th, td, code) {
+  color: var(--astra-artifact-ink);
+  border-color: color-mix(in srgb, var(--astra-artifact-ink) 18%, transparent);
+}
+
 .astra-output figcaption,
 .astra-output__caption {
-  font-family: var(--astra-label);
-  font-size: 13px;
+  font-family: var(--astra-ui);
+  font-size: 12px;
   color: var(--astra-muted);
   margin-top: 0.5rem;
 }
@@ -845,7 +905,7 @@ details.astra-decision + details.myst-dropdown {
 .astra-output__provenance {
   margin-top: 0.75rem;
   border: 1px solid var(--astra-rule);
-  border-radius: 8px;
+  border-radius: var(--astra-radius);
   background: var(--astra-surface-2);
 }
 
@@ -853,9 +913,9 @@ details.astra-decision + details.myst-dropdown {
   list-style: none;
   cursor: pointer;
   padding: 0.5rem 0.75rem;
-  font-family: var(--astra-label);
-  font-size: 11px;
-  font-weight: 600;
+  font-family: var(--astra-ui);
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.09em;
   color: var(--astra-muted);
@@ -882,7 +942,7 @@ details.astra-decision + details.myst-dropdown {
   align-items: baseline;
   gap: 0.4em;
   font-family: var(--astra-mono);
-  font-size: 12px;
+  font-size: 11px;
   color: var(--astra-muted);
 }
 
@@ -896,13 +956,13 @@ details.astra-decision + details.myst-dropdown {
   gap: 0.35rem;
 }
 .astra-output__prov-decisions .astra-ref {
-  font-family: var(--astra-serif);
-  font-size: 14px;
+  font-family: var(--astra-ui);
+  font-size: 12px;
 }
 
 /* "via <scope>" marker on decisions inherited through another scope */
 .astra-prov-via {
-  font-family: var(--astra-serif);
+  font-family: var(--astra-ui);
   font-style: italic;
   font-size: 11px;
   color: var(--astra-muted);
@@ -910,8 +970,8 @@ details.astra-decision + details.myst-dropdown {
 
 /* the option selected under the active universe */
 .astra-prov-selection {
-  font-family: var(--astra-serif);
-  font-size: 13px;
+  font-family: var(--astra-ui);
+  font-size: 12px;
   color: var(--astra-ink-soft);
 }
 .astra-prov-selection::before {
@@ -922,7 +982,7 @@ details.astra-decision + details.myst-dropdown {
 /* a thumbnail preview of the produced artifact */
 .astra-output__thumb {
   max-width: 100%;
-  border-radius: 6px;
+  border-radius: var(--astra-radius);
   border: 1px solid var(--astra-rule);
 }
 
@@ -932,13 +992,13 @@ details.astra-decision + details.myst-dropdown {
   align-items: baseline;
   gap: 0.4em;
   flex-wrap: wrap;
-  font-family: var(--astra-label);
+  font-family: var(--astra-ui);
 }
 .astra-metric__value {
   font-size: 2.6rem;
   font-weight: 600;
   line-height: 1;
-  color: var(--astra-ink);
+  color: var(--astra-kind);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
 }
@@ -954,8 +1014,8 @@ details.astra-decision + details.myst-dropdown {
 .astra-metric__uncertainty::before { content: "\00B1 "; } /* ± */
 .astra-metric__label {
   flex-basis: 100%;
-  font-family: var(--astra-label);
-  font-size: 12px;
+  font-family: var(--astra-ui);
+  font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--astra-muted);
@@ -969,10 +1029,10 @@ details.astra-decision + details.myst-dropdown {
   --astra-kind: var(--astra-c-finding);
   --astra-glyph: "\25CF";
   background: var(--astra-surface);
-  border: 1px solid var(--astra-rule);
+  border: 1px solid var(--astra-rule-strong);
   border-left: 3px solid var(--astra-kind);
-  border-radius: var(--astra-radius);
-  padding: 1.1rem 1.25rem;
+  border-radius: var(--astra-radius-panel);
+  padding: 0.9rem 1rem;
   margin: 1.5rem 0;
   max-width: var(--astra-measure);
 }
@@ -982,9 +1042,9 @@ details.astra-decision + details.myst-dropdown {
   color: var(--astra-kind);
 }
 .astra-finding__kind {
-  font-family: var(--astra-label);
-  font-size: 11px;
-  font-weight: 600;
+  font-family: var(--astra-ui);
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.09em;
   display: flex;
@@ -994,9 +1054,9 @@ details.astra-decision + details.myst-dropdown {
 .astra-finding__kind::before { content: var(--astra-glyph); }
 
 .astra-finding__claim {
-  font-family: var(--astra-label);
-  font-weight: 500;
-  font-size: 19px;
+  font-family: var(--astra-ui);
+  font-weight: 600;
+  font-size: 16px;
   line-height: 1.35;
   color: var(--astra-ink);
   margin: 0.4rem 0 0.6rem;
@@ -1012,8 +1072,8 @@ details.astra-decision + details.myst-dropdown {
   display: inline-flex;
   align-items: center;
   gap: 0.3em;
-  font-family: var(--astra-label);
-  font-size: 11px;
+  font-family: var(--astra-mono);
+  font-size: 10px;
   letter-spacing: 0.04em;
   color: var(--astra-kind);
   background: color-mix(in srgb, var(--astra-kind) 10%, var(--astra-surface));
@@ -1028,24 +1088,25 @@ details.astra-decision + details.myst-dropdown {
    -------------------------------------------------------------------------- */
 .astra-prior-insight {
   --astra-kind: var(--astra-c-insight);
+  --astra-kind-ink: var(--astra-c-insight-ink);
   --astra-glyph: "\25C8";
-  background: var(--astra-surface-2);
-  border: 1px solid var(--astra-rule);
+  background: var(--astra-surface);
+  border: 1px solid var(--astra-rule-strong);
   border-left: 3px solid var(--astra-kind);
-  border-radius: var(--astra-radius);
-  padding: 1.1rem 1.25rem;
+  border-radius: var(--astra-radius-panel);
+  padding: 0.9rem 1rem;
   margin: 1.5rem 0;
   max-width: var(--astra-measure);
 }
 
 .astra-prior-insight > .admonition-title,
 .astra-prior-insight__kind {
-  font-family: var(--astra-label);
-  font-size: 11px;
-  font-weight: 600;
+  font-family: var(--astra-ui);
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.09em;
-  color: var(--astra-kind);
+  color: var(--astra-kind-ink);
   display: flex;
   align-items: center;
   gap: 0.4em;
@@ -1053,9 +1114,9 @@ details.astra-decision + details.myst-dropdown {
 .astra-prior-insight__kind::before { content: var(--astra-glyph); }
 
 .astra-insight__claim {
-  font-family: var(--astra-label);
-  font-weight: 500;
-  font-size: 18px;
+  font-family: var(--astra-ui);
+  font-weight: 600;
+  font-size: 15px;
   line-height: 1.4;
   color: var(--astra-ink);
   margin: 0.4rem 0 0.6rem;
@@ -1063,8 +1124,8 @@ details.astra-decision + details.myst-dropdown {
 
 /* citation chrome: DOI + provenance */
 .astra-cite {
-  font-family: var(--astra-label);
-  font-size: 12px;
+  font-family: var(--astra-ui);
+  font-size: 11px;
   color: var(--astra-muted);
   display: flex;
   flex-wrap: wrap;
@@ -1075,7 +1136,7 @@ details.astra-decision + details.myst-dropdown {
   border-top: 1px solid var(--astra-rule);
 }
 .astra-cite a {
-  color: var(--astra-kind);
+  color: var(--astra-kind-ink, var(--astra-kind));
   font-family: var(--astra-mono);
   font-size: 11px;
   text-decoration: none;
@@ -1084,9 +1145,9 @@ details.astra-decision + details.myst-dropdown {
 
 /* micro-label preceding the DOI in a citation ("SOURCE") */
 .astra-cite__label {
-  font-family: var(--astra-label);
-  font-size: 10px;
-  font-weight: 600;
+  font-family: var(--astra-ui);
+  font-size: 9px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--astra-muted);
@@ -1124,16 +1185,16 @@ details.astra-decision + details.myst-dropdown {
 .astra-outputs {
   width: 100%;
   border-collapse: collapse;
-  font-family: var(--astra-label);
-  font-size: 13px;
+  font-family: var(--astra-ui);
+  font-size: 12px;
   margin: 1.5rem 0;
 }
 
 .astra-inputs caption,
 .astra-outputs caption {
   text-align: left;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.09em;
   color: var(--astra-muted);
@@ -1143,8 +1204,8 @@ details.astra-decision + details.myst-dropdown {
 .astra-inputs th,
 .astra-outputs th {
   text-align: left;
-  font-weight: 600;
-  font-size: 11px;
+  font-weight: 700;
+  font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--astra-muted);
@@ -1198,7 +1259,7 @@ details.astra-decision + details.myst-dropdown {
 .astra-type-glyph--figure::before { content: "\25C6"; }
 .astra-type-glyph--table::before  { content: "\25A6"; } /* ▦ */
 .astra-type-glyph--metric::before { content: "\2248"; } /* ≈ */
-.astra-type-glyph--input::before  { content: "\25C7"; }
+.astra-type-glyph--input::before  { content: "\25A4"; } /* ▤ */
 
 /* -----------------------------------------------------------------------------
    11. Sub-analysis nav card (block)
@@ -1210,9 +1271,9 @@ details.astra-decision + details.myst-dropdown {
   text-decoration: none;
   color: inherit;
   background: var(--astra-surface);
-  border: 1px solid var(--astra-rule);
-  border-radius: var(--astra-radius);
-  padding: 1rem 1.15rem;
+  border: 1px solid var(--astra-rule-strong);
+  border-radius: var(--astra-radius-panel);
+  padding: 0.85rem 1rem;
   margin: 1rem 0;
   max-width: var(--astra-measure);
   transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
@@ -1224,9 +1285,9 @@ details.astra-decision + details.myst-dropdown {
 }
 
 .astra-subanalysis__kind {
-  font-family: var(--astra-label);
-  font-size: 11px;
-  font-weight: 600;
+  font-family: var(--astra-ui);
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.09em;
   color: var(--astra-kind);
@@ -1237,9 +1298,9 @@ details.astra-decision + details.myst-dropdown {
 .astra-subanalysis__kind::before { content: var(--astra-glyph); }
 
 .astra-subanalysis__name {
-  font-family: var(--astra-label);
-  font-weight: 600;
-  font-size: 18px;
+  font-family: var(--astra-ui);
+  font-weight: 700;
+  font-size: 16px;
   color: var(--astra-ink);
   margin: 0.3rem 0 0.3rem;
 }
@@ -1263,8 +1324,8 @@ details.astra-decision + details.myst-dropdown {
 }
 
 .astra-subanalysis__counts {
-  font-family: var(--astra-label);
-  font-size: 12px;
+  font-family: var(--astra-ui);
+  font-size: 11px;
   color: var(--astra-muted);
   display: flex;
   gap: 0.5em;
@@ -1276,43 +1337,67 @@ details.astra-decision + details.myst-dropdown {
 }
 
 /* -----------------------------------------------------------------------------
-   12. Dark mode — brand Charcoal (#221F20), as on the guidelines' dark pages:
-   parchment ink and Antique Gold accents on charcoal, kind hues lifted just
-   enough to hold contrast.
+   12. Dark mode — the same semantic grammar on a warm charcoal canvas, with
+   kind hues lifted just enough to hold contrast.
    Keyed on `html.dark`, NOT `prefers-color-scheme`: book-theme's dark mode is
    class-based (theme cookie, falling back to a pre-hydration script that maps
    the OS preference onto the class — `html.dark` is the single source of
    truth and can diverge from the media query after a toggle). `html.dark`
    (0,1,1) outranks the `:root` (0,1,0) light defaults above.
    -------------------------------------------------------------------------- */
-html.dark {
-  --astra-paper: #221F20;     /* Charcoal */
-  --astra-surface: #2A2728;
-  --astra-surface-2: #312D2E;
+html.dark,
+.astra-brand[data-astra-color-scheme="dark"] {
+  --astra-canvas: #171614;
+  --astra-panel: #1E1D1A;
+  --astra-raised: #272520;
+  --astra-hover: #302D27;
+  --astra-artifact-paper: #FFFDFA;
+  --astra-artifact-ink: #1E1C19;
 
-  --astra-ink: #F1EFE9;       /* Darker Parchment, as ink */
-  --astra-ink-soft: #B4BDCD;  /* Blue Ink, lifted */
-  --astra-muted: #9C9085;     /* Mushroom Cap, lifted */
-  --astra-faint: #6E6660;
+  --astra-paper: var(--astra-panel);
+  --astra-surface: var(--astra-raised);
+  --astra-surface-2: var(--astra-hover);
 
-  --astra-rule: #3B3738;
-  --astra-rule-strong: #4C4747;
+  --astra-ink: #F2EEE7;
+  --astra-ink-soft: #C4BDB2;
+  --astra-muted: #A39B90;
+  --astra-faint: #777168;
 
-  --astra-accent: #C2924A;    /* Antique Gold, lifted for contrast */
-  --astra-link: #C2924A;
-  --astra-accent-soft: rgba(194, 146, 74, 0.16);
+  --astra-rule-subtle: #302D28;
+  --astra-rule: #3B3731;
+  --astra-rule-strong: #514B42;
 
-  --astra-kicker: #7FA8B5;    /* Slate Blue, lifted */
+  --astra-action: #8EB4ED;
+  --astra-focus: #9FC2F4;
+  --astra-accent: var(--astra-action);
+  --astra-link: var(--astra-action);
+  --astra-accent-soft: rgba(142, 180, 237, 0.16);
+  --astra-kicker: #82BDC8;
 
-  --astra-c-decision: #C2924A; /* Antique Gold   */
-  --astra-c-finding: #5FA199;  /* Vert de Gris   */
-  --astra-c-insight: #C97F66;  /* Wax Red        */
-  --astra-c-analysis: #6FA0AE; /* Slate Blue     */
-  --astra-c-output: #93A1BC;   /* Blue Ink       */
-  --astra-c-input: #93A1BC;    /* Blue Ink       */
-  --astra-c-value: #6FA0AE;
+  --astra-c-input: #8EB4ED;
+  --astra-c-analysis: #82BDC8;
+  --astra-c-output: #78C39E;
+  --astra-c-decision: #E2B45F;
+  --astra-c-decision-ink: #E2B45F;
+  --astra-c-finding: #B99ADF;
+  --astra-c-insight: #C3A8DC;
+  --astra-c-insight-ink: #C3A8DC;
+  --astra-c-result: #F2EEE7;
+  --astra-c-value: #82BDC8;
+  --astra-c-danger: #E49393;
+  --astra-c-constraint: var(--astra-c-danger);
 
-  --astra-shadow: 0 6px 18px rgba(0, 0, 0, .45);
+  --astra-c-input-soft: rgba(142, 180, 237, 0.15);
+  --astra-c-analysis-soft: rgba(130, 189, 200, 0.15);
+  --astra-c-output-soft: rgba(120, 195, 158, 0.14);
+  --astra-c-decision-soft: rgba(226, 180, 95, 0.14);
+  --astra-c-finding-soft: rgba(185, 154, 223, 0.15);
+  --astra-c-insight-soft: rgba(195, 168, 220, 0.15);
+  --astra-c-value-soft: rgba(130, 189, 200, 0.15);
+  --astra-c-danger-soft: rgba(228, 147, 147, 0.13);
+
+  --astra-shadow: 0 5px 18px rgba(0, 0, 0, .38);
+  --astra-kind: var(--astra-action);
 }
 
 /* Transparent-background figure PNGs (matplotlib default) are unreadable on
@@ -1322,8 +1407,11 @@ html.dark {
    evidence thumbs. */
 html.dark .astra-output img,
 html.dark .astra-output__thumb img,
-html.dark .astra-evidence__thumb img {
-  background: #FBF9F4;
+html.dark .astra-evidence__thumb img,
+.astra-brand[data-astra-color-scheme="dark"] .astra-output img,
+.astra-brand[data-astra-color-scheme="dark"] .astra-output__thumb img,
+.astra-brand[data-astra-color-scheme="dark"] .astra-evidence__thumb img {
+  background: var(--astra-artifact-paper);
   border-radius: 3px;
 }
 

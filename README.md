@@ -51,6 +51,13 @@ variables locally until then, so it remains buildable from a clean install. The
 release change is a normal semver dependency and one CSS import—not a `file:`
 path, git submodule, or sibling-checkout requirement.
 
+Until that release boundary exists, `astra.css` also defines the same colours on
+`:root` / `html.dark` as a compatibility fallback for MyST header and page chrome,
+which sit above the scoped article wrapper. The explicit `.astra-brand` light/dark
+selectors win inside the publication. Publication-only typography then overrides
+the portable viewer font roles: papers retain Quattrocento/Newsreader, while ASTRA
+controls and metadata use an offline-safe system UI stack.
+
 ```yaml
 site:
   template: astra-book-theme    # one line; nothing else changes
