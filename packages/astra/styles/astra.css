@@ -563,33 +563,19 @@ hr.astra-rule {
   font-weight: 600;
   font-size: 13px;
   color: var(--astra-ink);
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  display: flex;
   align-items: baseline;
   gap: 0.5em;
-  width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-}
-.astra-evidence__item > .astra-ref-trigger {
-  display: block;
-  width: 100%;
-  min-width: 0;
 }
 .astra-evidence--compact .astra-evidence__item { padding: 5px 10px; }
 .astra-evidence--compact .astra-evidence__title { font-size: 13px; }
 .astra-evidence__glyph--insight { color: var(--astra-c-insight); font-size: 0.85em; }
 .astra-evidence__glyph--output  { color: var(--astra-c-output);  font-size: 0.85em; }
-.astra-evidence__name {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
 .astra-evidence__tag {
   font-family: var(--astra-ui);
   font-size: 10px;
   font-weight: 400;
   color: var(--astra-muted);
-  white-space: nowrap;
 }
 /* Underlined evidence names share the same publication link colour. */
 .astra-ref-trigger .astra-evidence__name {

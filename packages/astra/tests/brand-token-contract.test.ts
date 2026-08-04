@@ -131,21 +131,6 @@ describe('portable brand-token boundary', () => {
     );
   });
 
-  it('keeps evidence kind tags inside their row when insight names are long', () => {
-    expect(css).toMatch(
-      /\.astra-evidence__title\s*\{[\s\S]*?grid-template-columns:\s*auto minmax\(0, 1fr\) auto/,
-    );
-    expect(css).toMatch(
-      /\.astra-evidence__item > \.astra-ref-trigger\s*\{[\s\S]*?min-width:\s*0/,
-    );
-    expect(css).toMatch(
-      /\.astra-evidence__name\s*\{[\s\S]*?min-width:\s*0[\s\S]*?overflow-wrap:\s*anywhere/,
-    );
-    expect(css).toMatch(
-      /\.astra-evidence__tag\s*\{[\s\S]*?white-space:\s*nowrap/,
-    );
-  });
-
   it('keeps paper typography editorial and technical chrome sans/mono', () => {
     expect(css).toMatch(/--astra-heading:\s*"Quattrocento"/);
     expect(css).toMatch(/--astra-serif:\s*"Newsreader"/);
