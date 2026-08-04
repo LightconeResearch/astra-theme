@@ -30,56 +30,56 @@
 :root,
 .astra-brand[data-astra-color-scheme="light"] {
   /* Viewer-aligned canvas -> paper panel -> raised surface hierarchy. */
-  --astra-canvas: #E9E7E2;
-  --astra-panel: #FFFDFA;
+  --astra-canvas: #F1EFE9;
+  --astra-panel: #F8F7F3;
   --astra-raised: #FFFFFF;
-  --astra-hover: #FAF8F4;
+  --astra-hover: #F1EFE9;
   --astra-artifact-paper: #FFFFFF;
-  --astra-artifact-ink: #1E1C19;
+  --astra-artifact-ink: #221F20;
 
   --astra-paper: var(--astra-panel);
   --astra-surface: var(--astra-raised);
   --astra-surface-2: var(--astra-hover);
 
-  --astra-ink: #1E1C19;
-  --astra-ink-soft: #5C584F;
-  --astra-muted: #8A857A;
-  --astra-faint: #AAA59B;
+  --astra-ink: #221F20;
+  --astra-ink-soft: #4E5A70;
+  --astra-muted: #8B7D70;
+  --astra-faint: #B8B0A8;
 
   --astra-rule-subtle: #F0EDE6;
   --astra-rule: #EAE7E0;
   --astra-rule-strong: #D5D2CB;
 
-  /* Generic links/actions are blue; methodological decisions remain amber. */
-  --astra-action: #3563A8;
-  --astra-focus: #3563A8;
+  /* Generic links use Blue Ink; methodological decisions use Antique Gold. */
+  --astra-action: #4E5A70;
+  --astra-focus: #3F7280;
   --astra-accent: var(--astra-action);
   --astra-link: var(--astra-action);
-  --astra-accent-soft: rgba(53, 99, 168, 0.10);
-  --astra-kicker: #3B7F8C;
+  --astra-accent-soft: rgba(78, 90, 112, 0.10);
+  --astra-kicker: #3F7280;
 
   /* shared ASTRA semantic palette from the provenance overview */
-  --astra-c-input: #3563A8;
-  --astra-c-analysis: #3B7F8C;
-  --astra-c-output: #2E7D5B;
-  --astra-c-decision: #B07818;
-  --astra-c-decision-ink: #7A5410;
-  --astra-c-finding: #7A4FAE;
-  --astra-c-insight: #8C72A8;
-  --astra-c-insight-ink: #6F4A91;
-  --astra-c-result: #26241F;
-  --astra-c-value: #3B7F8C;
-  --astra-c-danger: #A34E4E;
+  --astra-c-input: #4E5A70;
+  --astra-c-analysis: #3F7280;
+  --astra-c-output: #3B7A73;
+  --astra-c-decision: #A67C3C;
+  --astra-c-decision-ink: #765A2F;
+  --astra-c-finding: #A45A43;
+  --astra-c-insight: #8B7D70;
+  --astra-c-insight-ink: #4E5A70;
+  --astra-c-result: #221F20;
+  --astra-c-value: #3F7280;
+  --astra-c-danger: #A45A43;
   --astra-c-constraint: var(--astra-c-danger);
 
-  --astra-c-input-soft: rgba(53, 99, 168, 0.10);
-  --astra-c-analysis-soft: rgba(59, 127, 140, 0.10);
-  --astra-c-output-soft: rgba(46, 125, 91, 0.10);
-  --astra-c-decision-soft: #FBF6EB;
-  --astra-c-finding-soft: rgba(122, 79, 174, 0.10);
-  --astra-c-insight-soft: rgba(140, 114, 168, 0.11);
-  --astra-c-value-soft: rgba(59, 127, 140, 0.10);
-  --astra-c-danger-soft: #FFF7F5;
+  --astra-c-input-soft: rgba(78, 90, 112, 0.10);
+  --astra-c-analysis-soft: rgba(63, 114, 128, 0.10);
+  --astra-c-output-soft: rgba(59, 122, 115, 0.10);
+  --astra-c-decision-soft: rgba(166, 124, 60, 0.11);
+  --astra-c-finding-soft: rgba(164, 90, 67, 0.10);
+  --astra-c-insight-soft: rgba(139, 125, 112, 0.11);
+  --astra-c-value-soft: rgba(63, 114, 128, 0.10);
+  --astra-c-danger-soft: rgba(164, 90, 67, 0.09);
 
   /* layout + type — the three brand typefaces by role */
   --astra-measure: 40rem;      /* the 640px editorial column */
@@ -337,10 +337,10 @@ hr.astra-rule {
   --astra-kind-ink: var(--astra-kind);
   font-family: inherit;
   font-weight: 600;
-  color: var(--astra-kind-ink);
+  color: var(--astra-link);
   text-decoration: underline;
   text-decoration-thickness: 1px;
-  text-decoration-color: color-mix(in srgb, var(--astra-kind) 48%, transparent);
+  text-decoration-color: color-mix(in srgb, var(--astra-link) 48%, transparent);
   text-underline-offset: 2px;
   padding: 0.05em 0.1em;
   border-radius: var(--astra-radius);
@@ -364,8 +364,8 @@ hr.astra-rule {
 
 .astra-ref:hover,
 .astra-ref[data-open="true"] {
-  background: color-mix(in srgb, var(--astra-kind) 10%, transparent);
-  text-decoration-color: var(--astra-kind);
+  background: color-mix(in srgb, var(--astra-link) 10%, transparent);
+  text-decoration-color: var(--astra-link);
 }
 
 /* the auto-appended "(Chen et al., 2024)" after inline prior-insight tokens */
@@ -389,14 +389,14 @@ hr.astra-rule {
   --astra-kind: var(--astra-c-value);
   --astra-glyph: "";
   font-weight: inherit;
-  color: var(--astra-ink);
+  color: var(--astra-link);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
-  text-decoration: underline dotted color-mix(in srgb, var(--astra-c-value) 60%, transparent);
+  text-decoration: underline dotted color-mix(in srgb, var(--astra-link) 60%, transparent);
   text-underline-offset: 2px;
   white-space: nowrap;
 }
-.astra-ref--value:hover { text-decoration-color: var(--astra-c-value); }
+.astra-ref--value:hover { text-decoration-color: var(--astra-link); }
 .astra-ref--value::before { content: none; }
 
 /* A navigable ref token (sub-analysis → its page): the inner span already
@@ -577,19 +577,19 @@ hr.astra-rule {
   font-weight: 400;
   color: var(--astra-muted);
 }
-/* Hoverable evidence names keep the insight colour wherever they appear. */
+/* Underlined evidence names share the same publication link colour. */
 .astra-ref-trigger .astra-evidence__name {
-  color: var(--astra-c-insight-ink);
+  color: var(--astra-link);
   text-decoration: underline;
   text-decoration-thickness: 1px;
-  text-decoration-color: color-mix(in srgb, var(--astra-c-insight-ink) 45%, transparent);
+  text-decoration-color: color-mix(in srgb, var(--astra-link) 45%, transparent);
   text-underline-offset: 2px;
   cursor: pointer;
 }
 .astra-ref-trigger:hover .astra-evidence__name,
 .astra-ref-trigger:focus-visible .astra-evidence__name {
-  background: color-mix(in srgb, var(--astra-c-insight) 10%, transparent);
-  text-decoration-color: var(--astra-c-insight-ink);
+  background: color-mix(in srgb, var(--astra-link) 10%, transparent);
+  text-decoration-color: var(--astra-link);
 }
 .astra-evidence__note {
   font-family: var(--astra-serif);
@@ -1136,7 +1136,7 @@ details.astra-decision + details.myst-dropdown {
   border-top: 1px solid var(--astra-rule);
 }
 .astra-cite a {
-  color: var(--astra-kind-ink, var(--astra-kind));
+  color: var(--astra-link);
   font-family: var(--astra-mono);
   font-size: 11px;
   text-decoration: none;
@@ -1311,8 +1311,9 @@ details.astra-decision + details.myst-dropdown {
   text-decoration: none;
 }
 .astra-subanalysis__link:hover {
+  color: var(--astra-link);
   text-decoration: underline;
-  text-decoration-color: var(--astra-kind);
+  text-decoration-color: var(--astra-link);
   text-underline-offset: 2px;
 }
 
@@ -1351,8 +1352,8 @@ html.dark,
   --astra-panel: #1E1D1A;
   --astra-raised: #272520;
   --astra-hover: #302D27;
-  --astra-artifact-paper: #FFFDFA;
-  --astra-artifact-ink: #1E1C19;
+  --astra-artifact-paper: #F8F7F3;
+  --astra-artifact-ink: #221F20;
 
   --astra-paper: var(--astra-panel);
   --astra-surface: var(--astra-raised);
@@ -1367,34 +1368,34 @@ html.dark,
   --astra-rule: #3B3731;
   --astra-rule-strong: #514B42;
 
-  --astra-action: #8EB4ED;
-  --astra-focus: #9FC2F4;
+  --astra-action: #AEB8CA;
+  --astra-focus: #86ADB7;
   --astra-accent: var(--astra-action);
   --astra-link: var(--astra-action);
-  --astra-accent-soft: rgba(142, 180, 237, 0.16);
-  --astra-kicker: #82BDC8;
+  --astra-accent-soft: rgba(174, 184, 202, 0.16);
+  --astra-kicker: #86ADB7;
 
-  --astra-c-input: #8EB4ED;
-  --astra-c-analysis: #82BDC8;
-  --astra-c-output: #78C39E;
-  --astra-c-decision: #E2B45F;
-  --astra-c-decision-ink: #E2B45F;
-  --astra-c-finding: #B99ADF;
-  --astra-c-insight: #C3A8DC;
-  --astra-c-insight-ink: #C3A8DC;
+  --astra-c-input: #AEB8CA;
+  --astra-c-analysis: #86ADB7;
+  --astra-c-output: #79B6AE;
+  --astra-c-decision: #D8B477;
+  --astra-c-decision-ink: #D8B477;
+  --astra-c-finding: #D6927D;
+  --astra-c-insight: #C2B5A9;
+  --astra-c-insight-ink: #C2B5A9;
   --astra-c-result: #F2EEE7;
-  --astra-c-value: #82BDC8;
-  --astra-c-danger: #E49393;
+  --astra-c-value: #86ADB7;
+  --astra-c-danger: #D6927D;
   --astra-c-constraint: var(--astra-c-danger);
 
-  --astra-c-input-soft: rgba(142, 180, 237, 0.15);
-  --astra-c-analysis-soft: rgba(130, 189, 200, 0.15);
-  --astra-c-output-soft: rgba(120, 195, 158, 0.14);
-  --astra-c-decision-soft: rgba(226, 180, 95, 0.14);
-  --astra-c-finding-soft: rgba(185, 154, 223, 0.15);
-  --astra-c-insight-soft: rgba(195, 168, 220, 0.15);
-  --astra-c-value-soft: rgba(130, 189, 200, 0.15);
-  --astra-c-danger-soft: rgba(228, 147, 147, 0.13);
+  --astra-c-input-soft: rgba(174, 184, 202, 0.15);
+  --astra-c-analysis-soft: rgba(134, 173, 183, 0.15);
+  --astra-c-output-soft: rgba(121, 182, 174, 0.14);
+  --astra-c-decision-soft: rgba(216, 180, 119, 0.14);
+  --astra-c-finding-soft: rgba(214, 146, 125, 0.15);
+  --astra-c-insight-soft: rgba(194, 181, 169, 0.15);
+  --astra-c-value-soft: rgba(134, 173, 183, 0.15);
+  --astra-c-danger-soft: rgba(214, 146, 125, 0.13);
 
   --astra-shadow: 0 5px 18px rgba(0, 0, 0, .38);
   --astra-kind: var(--astra-action);

@@ -102,16 +102,32 @@ describe('portable brand-token boundary', () => {
     }
   });
 
-  it('separates generic action blue from decision amber', () => {
-    expect(css).toMatch(/--astra-action:\s*#3563A8/i);
-    expect(css).toMatch(/--astra-focus:\s*#3563A8/i);
+  it('uses the approved blue ink and antique gold roles', () => {
+    expect(css).toMatch(/--astra-action:\s*#4E5A70/i);
+    expect(css).toMatch(/--astra-focus:\s*#3F7280/i);
     expect(css).toMatch(/--astra-accent:\s*var\(--astra-action\)/);
     expect(css).toMatch(/--astra-link:\s*var\(--astra-action\)/);
-    expect(css).toMatch(/--astra-c-decision:\s*#B07818/i);
-    expect(css).toMatch(/--astra-c-decision-ink:\s*#7A5410/i);
-    expect(css).toMatch(/--astra-c-insight-ink:\s*#6F4A91/i);
+    expect(css).toMatch(/--astra-c-decision:\s*#A67C3C/i);
+    expect(css).toMatch(/--astra-c-decision-ink:\s*#765A2F/i);
+    expect(css).toMatch(/--astra-c-insight-ink:\s*#4E5A70/i);
     expect(css).toMatch(
       /\.astra-decision__toggle button\.is-active\s*\{[\s\S]*?background:\s*var\(--astra-c-decision-soft\)/,
+    );
+  });
+
+  it('uses one link colour for underlined publication references', () => {
+    expect(css).toMatch(
+      /\.astra-ref\s*\{[\s\S]*?color:\s*var\(--astra-link\)[\s\S]*?text-decoration-color:\s*color-mix\(in srgb, var\(--astra-link\)/,
+    );
+    expect(css).toMatch(
+      /\.astra-ref--value\s*\{[\s\S]*?color:\s*var\(--astra-link\)[\s\S]*?text-decoration:[^;]*var\(--astra-link\)/,
+    );
+    expect(css).toMatch(
+      /\.astra-ref-trigger \.astra-evidence__name\s*\{[\s\S]*?color:\s*var\(--astra-link\)/,
+    );
+    expect(css).toMatch(/\.astra-cite a\s*\{[\s\S]*?color:\s*var\(--astra-link\)/);
+    expect(css).toMatch(
+      /\.astra-subanalysis__link:hover\s*\{[\s\S]*?color:\s*var\(--astra-link\)[\s\S]*?text-decoration-color:\s*var\(--astra-link\)/,
     );
   });
 
@@ -125,7 +141,7 @@ describe('portable brand-token boundary', () => {
 
   it('keeps scientific artifacts on a paper-and-ink canvas', () => {
     expect(css).toMatch(/--astra-artifact-paper:\s*#FFFFFF/i);
-    expect(css).toMatch(/--astra-artifact-ink:\s*#1E1C19/i);
+    expect(css).toMatch(/--astra-artifact-ink:\s*#221F20/i);
     expect(css).toMatch(/\.astra-output--table table\s*\{[\s\S]*?background:\s*var\(--astra-artifact-paper\)/);
     expect(css).toMatch(/\.astra-output--table table\s*\{[\s\S]*?color:\s*var\(--astra-artifact-ink\)/);
   });
