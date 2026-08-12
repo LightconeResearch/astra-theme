@@ -3,7 +3,7 @@
    Editorial, narrative-first presentation layer for the @astra-spec/mystra
    plugin. All appearance lives here; the AST stays neutral. The long-form
    paper keeps its publication typography while ASTRA-specific chrome follows
-   the compact technical language shared with astra-viewer.
+   the compact technical language shared with @lightcone-research/astra-ui.
 
    Conventions
    -----------
@@ -23,7 +23,7 @@
 /* -----------------------------------------------------------------------------
    1. Tokens
    -------------------------------------------------------------------------- */
-/* `@lightcone-research/astra-viewer-tokens` is not published yet. These values
+/* `@lightcone-research/lightcone-brand` is not consumed here yet. These values
    intentionally mirror its host-neutral brand contract so this released MyST
    template remains self-contained. Once that package is published this block
    becomes one `brand.css` import; never replace it with a sibling `file:` dep. */

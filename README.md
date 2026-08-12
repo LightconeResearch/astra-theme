@@ -26,7 +26,8 @@ This repository owns publication rendering: article/book layout, prose
 typography, citations, inline ASTRA references, and author-placed result
 surfaces. It deliberately does **not** own a project inventory, graph explorer,
 whole-project payload, JupyterLab integration, or IDE integration. Those
-interactive project surfaces belong to `astra-viewer` and its host adapters.
+interactive project surfaces belong to `@lightcone-research/astra-ui` and its
+host adapters.
 
 Where a paper and an interactive viewer need the same visual language, the
 theme consumes only the host-neutral brand-token export. It never imports the
@@ -38,12 +39,12 @@ The release-time dependency boundary is deliberately explicit:
 
 ```json
 {
-  "@lightcone-research/astra-viewer-tokens": "^0.1.0"
+  "@lightcone-research/lightcone-brand": "^0.1.0"
 }
 ```
 
 Once the token package is published, the themes will load exactly
-`@lightcone-research/astra-viewer-tokens/brand.css`, opt the publication wrapper
+`@lightcone-research/lightcone-brand/brand.css`, opt the publication wrapper
 into `.astra-brand`, and synchronize `data-astra-color-scheme` with MyST's theme
 switcher. They do not load the portable host mapping (`theme.css`) or any
 inventory/application entry point. This checkout retains the same canonical
@@ -124,12 +125,8 @@ finding/insight cards, registry tables, and live value tokens. Phase 3
 (author-placed `astra:dag`/`astra:gallery` patterns) needs plugin-side directive
 hooks first and is not started.
 
-- **[STATUS.md](./STATUS.md)** — what's implemented per phase and the remaining items.
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)** — how the pieces connect at runtime,
-  the directory tree, and the per-element selector → component → store table map.
-- **[DEVELOPING.md](./DEVELOPING.md)** — the build, dev, and distribution loop.
-- **[CONTRACT.md](./CONTRACT.md)** — the exact plugin↔theme interface: every
-  emitted class, identifier, inline token, and the resolved-store shape.
+The implementation and its contract tests live under `packages/astra`; the two
+theme shells live under `themes/article` and `themes/book`.
 
 ## License
 
