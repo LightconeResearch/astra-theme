@@ -12,7 +12,7 @@
     "themes/*"
   ],
   "scripts": {
-    "build": "npm run build:article && npm run build:book",
+    "build": "npm run sync:siblings && npm run build:article && npm run build:book",
     "build:article": "npm run build -w themes/article",
     "build:book": "npm run build -w themes/book",
     "dev:article": "npm run dev -w themes/article",
@@ -23,7 +23,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "clean": "npm run clean --workspaces --if-present",
-    "postinstall": "patch-package && mkdir -p themes/article/node_modules themes/book/node_modules"
+    "postinstall": "patch-package && mkdir -p themes/article/node_modules themes/book/node_modules",
+    "sync:siblings": "node scripts/sync-siblings.mjs"
   },
   "devDependencies": {
     "@astra-spec/sdk": "file:../astra-typescript",
