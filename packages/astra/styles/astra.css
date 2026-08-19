@@ -1324,3 +1324,18 @@ html.dark .astra-evidence__thumb img,
     min-width: 0;
   }
 }
+
+/* -----------------------------------------------------------------------------
+   Cited papers — the JupyterLab paper list in place of the bibliography
+   -------------------------------------------------------------------------- */
+.astra-papers-section {
+  margin-block: 3rem 2rem;
+}
+.astra-papers-section > h2 {
+  margin-block-end: 1rem;
+}
+/* The list inherits component styles from astra-ui; keep its type on the
+   publication's UI face and let the section own vertical rhythm. */
+.astra-papers-section__list {
+  background: transparent;
+}

@@ -285,17 +285,6 @@ export function usePublicationOpenReference(): OpenPublicationReference | undefi
   return React.useContext(PublicationOpenContext);
 }
 
-export interface PublicationPapersValue {
-  publication: AstraPublicationData;
-  paperMetadata: InventoryPaperMetadataMap;
-  openPaper: (doi: string) => void;
-}
-const PublicationPapersContext = React.createContext<PublicationPapersValue | undefined>(undefined);
-
-export function usePublicationPapers(): PublicationPapersValue | undefined {
-  return React.useContext(PublicationPapersContext);
-}
-
 function findRecord(
   data: AstraPublicationData,
   reference: ViewerOpenReference,
@@ -378,22 +367,18 @@ function PublicationDialogs({
   host,
   activeScopeId,
   reference,
-  paperMetadata,
   onClose,
 }: {
   model: ProjectViewModelV1;
   host: ViewerHost;
   activeScopeId: string;
-  reference: InventoryOpenReference;
-  paperMetadata: InventoryPaperMetadataMap;
+  reference: ViewerOpenReference;
   onClose: () => void;
 }) {
   const model = React.useMemo(() => createInventoryModel(source), [source]);
   const fallbackScope = getInventoryScope(model, activeScopeId) ?? source.scopes[0];
   const initial = fallbackScope
-    ? reference.kind === 'paper'
-      ? locatePublicationPaper(model, fallbackScope, reference.doi, paperMetadata)
-      : locatePublicationRecord(model, fallbackScope, reference)
+    ? locatePublicationRecord(model, fallbackScope, reference)
     : undefined;
   const [stack, setStack] = React.useState<PublicationModalEntry[]>(
     initial ? [initial] : [],
@@ -409,7 +394,7 @@ function PublicationDialogs({
     if (resolvedOwner) {
       setStack((current) => [
         ...current,
-        { kind: 'record', record, scopeId: resolvedOwner.id },
+        { record, scopeId: resolvedOwner.id },
       ]);
     }
   };
@@ -421,30 +406,6 @@ function PublicationDialogs({
     ? () => setStack((current) => current.slice(0, -1))
     : undefined;
   const previous = stack.length > 1 ? stack[stack.length - 2] : undefined;
-
-  if (active.kind === 'paper') {
-    return (
-      <AstraViewerProvider model={source} host={host}>
-        <div className="astra-ui">
-          <InventoryDetailPresentation
-            mode="modal"
-            backLabel="Back to previous record"
-            backText={previous ? modalCrumb(previous) : undefined}
-          >
-            <PaperDialog
-              paper={active.paper}
-              scope={scope}
-              onOpenInsight={(insight) => push(insight)}
-              onOpenDecision={(decision) => push(decision)}
-              onBack={onBack}
-              onClose={closeAll}
-            />
-          </InventoryDetailPresentation>
-        </div>
-      </AstraViewerProvider>
-    );
-  }
-
   const { record } = active;
 
   let dialog: React.ReactNode;
@@ -544,16 +505,17 @@ export function AstraPublicationProvider({
     () => (publication ? createStaticViewerHost(publication) : undefined),
     [publication],
   );
-  const [selected, setSelected] = React.useState<InventoryOpenReference>();
-  const references = useReferences();
-  const paperMetadata = React.useMemo(
-    () => paperMetadataFromCitations(references?.cite?.data),
-    [references],
-  );
+  const [selected, setSelected] = React.useState<ViewerOpenReference>();
 
   const openInventoryReference = React.useCallback(
     (reference: InventoryOpenReference) => {
       if (postReferenceToParent(reference)) return;
+      if (reference.kind === 'paper') {
+        if (typeof window !== 'undefined') {
+          window.open(`https://doi.org/${encodeURIComponent(reference.doi)}`, '_blank', 'noopener,noreferrer');
+        }
+        return;
+      }
       setSelected(reference);
     },
     [],
@@ -573,17 +535,6 @@ export function AstraPublicationProvider({
     [openInventoryReference, publication],
   );
 
-  const papersValue = React.useMemo<PublicationPapersValue | undefined>(
-    () => (publication
-      ? {
-          publication,
-          paperMetadata,
-          openPaper: (doi: string) => openInventoryReference({ kind: 'paper', doi }),
-        }
-      : undefined),
-    [publication, paperMetadata, openInventoryReference],
-  );
-
   const legacy = (
     <AstraStoreProvider mdast={mdast}>
       {children}
@@ -592,24 +543,19 @@ export function AstraPublicationProvider({
   if (!publication || !host) return legacy;
   return (
     <PublicationOpenContext.Provider value={openReference}>
-      <PublicationPapersContext.Provider value={papersValue}>
-        <AstraStoreProvider mdast={mdast}>
-          {children}
-          {selected ? (
-            <PublicationDialogs
-              key={selected.kind === 'paper'
-                ? `paper:${selected.doi}`
-                : `${selected.kind}:${selected.canonicalPath ?? selected.id}`}
-              model={publication.bundle.model}
-              host={host}
-              activeScopeId={publication.bundle.activeScopeId}
-              reference={selected}
-              paperMetadata={paperMetadata}
-              onClose={() => setSelected(undefined)}
-            />
-          ) : null}
-        </AstraStoreProvider>
-      </PublicationPapersContext.Provider>
+      <AstraStoreProvider mdast={mdast}>
+        {children}
+        {selected ? (
+          <PublicationDialogs
+            key={`${selected.kind}:${selected.canonicalPath ?? selected.id}`}
+            model={publication.bundle.model}
+            host={host}
+            activeScopeId={publication.bundle.activeScopeId}
+            reference={selected}
+            onClose={() => setSelected(undefined)}
+          />
+        ) : null}
+      </AstraStoreProvider>
     </PublicationOpenContext.Provider>
   );
 }
