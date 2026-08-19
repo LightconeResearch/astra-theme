@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { labelFor } from '../glyphs';
 import {
   useFloating,
   useHover,
@@ -30,6 +31,8 @@ export interface PreviewCardProps {
   children: React.ReactNode;
   /** ASTRA kind string, used to tint the card via `astra-card--<kind>`. */
   kind: string;
+  /** Optional shared-detail activation for clickable publication references. */
+  onActivate?: () => void;
 }
 
 const ARROW_HEIGHT = 7;
@@ -47,7 +50,7 @@ const GAP = 6;
  * floating-ui FloatingTree (the outermost one creates it), so hovering a child
  * card keeps every ancestor card open instead of unmounting the chain.
  */
-const PreviewCardInner: React.FC<PreviewCardProps> = ({ trigger, children, kind }) => {
+const PreviewCardInner: React.FC<PreviewCardProps> = ({ trigger, children, kind, onActivate }) => {
   const [open, setOpen] = React.useState(false);
   const arrowRef = React.useRef<SVGSVGElement>(null);
   const nodeId = useFloatingNodeId();
@@ -127,7 +130,15 @@ const PreviewCardInner: React.FC<PreviewCardProps> = ({ trigger, children, kind 
         ref={refs.setReference}
         tabIndex={0}
         className="astra-ref-trigger"
+        role={onActivate ? 'button' : undefined}
         {...getReferenceProps({
+          onClick: onActivate,
+          onKeyDown: (event) => {
+            if (onActivate && (event.key === 'Enter' || event.key === ' ')) {
+              event.preventDefault();
+              onActivate();
+            }
+          },
           onMouseEnter: (e) => {
             cursorXRef.current = e.clientX;
           },
@@ -144,7 +155,12 @@ const PreviewCardInner: React.FC<PreviewCardProps> = ({ trigger, children, kind 
             <div
               ref={refs.setFloating}
               style={floatingStyles}
-              className="astra-card-portal"
+              className="astra-card-portal lightcone-brand"
+              data-astra-color-scheme={
+                typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+                  ? 'dark'
+                  : 'light'
+              }
               data-placement={placement}
               {...getFloatingProps()}
             >
@@ -156,6 +172,27 @@ const PreviewCardInner: React.FC<PreviewCardProps> = ({ trigger, children, kind 
                     scrolls its body while the arrow (which protrudes past the
                     card edge) is never clipped by the overflow. */}
                 <div className="astra-card__scroll">{children}</div>
+                {/* Clickable references open the full record dialog; the card
+                    (a glanceable miniature of that dialog) says so in a quiet
+                    footer strip, pinned below the scroll region. The trigger
+                    span is the accessible button — this footer is a redundant
+                    pointer affordance, so it stays out of the tab order. */}
+                {onActivate ? (
+                  <button
+                    type="button"
+                    className="astra-card__open"
+                    tabIndex={-1}
+                    onClick={() => {
+                      setOpen(false);
+                      onActivate();
+                    }}
+                  >
+                    <span className="astra-card__open-glyph" aria-hidden="true">
+                      ⛶
+                    </span>
+                    <span>Click to open {labelFor(kind).toLowerCase()} record</span>
+                  </button>
+                ) : null}
                 <FloatingArrow
                   ref={arrowRef}
                   context={context}
