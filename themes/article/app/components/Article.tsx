@@ -28,11 +28,7 @@ import type { GenericParent } from 'myst-common';
 import { copyNode } from 'myst-common';
 import { SourceFileKind } from 'myst-spec-ext';
 import { MyST } from 'myst-to-react';
-import {
-  AstraPapersSection,
-  AstraPublicationProvider,
-  findAstraPublication,
-} from '@astra-spec/theme-astra';
+import { AstraPublicationProvider } from '@astra-spec/theme-astra';
 
 const TOP_OFFSET = 24;
 
@@ -64,7 +60,6 @@ export function Article({
     () => ({ ...article.references, article: article.mdast }),
     [article],
   );
-  const hasPublication = React.useMemo(() => Boolean(findAstraPublication(tree)), [tree]);
   const { title, subtitle } = article.frontmatter;
   const compute = useComputeOptions();
   const top = useThemeTop();
@@ -117,12 +112,9 @@ export function Article({
             <FrontmatterParts parts={parts} keywords={keywords} hideKeywords={hideKeywords} />
             <MyST ast={tree} />
             <BackmatterParts parts={parts} />
-            {/* ASTRA publications list cited papers (the JupyterLab paper
-                surface) instead of the stock bibliography. */}
-            {hasPublication ? <AstraPapersSection /> : null}
           </AstraPublicationProvider>
           <Footnotes />
-          {!hasPublication && <Bibliography />}
+          <Bibliography />
           <ConnectionStatusTray />
         </ExecuteScopeProvider>
       </BusyScopeProvider>

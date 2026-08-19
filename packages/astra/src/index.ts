@@ -14,9 +14,7 @@ export {
   findAstraPublication,
   postReferenceToParent,
   usePublicationOpenReference,
-  usePublicationPapers,
 } from './publication/AstraPublicationProvider';
-export { AstraPapersSection } from './publication/PapersSection';
 export type {
   AstraPublicationBundleV1,
   AstraPublicationData,
