@@ -1,5 +1,6 @@
 import type { PageLoader } from '@myst-theme/common';
-import { FooterLinksBlock, ArticleHeader, Error404 } from '@myst-theme/site';
+import { FooterLinksBlock, Error404 } from '@myst-theme/site';
+import { BrandedArticleHeader } from './BrandedArticleHeader';
 import { LaunchBinder, useComputeOptions } from '@myst-theme/jupyter';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { DocumentArrowDownIcon } from '@heroicons/react/24/outline';
@@ -43,7 +44,7 @@ export function ArticlePage({ article }: { article: PageLoader }) {
     >
       <BusyScopeProvider>
         <ExecuteScopeProvider enable={compute?.enabled ?? false} contents={article}>
-          <ArticleHeader frontmatter={project} hideAuthors={hide_authors}>
+          <BrandedArticleHeader frontmatter={project} hideAuthors={hide_authors}>
             <div className="pt-5 md:self-center h-fit lg:pt-0 col-body lg:col-margin-right-inset">
               <DownloadLinksArea />
               {compute?.enabled && compute.features.launchBinder && (
@@ -54,13 +55,10 @@ export function ArticlePage({ article }: { article: PageLoader }) {
                 </div>
               )}
             </div>
-          </ArticleHeader>
+          </BrandedArticleHeader>
           <article
             data-name="article-page-main"
-            data-astra-color-scheme={theme ?? undefined}
-            suppressHydrationWarning
             className={classNames(
-              'astra-brand',
               'myst-article',
               'article',
               grid,

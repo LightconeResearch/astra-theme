@@ -4,9 +4,10 @@
  * The plugin emits a stock `container` carrying `astra-output` plus a subtype
  * modifier class (`astra-output--figure` / `--table` / `--metric`) and an
  * identifier `output-<id>` (CONTRACT.md §1). We join the `SerializedOutput`
- * from the page store by that id and decorate the stock figure/table with a
- * provenance drawer (inputs → recipe → artifact). The `metric` subtype renders
- * a big stat from `output.metric{value,uncertainty,unit}`.
+ * from the page store by that id. Registered figures and tables open the
+ * canonical astra-ui OutputDialog through AstraPublicationProvider; the
+ * `metric` subtype renders a big stat from
+ * `output.metric{value,uncertainty,unit}`.
  *
  * Graceful degradation: if the store entry is missing we render the node's own
  * stock children verbatim. We never throw, and we always preserve the node's
@@ -15,15 +16,13 @@
 import * as React from 'react';
 import type { GenericNode } from 'myst-common';
 import { MyST } from 'myst-to-react';
-import { useAstraStore, useEntryByIdentifier } from '../store/useAstraStore';
-import { PreviewCard } from '../card/PreviewCard';
-import { DecisionCard } from './AstraInlineRef';
+import {
+  parseCarrierId,
+  useEntryByIdentifier,
+} from '../store/useAstraStore';
+import { usePublicationOpenReference } from '../publication/AstraPublicationProvider';
 import { StoreProse } from '../storeProse';
-import type {
-  SerializedOutput,
-  SerializedProvenanceDecision,
-  SerializedRootInput,
-} from '@astra-spec/store-types';
+import type { SerializedOutput } from '@astra-spec/store-types';
 
 /** The output subtypes carried as `astra-output--<subtype>` modifier classes. */
 type OutputSubtype = 'figure' | 'table' | 'metric' | 'unknown';
@@ -52,91 +51,6 @@ function fmtScalar(v: number | string | undefined): string | undefined {
   if (v == null || v === '') return undefined;
   return typeof v === 'number' ? String(v) : v;
 }
-
-/* ------------------------------------------------------------------ *
- * Provenance drawer — "what affects this result":
- *   DECISIONS    every decision on the chain (direct or `via <scope>`),
- *                as live decision refs (hover card when the decision is in
- *                the page store) with the selected option spelled out
- *   SOURCE DATA  analysis-level input files at the chain's roots
- * The recipe command line and artifact path are intentionally not shown
- * (decided via the design-mirror Proposals page, June 2026).
- * Falls back to the direct ids when the store predates the transitive
- * fields. Rendered as a native <details> so the CSS marker rotation works.
- * ------------------------------------------------------------------ */
-
-/** Anchor for a decision carrier: same page when direct, scope page when via. */
-function decisionHref(d: SerializedProvenanceDecision): string {
-  const anchor = `#decision-${d.id}`;
-  if (!d.via) return anchor;
-  return d.via === 'root' ? `/${anchor}` : `/${d.via.split('.').join('/')}${anchor}`;
-}
-
-const ProvDecisionRef: React.FC<{ d: SerializedProvenanceDecision }> = ({ d }) => {
-  const store = useAstraStore();
-  const entry = store?.decisions?.[d.id];
-  const token = (
-    <a className="astra-ref astra-ref--decision" href={decisionHref(d)}>
-      {d.label ?? d.id}
-    </a>
-  );
-  // Live ref: hover card when the decision is joinable in the page store.
-  return entry ? (
-    <PreviewCard kind="decision" trigger={token}>
-      <DecisionCard entry={entry} />
-    </PreviewCard>
-  ) : (
-    token
-  );
-};
-
-const ProvenanceDrawer: React.FC<{ output: SerializedOutput }> = ({ output }) => {
-  // Prefer the transitive fields; degrade to the direct ids for old stores.
-  const decisions: SerializedProvenanceDecision[] =
-    output.decisions_transitive ?? (output.decisions ?? []).map((id) => ({ id }));
-  const roots: SerializedRootInput[] =
-    output.inputs_root ?? (output.inputs ?? []).map((id) => ({ id }));
-
-  if (decisions.length === 0 && roots.length === 0) return null;
-
-  return (
-    <details className="astra-output__provenance">
-      <summary>Provenance</summary>
-
-      {decisions.length > 0 ? (
-        <>
-          <div className="astra-card__section">
-            Decisions ({decisions.length})
-          </div>
-          <ul className="astra-output__prov-decisions">
-            {decisions.map((d) => (
-              <li key={d.id} className="astra-output__prov-row">
-                <ProvDecisionRef d={d} />
-                {d.via ? <span className="astra-prov-via">via {d.via}</span> : null}
-                {d.selection ? (
-                  <span className="astra-prov-selection">{d.selection}</span>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        </>
-      ) : null}
-
-      {roots.length > 0 ? (
-        <>
-          <div className="astra-card__section">Source data ({roots.length})</div>
-          <div className="astra-output__prov-row">
-            {roots.map((r) => (
-              <code key={r.id} className="astra-flow__node" title={r.label ?? r.id}>
-                {r.id}
-              </code>
-            ))}
-          </div>
-        </>
-      ) : null}
-    </details>
-  );
-};
 
 /* ------------------------------------------------------------------ *
  * Metric stat — the big number + unit + ± uncertainty + label.
@@ -217,6 +131,7 @@ export function AstraOutput({ node }: AstraOutputProps): React.ReactElement {
     (node as { id?: string }).id;
   const entry = useEntryByIdentifier(identifier);
   const subtype = subtypeOf(node);
+  const openReference = usePublicationOpenReference();
 
   // Preserve the carrier's astra-* classes so the stylesheet applies, and make
   // sure the base `astra-output` + subtype modifier are present even if the AST
@@ -229,13 +144,43 @@ export function AstraOutput({ node }: AstraOutputProps): React.ReactElement {
         .join(' ');
 
   const stockChildren = <MyST ast={node.children} />;
+  const output = entry && isOutput(entry) ? entry : undefined;
+  const outputId = output?.id ?? parseCarrierId(identifier)?.id;
+  const canOpen = Boolean(
+    openReference &&
+    outputId &&
+    (subtype === 'figure' || subtype === 'table'),
+  );
+  const openOutput = () => {
+    if (!openReference || !outputId) return;
+    openReference({ kind: 'output', id: outputId });
+  };
+  const interactionProps: React.HTMLAttributes<HTMLDivElement> & {
+    'data-astra-openable'?: string;
+  } = canOpen
+    ? {
+        role: 'button',
+        tabIndex: 0,
+        'aria-label': `Open ${subtype} details: ${output?.label ?? outputId}`,
+        'data-astra-openable': 'true',
+        onClick: (event) => {
+          event.preventDefault();
+          openOutput();
+        },
+        onKeyDown: (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            openOutput();
+          }
+        },
+      }
+    : {};
 
   // No store entry → degrade gracefully to the node's own stock children, but
   // keep the carrier wrapper so the layout/classes still apply. Never throw.
-  const output = entry && isOutput(entry) ? entry : undefined;
   if (!output) {
     return (
-      <div className={className} id={identifier}>
+      <div className={className} id={identifier} {...interactionProps}>
         {stockChildren}
       </div>
     );
@@ -271,10 +216,9 @@ export function AstraOutput({ node }: AstraOutputProps): React.ReactElement {
   const showCaption = subtype !== 'metric' && !hasStockChildren;
 
   return (
-    <div className={className} id={identifier}>
+    <div className={className} id={identifier} {...interactionProps}>
       {body}
       {showCaption ? <OutputCaption output={output} /> : null}
-      <ProvenanceDrawer output={output} />
     </div>
   );
 }

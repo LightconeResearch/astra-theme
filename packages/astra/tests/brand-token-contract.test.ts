@@ -6,8 +6,22 @@ const css = readFileSync(
   join(process.cwd(), 'packages/astra/styles/astra.css'),
   'utf8',
 );
-const articlePage = readFileSync(
-  join(process.cwd(), 'themes/article/app/components/ArticlePage.tsx'),
+const brandCss = readFileSync(
+  join(process.cwd(), 'node_modules/@lightcone-research/lightcone-brand/brand.css'),
+  'utf8',
+);
+const articleRoot = readFileSync(
+  join(process.cwd(), 'themes/article/app/root.tsx'),
+  'utf8',
+);
+const bookRoot = readFileSync(
+  join(process.cwd(), 'themes/book/app/root.tsx'),
+  'utf8',
+);
+// The article theme's brand scope lives on the page wrapper so the header
+// band and footer resolve tokens too.
+const articlePageWrapper = readFileSync(
+  join(process.cwd(), 'themes/article/app/components/ArticlePageAndNavigation.tsx'),
   'utf8',
 );
 const bookRoute = readFileSync(
@@ -15,16 +29,13 @@ const bookRoute = readFileSync(
   'utf8',
 );
 
-const CANONICAL_BRAND_TOKENS = [
+const PORTABLE_BRAND_TOKENS = [
   '--astra-canvas',
   '--astra-panel',
   '--astra-raised',
   '--astra-hover',
   '--astra-artifact-paper',
   '--astra-artifact-ink',
-  '--astra-paper',
-  '--astra-surface',
-  '--astra-surface-2',
   '--astra-ink',
   '--astra-ink-soft',
   '--astra-muted',
@@ -34,7 +45,6 @@ const CANONICAL_BRAND_TOKENS = [
   '--astra-rule-strong',
   '--astra-action',
   '--astra-focus',
-  '--astra-accent',
   '--astra-link',
   '--astra-accent-soft',
   '--astra-kicker',
@@ -60,7 +70,6 @@ const CANONICAL_BRAND_TOKENS = [
   '--astra-heading',
   '--astra-serif',
   '--astra-label',
-  '--astra-ui',
   '--astra-mono',
   '--astra-measure',
   '--astra-card-w',
@@ -70,16 +79,20 @@ const CANONICAL_BRAND_TOKENS = [
 ];
 
 describe('portable brand-token boundary', () => {
-  it('keeps a root fallback and explicit publication light/dark scopes', () => {
-    const light = css.match(
-      /:root,\s*\.astra-brand\[data-astra-color-scheme="light"\]\s*\{([\s\S]*?)\}/,
+  it('imports the official portable brand contract in both publication themes', () => {
+    for (const root of [articleRoot, bookRoot]) {
+      expect(root).toContain("@lightcone-research/lightcone-brand/theme.css");
+      expect(root).toContain("@lightcone-research/astra-ui/components.css");
+    }
+    const light = brandCss.match(
+      /\.lightcone-brand,\s*\.lightcone-brand \.astra-ui,\s*\.astra-ui\[data-astra-theme="brand-light"\]\s*\{([\s\S]*?)\}/,
     )?.[1];
-    const dark = css.match(
-      /html\.dark,\s*\.astra-brand\[data-astra-color-scheme="dark"\]\s*\{([\s\S]*?)\}/,
+    const dark = brandCss.match(
+      /\.lightcone-brand\[data-astra-color-scheme="dark"\],[\s\S]*?\.astra-ui\[data-astra-theme="brand-dark"\]\s*\{([\s\S]*?)\}/,
     )?.[1];
     expect(light).toBeDefined();
     expect(dark).toBeDefined();
-    for (const token of CANONICAL_BRAND_TOKENS) {
+    for (const token of PORTABLE_BRAND_TOKENS) {
       expect(light).toContain(`${token}:`);
     }
     for (const token of [
@@ -100,16 +113,24 @@ describe('portable brand-token boundary', () => {
     ]) {
       expect(dark).toContain(`${token}:`);
     }
+    // The page ground is the brand canvas (parchment/charcoal); raised
+    // surfaces are panels — paper on parchment.
+    expect(css).toMatch(/\.lightcone-brand\s*\{[\s\S]*?--astra-paper:\s*var\(--astra-canvas\)/);
+    expect(css).toMatch(/\.lightcone-brand\s*\{[\s\S]*?--astra-surface:\s*var\(--astra-panel\)/);
+    expect(css).toMatch(
+      /\.astra-card-portal\.lightcone-brand\s*\{[\s\S]*?min-height:\s*0/,
+    );
+    expect(css).not.toMatch(/--astra-action:\s*#[0-9a-f]{6}/i);
   });
 
   it('uses the approved blue ink and antique gold roles', () => {
-    expect(css).toMatch(/--astra-action:\s*#4E5A70/i);
-    expect(css).toMatch(/--astra-focus:\s*#3F7280/i);
+    expect(brandCss).toMatch(/--astra-action:\s*#4e5a70/i);
+    expect(brandCss).toMatch(/--astra-focus:\s*#3f7280/i);
     expect(css).toMatch(/--astra-accent:\s*var\(--astra-action\)/);
-    expect(css).toMatch(/--astra-link:\s*var\(--astra-action\)/);
-    expect(css).toMatch(/--astra-c-decision:\s*#A67C3C/i);
-    expect(css).toMatch(/--astra-c-decision-ink:\s*#765A2F/i);
-    expect(css).toMatch(/--astra-c-insight-ink:\s*#4E5A70/i);
+    expect(brandCss).toMatch(/--astra-link:\s*var\(--astra-action\)/);
+    expect(brandCss).toMatch(/--astra-c-decision:\s*#a67c3c/i);
+    expect(brandCss).toMatch(/--astra-c-decision-ink:\s*#765a2f/i);
+    expect(brandCss).toMatch(/--astra-c-insight-ink:\s*#4e5a70/i);
     expect(css).toMatch(
       /\.astra-decision__toggle button\.is-active\s*\{[\s\S]*?background:\s*var\(--astra-c-decision-soft\)/,
     );
@@ -132,16 +153,16 @@ describe('portable brand-token boundary', () => {
   });
 
   it('keeps paper typography editorial and technical chrome sans/mono', () => {
-    expect(css).toMatch(/--astra-heading:\s*"Quattrocento"/);
-    expect(css).toMatch(/--astra-serif:\s*"Newsreader"/);
-    expect(css).toMatch(/--astra-ui:\s*"IBM Plex Sans"/);
+    expect(brandCss).toMatch(/--astra-heading:\s*"Quattrocento"/);
+    expect(brandCss).toMatch(/--astra-serif:\s*"Newsreader"/);
+    expect(css).toMatch(/--astra-ui:\s*var\(--astra-label\)/);
     expect(css).toMatch(/article,\s*article :is\(p, li, dd, dt, blockquote\)\s*\{[\s\S]*?font-family:\s*var\(--astra-serif\)/);
     expect(css).toMatch(/\.astra-card__kind\s*\{[\s\S]*?font-family:\s*var\(--astra-ui\)/);
   });
 
   it('keeps scientific artifacts on a paper-and-ink canvas', () => {
-    expect(css).toMatch(/--astra-artifact-paper:\s*#FFFFFF/i);
-    expect(css).toMatch(/--astra-artifact-ink:\s*#221F20/i);
+    expect(brandCss).toMatch(/--astra-artifact-paper:\s*#ffffff/i);
+    expect(brandCss).toMatch(/--astra-artifact-ink:\s*#221f20/i);
     expect(css).toMatch(/\.astra-output--table table\s*\{[\s\S]*?background:\s*var\(--astra-artifact-paper\)/);
     expect(css).toMatch(/\.astra-output--table table\s*\{[\s\S]*?color:\s*var\(--astra-artifact-ink\)/);
   });
@@ -153,10 +174,10 @@ describe('portable brand-token boundary', () => {
   });
 
   it.each([
-    ['article', articlePage],
+    ['article', articlePageWrapper],
     ['book', bookRoute],
   ])('%s publication opts into the brand scope and follows MyST dark mode', (_, source) => {
-    expect(source).toContain('astra-brand');
+    expect(source).toContain('lightcone-brand');
     expect(source).toContain('data-astra-color-scheme={theme ?? undefined}');
     expect(source).toContain('useThemeSwitcher');
   });

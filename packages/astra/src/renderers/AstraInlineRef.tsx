@@ -31,6 +31,10 @@ import { decisionEvidenceInsights } from '../store/decisionEvidence';
 import { PreviewCard } from '../card/PreviewCard';
 import { CardChrome, DataFlow, InsightCard, InsightRef } from '../card';
 import { AstraCite } from '../cite';
+import {
+  isPublicationRecordKind,
+  usePublicationOpenReference,
+} from '../publication/AstraPublicationProvider';
 import type {
   AstraKind,
   InlineAstra,
@@ -364,6 +368,13 @@ export const AstraInlineRef: React.FC<{ node: GenericNode }> = ({ node }) => {
   const inline = readInline(node);
   const kind = inline?.kind;
   const id = inline?.id;
+  const canonicalPath = (inline as (InlineAstra & { canonicalPath?: string }) | undefined)
+    ?.canonicalPath;
+  const openPublicationReference = usePublicationOpenReference();
+  const activate =
+    kind && id && isPublicationRecordKind(kind) && openPublicationReference
+      ? () => openPublicationReference({ kind, id, canonicalPath })
+      : undefined;
 
   // Always call the hook (stable order); it returns undefined on any miss.
   // The path key resolves cross-scope refs (entries merged from sub-analyses).
@@ -373,7 +384,22 @@ export const AstraInlineRef: React.FC<{ node: GenericNode }> = ({ node }) => {
 
   // No payload, no entry, or a kind we don't card (e.g. value) → bare token.
   if (!kind || !entry) {
-    return <>{token}</>;
+    return activate ? (
+      <span
+        className="astra-ref-trigger"
+        role="button"
+        tabIndex={0}
+        onClick={activate}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            activate();
+          }
+        }}
+      >
+        {token}
+      </span>
+    ) : <>{token}</>;
   }
 
   const body = renderCardBody(kind, entry);
@@ -405,7 +431,7 @@ export const AstraInlineRef: React.FC<{ node: GenericNode }> = ({ node }) => {
 
   return (
     <>
-      <PreviewCard kind={kind} trigger={trigger}>
+      <PreviewCard kind={kind} trigger={trigger} onActivate={activate}>
         {body}
       </PreviewCard>
       {insightDoi ? (

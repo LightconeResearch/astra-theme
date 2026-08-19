@@ -183,7 +183,7 @@ export default function Page() {
           <ThebeLoaderAndServer baseurl={baseurl}>
             <article
               ref={container}
-              className="astra-brand article-grid subgrid-gap col-screen article content"
+              className="lightcone-brand article-grid subgrid-gap col-screen article content"
               data-astra-color-scheme={theme ?? undefined}
               suppressHydrationWarning
             >

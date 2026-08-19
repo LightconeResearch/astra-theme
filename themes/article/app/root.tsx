@@ -23,6 +23,8 @@ import { ANY_RENDERERS } from '@myst-theme/anywidget';
 // Merged LAST so its class-selector renderers win for `astra-*` nodes; every
 // other node falls back to the stock article-theme renderer. See packages/astra.
 import { ASTRA_RENDERERS } from '@astra-spec/theme-astra';
+import brandStyles from '@lightcone-research/lightcone-brand/theme.css';
+import astraUiComponentStyles from '@lightcone-research/astra-ui/components.css';
 import astraStyles from '@astra-spec/theme-astra/styles/astra.css';
 
 const RENDERERS: NodeRenderers = mergeRenderers([
@@ -44,15 +46,8 @@ export const links: LinksFunction = () => {
   return [
     { rel: 'stylesheet', href: tailwind },
     { rel: 'stylesheet', href: thebeCoreCss },
-    // ASTRA design system (Lightcone Research branding) — layered over
-    // article-theme's styles. Brand typefaces: Quattrocento (headings),
-    // Alegreya (subheadings/labels), Newsreader (body).
-    { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-    { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
-    {
-      rel: 'stylesheet',
-      href: 'https://fonts.googleapis.com/css2?family=Quattrocento:wght@400;700&family=Alegreya:ital,wght@0,400..700;1,400..700&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=JetBrains+Mono:wght@400;500&display=swap',
-    },
+    { rel: 'stylesheet', href: brandStyles },
+    { rel: 'stylesheet', href: astraUiComponentStyles },
     { rel: 'stylesheet', href: astraStyles },
     {
       rel: 'stylesheet',

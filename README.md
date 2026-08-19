@@ -45,7 +45,7 @@ The release-time dependency boundary is deliberately explicit:
 
 Once the token package is published, the themes will load exactly
 `@lightcone-research/lightcone-brand/brand.css`, opt the publication wrapper
-into `.astra-brand`, and synchronize `data-astra-color-scheme` with MyST's theme
+into `.lightcone-brand`, and synchronize `data-astra-color-scheme` with MyST's theme
 switcher. They do not load the portable host mapping (`theme.css`) or any
 inventory/application entry point. This checkout retains the same canonical
 variables locally until then, so it remains buildable from a clean install. The
@@ -54,7 +54,7 @@ path, git submodule, or sibling-checkout requirement.
 
 Until that release boundary exists, `astra.css` also defines the same colours on
 `:root` / `html.dark` as a compatibility fallback for MyST header and page chrome,
-which sit above the scoped article wrapper. The explicit `.astra-brand` light/dark
+which sit above the scoped article wrapper. The explicit `.lightcone-brand` light/dark
 selectors win inside the publication. Publication-only typography then overrides
 the portable viewer font roles: papers retain Quattrocento/Newsreader, while ASTRA
 controls and metadata use an offline-safe system UI stack.
