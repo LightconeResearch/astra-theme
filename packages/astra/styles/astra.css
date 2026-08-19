@@ -7,96 +7,31 @@
 
    Conventions
    -----------
-   - Every token is prefixed --astra-. :root/html provide a temporary fallback
-     for legacy site chrome; .astra-brand can select light/dark explicitly.
+   - Every token is prefixed --astra-. The official lightcone-brand package
+     owns the palette/type tokens; this sheet adds publication-only aliases.
    - Every class below is part of the theme's internal contract: the renderers in
      packages/astra/src/ emit these classes, this file styles them.
    - Restrained, print-like. Hairline rules over heavy borders, no loud colour.
    ========================================================================== */
 
-/* Fonts (Quattrocento / Alegreya / Newsreader / JetBrains Mono) are linked by
-   the theme in app/root.tsx (<link rel="stylesheet">), not @import-ed here, so
-   this file can be bundled at any position by the Remix/esbuild CSS pipeline.
-   Technical chrome uses --astra-ui, whose system fallbacks require no new font
-   download. */
+/* Brand fonts are bundled by @lightcone-research/lightcone-brand, so static
+   publications remain self-contained and make no Google Fonts request. */
 
 /* -----------------------------------------------------------------------------
    1. Tokens
    -------------------------------------------------------------------------- */
-/* `@lightcone-research/lightcone-brand` is not consumed here yet. These values
-   intentionally mirror its host-neutral brand contract so this released MyST
-   template remains self-contained. Once that package is published this block
-   becomes one `brand.css` import; never replace it with a sibling `file:` dep. */
-:root,
-.astra-brand[data-astra-color-scheme="light"] {
-  /* Viewer-aligned canvas -> paper panel -> raised surface hierarchy. */
-  --astra-canvas: #F1EFE9;
-  --astra-panel: #F8F7F3;
-  --astra-raised: #FFFFFF;
-  --astra-hover: #F1EFE9;
-  --astra-artifact-paper: #FFFFFF;
-  --astra-artifact-ink: #221F20;
-
-  --astra-paper: var(--astra-panel);
-  --astra-surface: var(--astra-raised);
+.lightcone-brand {
+  /* Publication vocabulary layered on the portable brand contract. */
+  /* The page ground is the brand canvas (parchment in light, charcoal in
+     dark); the header band, abstract well, and cards sit on it as raised
+     panel surfaces — paper on parchment. */
+  --astra-paper: var(--astra-canvas);
+  --astra-surface: var(--astra-panel);
   --astra-surface-2: var(--astra-hover);
-
-  --astra-ink: #221F20;
-  --astra-ink-soft: #4E5A70;
-  --astra-muted: #8B7D70;
-  --astra-faint: #B8B0A8;
-
-  --astra-rule-subtle: #F0EDE6;
-  --astra-rule: #EAE7E0;
-  --astra-rule-strong: #D5D2CB;
-
-  /* Generic links use Blue Ink; methodological decisions use Antique Gold. */
-  --astra-action: #4E5A70;
-  --astra-focus: #3F7280;
   --astra-accent: var(--astra-action);
-  --astra-link: var(--astra-action);
-  --astra-accent-soft: rgba(78, 90, 112, 0.10);
-  --astra-kicker: #3F7280;
-
-  /* shared ASTRA semantic palette from the provenance overview */
-  --astra-c-input: #4E5A70;
-  --astra-c-analysis: #3F7280;
-  --astra-c-output: #3B7A73;
-  --astra-c-decision: #A67C3C;
-  --astra-c-decision-ink: #765A2F;
-  --astra-c-finding: #A45A43;
-  --astra-c-insight: #8B7D70;
-  --astra-c-insight-ink: #4E5A70;
-  --astra-c-result: #221F20;
-  --astra-c-value: #3F7280;
-  --astra-c-danger: #A45A43;
   --astra-c-constraint: var(--astra-c-danger);
-
-  --astra-c-input-soft: rgba(78, 90, 112, 0.10);
-  --astra-c-analysis-soft: rgba(63, 114, 128, 0.10);
-  --astra-c-output-soft: rgba(59, 122, 115, 0.10);
-  --astra-c-decision-soft: rgba(166, 124, 60, 0.11);
-  --astra-c-finding-soft: rgba(164, 90, 67, 0.10);
-  --astra-c-insight-soft: rgba(139, 125, 112, 0.11);
-  --astra-c-value-soft: rgba(63, 114, 128, 0.10);
-  --astra-c-danger-soft: rgba(164, 90, 67, 0.09);
-
-  /* layout + type — the three brand typefaces by role */
-  --astra-measure: 40rem;      /* the 640px editorial column */
-  --astra-heading: "Quattrocento", Georgia, "Times New Roman", serif;
-  --astra-serif: "Newsreader", Georgia, "Times New Roman", serif; /* body */
-  --astra-label: "Alegreya", Georgia, serif; /* subheadings, kickers, UI labels */
-  --astra-ui: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --astra-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
-
-  /* compact technical chrome; paper measure remains unchanged */
-  --astra-card-w: 27.5rem;     /* 440px overlay width */
-  --astra-radius: 5px;
-  --astra-radius-panel: 10px;
-  --astra-shadow: 0 4px 14px rgba(40, 36, 28, 0.10);
-
-  /* the kind accent in scope — overridden by .astra-card--<kind> etc. */
-  --astra-kind: var(--astra-action);
+  --astra-ui: var(--astra-label);
+  min-height: 100vh;
 }
 
 /* -----------------------------------------------------------------------------
@@ -111,7 +46,7 @@
    mode-agnostic rules yields parchment in light and brand charcoal in
    dark. `!important` beats book-theme's `bg-white` / `dark:bg-stone-900` body
    utilities (specificity 0,1,0). */
-body {
+.lightcone-brand {
   background: var(--astra-paper) !important;
   color: var(--astra-ink);
 }
@@ -122,8 +57,22 @@ body {
    collapsing through it. */
 .myst-article-header {
   display: flow-root;
-  background: var(--astra-surface);
+  /* The masthead shares the page's parchment (the brand header step), not a
+     raised white panel; the hairline rule closes the band. */
+  background: var(--astra-header);
   border-bottom: 1px solid var(--astra-rule);
+}
+/* The Lightcone mark + ASTRA wordmark in the eyebrow row. */
+.myst-header-logo img {
+  display: block;
+  height: 1.5rem;
+  width: auto;
+}
+.myst-header-wordmark {
+  font-family: var(--astra-label);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--astra-ink);
 }
 /* The abstract well ships cool slate (bg-slate-50 / dark:bg-slate-800) from
    @myst-theme/site; keep it on the same warm surface ramp as the header band
@@ -169,7 +118,7 @@ article :is(h1, h2, h3, h4, h5, h6),
 :root:root article :is(p, li, blockquote) a { color: var(--astra-link); }
 :root:root article hr { border-color: var(--astra-rule); }
 
-.astra-brand :where(button, a, input, select, textarea):focus-visible {
+.lightcone-brand :where(button, a, input, select, textarea):focus-visible {
   outline: 2px solid var(--astra-focus);
   outline-offset: 2px;
 }
@@ -430,7 +379,9 @@ hr.astra-rule {
   border: 1px solid var(--astra-rule-strong);
   border-radius: var(--astra-radius-panel);
   box-shadow: var(--astra-shadow);
-  padding: 14px 16px;
+  /* Padding lives on the scroll layer (and footer) so the header rule and the
+     footer strip can run edge-to-edge like the detail dialog's header rule. */
+  padding: 0;
   font-family: var(--astra-serif);
   color: var(--astra-ink);
   font-size: 14px;
@@ -452,41 +403,89 @@ hr.astra-rule {
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: var(--astra-faint) transparent;
+  padding: 13px 16px 14px;
 }
 
+/* Header block — a miniature of the detail dialog's header: a kind-coloured
+   small-caps eyebrow (glyph + kind), the record title in the heading face,
+   and a hairline rule closing the band edge-to-edge. */
 .astra-card__kind {
-  align-self: flex-start;
-  width: fit-content;
-  font-family: var(--astra-ui);
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--astra-kind-ink);
-  background: var(--astra-kind-soft);
-  border: 1px solid color-mix(in srgb, var(--astra-kind) 28%, var(--astra-rule));
-  border-radius: 3px;
-  padding: 2px 6px;
   display: flex;
   align-items: center;
-  gap: 0.55em;
-  margin-bottom: 0.45rem;
+  gap: 0.5em;
+  font-family: var(--astra-ui);
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--astra-kind-ink);
+  margin: 0 0 0.3rem;
 }
 
 .astra-card__kind::before {
   content: var(--astra-glyph, "");
-  font-size: 1em;
+  font-size: 1.05em;
   line-height: 1;
 }
 
 .astra-card__title {
-  font-family: var(--astra-ui);
+  font-family: var(--astra-heading);
   font-weight: 700;
-  font-size: 15px;
-  line-height: 1.3;
-  letter-spacing: -0.01em;
+  font-size: 16px;
+  line-height: 1.25;
+  letter-spacing: -0.005em;
   color: var(--astra-ink);
   margin: 0 0 0.4rem;
+}
+
+/* The rule closes the header after the title when there is one, or after the
+   eyebrow itself on untitled cards (the insight card's claim leads). Negative
+   margins run it edge-to-edge through the scroll layer's padding. */
+.astra-card__kind + .astra-card__title,
+.astra-card__kind:not(:has(+ .astra-card__title)) {
+  margin-left: -16px;
+  margin-right: -16px;
+  padding-left: 16px;
+  padding-right: 16px;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid var(--astra-rule);
+  margin-bottom: 0.75rem;
+}
+
+/* Footer affordance on clickable publication references: a quiet small-caps
+   strip pinned under the scroll region, promising the full record dialog. */
+.astra-card__open {
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
+  width: 100%;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  border: 0;
+  border-top: 1px solid var(--astra-rule);
+  border-radius: 0 0 calc(var(--astra-radius-panel) - 1px) calc(var(--astra-radius-panel) - 1px);
+  background: transparent;
+  color: var(--astra-muted);
+  font-family: var(--astra-ui);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  text-align: left;
+  padding: 6px 16px 7px;
+  cursor: pointer;
+}
+
+.astra-card__open-glyph {
+  font-size: 1.35em;
+  line-height: 1;
+  color: var(--astra-kind-ink);
+}
+
+.astra-card__open:hover,
+.astra-card__open:focus-visible {
+  color: var(--astra-kind-ink);
+  background: var(--astra-kind-soft);
 }
 
 .astra-card__desc {
@@ -901,82 +900,22 @@ details.astra-decision + details.myst-dropdown {
   font-weight: 600;
 }
 
-/* provenance drawer: inputs → recipe → artifact */
-.astra-output__provenance {
-  margin-top: 0.75rem;
-  border: 1px solid var(--astra-rule);
-  border-radius: var(--astra-radius);
-  background: var(--astra-surface-2);
+/* Registered publication figures and tables open astra-ui's OutputDialog.
+   Keep the article artifact visually primary while making the entire result
+   surface an obvious keyboard- and pointer-accessible trigger. */
+.astra-output[data-astra-openable="true"] {
+  cursor: zoom-in;
+  transition: border-color 120ms ease, background-color 120ms ease;
 }
 
-.astra-output__provenance > summary {
-  list-style: none;
-  cursor: pointer;
-  padding: 0.5rem 0.75rem;
-  font-family: var(--astra-ui);
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: var(--astra-muted);
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-}
-.astra-output__provenance > summary::-webkit-details-marker { display: none; }
-.astra-output__provenance > summary::before {
-  content: "\25B8"; /* ▸ */
-  color: var(--astra-kind);
-  transition: transform 120ms ease;
-}
-.astra-output__provenance[open] > summary::before { transform: rotate(90deg); }
-
-.astra-output__provenance > *:not(summary) {
-  padding: 0 0.85rem 0.75rem;
+.astra-output[data-astra-openable="true"]:hover {
+  border-color: var(--astra-c-output);
+  background: color-mix(in srgb, var(--astra-c-output) 4%, var(--astra-surface));
 }
 
-/* a single row inside the provenance drawer */
-.astra-output__prov-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.4em;
-  font-family: var(--astra-mono);
-  font-size: 11px;
-  color: var(--astra-muted);
-}
-
-/* the decisions list: one decision ref per row, with its selection */
-.astra-output__prov-decisions {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-.astra-output__prov-decisions .astra-ref {
-  font-family: var(--astra-ui);
-  font-size: 12px;
-}
-
-/* "via <scope>" marker on decisions inherited through another scope */
-.astra-prov-via {
-  font-family: var(--astra-ui);
-  font-style: italic;
-  font-size: 11px;
-  color: var(--astra-muted);
-}
-
-/* the option selected under the active universe */
-.astra-prov-selection {
-  font-family: var(--astra-ui);
-  font-size: 12px;
-  color: var(--astra-ink-soft);
-}
-.astra-prov-selection::before {
-  content: "\2192\00A0"; /* → */
-  color: var(--astra-faint);
+.astra-output[data-astra-openable="true"]:focus-visible {
+  outline: 2px solid var(--astra-focus);
+  outline-offset: 3px;
 }
 
 /* a thumbnail preview of the produced artifact */
@@ -1338,68 +1277,9 @@ details.astra-decision + details.myst-dropdown {
 }
 
 /* -----------------------------------------------------------------------------
-   12. Dark mode — the same semantic grammar on a warm charcoal canvas, with
-   kind hues lifted just enough to hold contrast.
-   Keyed on `html.dark`, NOT `prefers-color-scheme`: book-theme's dark mode is
-   class-based (theme cookie, falling back to a pre-hydration script that maps
-   the OS preference onto the class — `html.dark` is the single source of
-   truth and can diverge from the media query after a toggle). `html.dark`
-   (0,1,1) outranks the `:root` (0,1,0) light defaults above.
+   12. Dark mode palette is supplied by lightcone-brand via
+   data-astra-color-scheme="dark" on the publication frame.
    -------------------------------------------------------------------------- */
-html.dark,
-.astra-brand[data-astra-color-scheme="dark"] {
-  --astra-canvas: #171614;
-  --astra-panel: #1E1D1A;
-  --astra-raised: #272520;
-  --astra-hover: #302D27;
-  --astra-artifact-paper: #F8F7F3;
-  --astra-artifact-ink: #221F20;
-
-  --astra-paper: var(--astra-panel);
-  --astra-surface: var(--astra-raised);
-  --astra-surface-2: var(--astra-hover);
-
-  --astra-ink: #F2EEE7;
-  --astra-ink-soft: #C4BDB2;
-  --astra-muted: #A39B90;
-  --astra-faint: #777168;
-
-  --astra-rule-subtle: #302D28;
-  --astra-rule: #3B3731;
-  --astra-rule-strong: #514B42;
-
-  --astra-action: #AEB8CA;
-  --astra-focus: #86ADB7;
-  --astra-accent: var(--astra-action);
-  --astra-link: var(--astra-action);
-  --astra-accent-soft: rgba(174, 184, 202, 0.16);
-  --astra-kicker: #86ADB7;
-
-  --astra-c-input: #AEB8CA;
-  --astra-c-analysis: #86ADB7;
-  --astra-c-output: #79B6AE;
-  --astra-c-decision: #D8B477;
-  --astra-c-decision-ink: #D8B477;
-  --astra-c-finding: #D6927D;
-  --astra-c-insight: #C2B5A9;
-  --astra-c-insight-ink: #C2B5A9;
-  --astra-c-result: #F2EEE7;
-  --astra-c-value: #86ADB7;
-  --astra-c-danger: #D6927D;
-  --astra-c-constraint: var(--astra-c-danger);
-
-  --astra-c-input-soft: rgba(174, 184, 202, 0.15);
-  --astra-c-analysis-soft: rgba(134, 173, 183, 0.15);
-  --astra-c-output-soft: rgba(121, 182, 174, 0.14);
-  --astra-c-decision-soft: rgba(216, 180, 119, 0.14);
-  --astra-c-finding-soft: rgba(214, 146, 125, 0.15);
-  --astra-c-insight-soft: rgba(194, 181, 169, 0.15);
-  --astra-c-value-soft: rgba(134, 173, 183, 0.15);
-  --astra-c-danger-soft: rgba(214, 146, 125, 0.13);
-
-  --astra-shadow: 0 5px 18px rgba(0, 0, 0, .38);
-  --astra-kind: var(--astra-action);
-}
 
 /* Transparent-background figure PNGs (matplotlib default) are unreadable on
    charcoal — dark axis labels vanish. Give artifact images a paper backdrop
@@ -1409,11 +1289,23 @@ html.dark,
 html.dark .astra-output img,
 html.dark .astra-output__thumb img,
 html.dark .astra-evidence__thumb img,
-.astra-brand[data-astra-color-scheme="dark"] .astra-output img,
-.astra-brand[data-astra-color-scheme="dark"] .astra-output__thumb img,
-.astra-brand[data-astra-color-scheme="dark"] .astra-evidence__thumb img {
+.lightcone-brand[data-astra-color-scheme="dark"] .astra-output img,
+.lightcone-brand[data-astra-color-scheme="dark"] .astra-output__thumb img,
+.lightcone-brand[data-astra-color-scheme="dark"] .astra-evidence__thumb img {
   background: var(--astra-artifact-paper);
   border-radius: 3px;
+}
+
+.astra-ref-trigger[role="button"] {
+  cursor: pointer;
+}
+
+/* Preview cards are portaled outside the article and carry `.lightcone-brand` so
+   they retain the official token/font contract. They are floating surfaces,
+   not publication roots, so they must not inherit `.lightcone-brand`'s viewport
+   minimum height. */
+.astra-card-portal.lightcone-brand {
+  min-height: 0;
 }
 
 /* -----------------------------------------------------------------------------
