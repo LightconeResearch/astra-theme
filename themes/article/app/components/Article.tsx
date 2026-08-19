@@ -28,7 +28,7 @@ import type { GenericParent } from 'myst-common';
 import { copyNode } from 'myst-common';
 import { SourceFileKind } from 'myst-spec-ext';
 import { MyST } from 'myst-to-react';
-import { AstraStoreProvider } from '@astra-spec/theme-astra';
+import { AstraPublicationProvider } from '@astra-spec/theme-astra';
 
 const TOP_OFFSET = 24;
 
@@ -108,11 +108,11 @@ export function Article({
           {/* The store provider must wrap the frontmatter/backmatter parts too:
               the abstract is extracted from the tree and rendered separately,
               and its astra refs need the store context for preview cards. */}
-          <AstraStoreProvider mdast={tree}>
+          <AstraPublicationProvider mdast={tree}>
             <FrontmatterParts parts={parts} keywords={keywords} hideKeywords={hideKeywords} />
             <MyST ast={tree} />
             <BackmatterParts parts={parts} />
-          </AstraStoreProvider>
+          </AstraPublicationProvider>
           <Footnotes />
           <Bibliography />
           <ConnectionStatusTray />

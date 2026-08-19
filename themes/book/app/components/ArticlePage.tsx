@@ -28,7 +28,7 @@ import {
 } from '@myst-theme/jupyter';
 import { MyST } from 'myst-to-react';
 import { FrontmatterBlock } from '@myst-theme/frontmatter';
-import { AstraStoreProvider, useTemplateOptions } from '@astra-spec/theme-astra';
+import { AstraPublicationProvider, useTemplateOptions } from '@astra-spec/theme-astra';
 import type { TemplateOptions } from '../types.js';
 
 export const ArticlePage = React.memo(function ({
@@ -103,11 +103,11 @@ export const ArticlePage = React.memo(function ({
           {/* The store provider must wrap the frontmatter/backmatter parts too:
               the abstract is extracted from the tree and rendered separately,
               and its astra refs need the store context for preview cards. */}
-          <AstraStoreProvider mdast={tree}>
+          <AstraPublicationProvider mdast={tree}>
             <FrontmatterParts parts={parts} keywords={keywords} hideKeywords={hideKeywords} />
             <MyST ast={tree} />
             <BackmatterParts parts={parts} />
-          </AstraStoreProvider>
+          </AstraPublicationProvider>
           <Footnotes />
           <Bibliography />
           <ConnectionStatusTray />

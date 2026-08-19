@@ -8,4 +8,16 @@
  */
 export { ASTRA_RENDERERS } from './renderers';
 export { AstraStoreProvider } from './store/AstraStoreProvider';
+export {
+  AstraPublicationProvider,
+  createStaticViewerHost,
+  findAstraPublication,
+  postReferenceToParent,
+  usePublicationOpenReference,
+} from './publication/AstraPublicationProvider';
+export type {
+  AstraPublicationBundleV1,
+  AstraPublicationData,
+  AstraPublicationResourceV1,
+} from './publication/AstraPublicationProvider';
 export { useTemplateOptions } from './useTemplateOptions';
