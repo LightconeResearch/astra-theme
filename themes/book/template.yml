@@ -1,12 +1,11 @@
 jtex: v1
 title: ASTRA Book Theme
 description: >-
-  Rich MyST web theme for ASTRA analyses — the presentation half of the
-  @astra-spec pair. Extends @myst-theme/book with glyph-tagged inline references
-  and hover preview cards, decision/finding/output treatments, live-value
-  provenance, and registry tables — keyed on the neutral astra-* markers the
-  @astra-spec/mystra plugin emits. A document that renders cleanly on book-theme
-  renders richly here by changing one line: `site.template: astra-book-theme`.
+  MyST theme for multi-page ASTRA publications. Extends @myst-theme/book with
+  canonical inline references that open the shared @astra-spec/ui record
+  dialog, backed by MySTRA's resolved publication bundle and branded with the
+  Lightcone design foundation. Neutral MyST content remains readable when the
+  ASTRA integration is unavailable.
 version: 0.0.8
 license: BSD-3-Clause
 source: https://github.com/LightconeResearch/astra-theme

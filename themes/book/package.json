@@ -6,7 +6,7 @@
   "private": true,
   "sideEffects": false,
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "scripts": {
     "prod:copy": "cp remix.config.prod.js remix.config.js",

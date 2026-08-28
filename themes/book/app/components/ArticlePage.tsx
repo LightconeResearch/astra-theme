@@ -28,7 +28,7 @@ import {
 } from '@myst-theme/jupyter';
 import { MyST } from 'myst-to-react';
 import { FrontmatterBlock } from '@myst-theme/frontmatter';
-import { AstraStoreProvider, useTemplateOptions } from '@astra-spec/theme-astra';
+import { AstraPublicationProvider, useTemplateOptions } from '@astra-spec/theme-astra';
 import type { TemplateOptions } from '../types.js';
 
 export const ArticlePage = React.memo(function ({
@@ -48,8 +48,8 @@ export const ArticlePage = React.memo(function ({
     useTemplateOptions<TemplateOptions>(article.frontmatter);
   const downloads = combineDownloads(manifest?.downloads, article.frontmatter);
   // copyNode deep-copies the whole article AST; memoize so re-renders (theme
-  // top, media query, compute options) keep stable identities and <MyST> /
-  // the store scan are not invalidated.
+  // top, media query, compute options) keep stable identities for <MyST> and
+  // publication-carrier discovery.
   const { tree, parts } = React.useMemo(() => {
     const tree = copyNode(article.mdast);
     return { tree, parts: extractKnownParts(tree, article.frontmatter?.parts) };
@@ -100,16 +100,14 @@ export const ArticlePage = React.memo(function ({
             <ErrorTray pageSlug={article.slug} />
           )}
           <div id="skip-to-article" />
-          {/* The store provider must wrap the frontmatter/backmatter parts too:
-              the abstract is extracted from the tree and rendered separately,
-              and its astra refs need the store context for preview cards. */}
-          <AstraStoreProvider mdast={tree}>
+          {/* Limit the ASTRA integration seam to rendered article AST surfaces. */}
+          <AstraPublicationProvider mdast={tree}>
             <FrontmatterParts parts={parts} keywords={keywords} hideKeywords={hideKeywords} />
             <MyST ast={tree} />
             <BackmatterParts parts={parts} />
-          </AstraStoreProvider>
-          <Footnotes />
-          <Bibliography />
+            <Footnotes />
+            <Bibliography />
+          </AstraPublicationProvider>
           <ConnectionStatusTray />
           {!hide_footer_links && !hide_all_footer_links && (
             <FooterLinksBlock links={article.footer} />

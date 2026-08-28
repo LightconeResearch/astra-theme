@@ -44,15 +44,7 @@ export const links: LinksFunction = () => {
   return [
     { rel: 'stylesheet', href: tailwind },
     { rel: 'stylesheet', href: thebeCoreCss },
-    // ASTRA design system (Lightcone Research branding) — layered over
-    // article-theme's styles. Brand typefaces: Quattrocento (headings),
-    // Alegreya (subheadings/labels), Newsreader (body).
-    { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-    { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
-    {
-      rel: 'stylesheet',
-      href: 'https://fonts.googleapis.com/css2?family=Quattrocento:wght@400;700&family=Alegreya:ital,wght@0,400..700;1,400..700&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=JetBrains+Mono:wght@400;500&display=swap',
-    },
+    // Includes @astra-spec/ui and the bundled Lightcone brand adapter.
     { rel: 'stylesheet', href: astraStyles },
     {
       rel: 'stylesheet',

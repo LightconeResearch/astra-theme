@@ -66,8 +66,7 @@ jobs:
         run: |
           set -euo pipefail
           v="${VERSION#v}" # strip leading "v": v0.0.8 -> 0.0.8
-          # Themes + overlay + root move in lockstep; store-types versions independently
-          # (it mirrors the MySTRA plugin's store contract).
+          # Themes + overlay + root move in lockstep.
           npm version "$v" --no-git-tag-version --allow-same-version \
             --include-workspace-root -w packages/astra -w themes/article -w themes/book
           sed -i -E "s/^version:.*/version: $v/" themes/${{ matrix.theme }}/template.yml
