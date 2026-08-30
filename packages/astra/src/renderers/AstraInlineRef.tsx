@@ -1,4 +1,9 @@
-import type { NodeRenderer } from '@myst-theme/providers';
+import {
+  useBaseurl,
+  useLinkProvider,
+  withBaseurl,
+  type NodeRenderer,
+} from '@myst-theme/providers';
 import { Button, surfaceGlyph } from '@astra-spec/ui/primitives';
 import { recordTitle } from '@astra-spec/ui/model';
 import type { GenericNode } from 'myst-common';
@@ -22,10 +27,25 @@ function canonicalPath(node: GenericNode): string | undefined {
     : undefined;
 }
 
+function analysisHref(node: GenericNode): string | undefined {
+  const astra = (
+    node.data as {
+      astra?: { analysisPath?: unknown; href?: unknown };
+    } | undefined
+  )?.astra;
+  return typeof astra?.analysisPath === 'string' &&
+    typeof astra.href === 'string'
+    ? astra.href
+    : undefined;
+}
+
 /** Turn a canonical ASTRA reference into the shared record-dialog trigger. */
 export const AstraInlineRef: NodeRenderer = ({ node, className }) => {
   const publication = useAstraPublication();
+  const Link = useLinkProvider();
+  const baseurl = useBaseurl();
   const canonical = canonicalPath(node);
+  const href = analysisHref(node);
   const record = canonical
     ? publication?.index.recordByPath.get(canonical)
     : undefined;
@@ -40,7 +60,17 @@ export const AstraInlineRef: NodeRenderer = ({ node, className }) => {
         className={carrierClass || 'astra-ref'}
         style={node.style}
       >
-        <MyST ast={node.children} />
+        {href ? (
+          <Link
+            to={withBaseurl(href, baseurl)}
+            prefetch="intent"
+            className="link"
+          >
+            <MyST ast={node.children} />
+          </Link>
+        ) : (
+          <MyST ast={node.children} />
+        )}
       </span>
     );
   }

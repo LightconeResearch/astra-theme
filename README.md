@@ -37,7 +37,9 @@ The MySTRA carrier contract consumed here is:
   `bundle` is an SDK `ResolvedAnalysisBundle`;
 - `div.astra-publication-resources` containing static link nodes whose
   `data.astraArtifact` identifies an output path and cache token; and
-- inline `astra-ref` nodes carrying `data.astra.canonicalPath`.
+- inline `astra-ref` nodes carrying `data.astra.canonicalPath` for record
+  dialogs, or `data.astra.analysisPath` and `data.astra.href` for mapped
+  analysis-page links.
 
 Unsupported or malformed carrier data falls back to the neutral MyST rendering.
 

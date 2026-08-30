@@ -526,6 +526,30 @@ describe('AstraPublicationProvider', () => {
     expect(wrapper).toHaveStyle({ color: 'rgb(12, 34, 56)' });
   });
 
+  it('links an analysis reference to its mapped MyST page', () => {
+    const node: GenericNode = {
+      type: 'span',
+      class: 'astra-ref astra-ref--analysis',
+      data: {
+        astra: {
+          kind: 'analysis',
+          id: 'sub',
+          analysisPath: 'sub',
+          href: '/sub',
+        },
+      },
+      children: [
+        { type: 'text', value: 'the sub-analysis', key: 'reference-sub' },
+      ],
+    };
+    renderReference(publicationTree(), node);
+
+    expect(
+      screen.getByRole('link', { name: 'the sub-analysis' }),
+    ).toHaveAttribute('href', '/sub');
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
   it('keeps the neutral inline fallback when no publication resolves', () => {
     renderReference({ type: 'root', children: [] });
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
