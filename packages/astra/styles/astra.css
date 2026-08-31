@@ -178,13 +178,20 @@
   scrollbar-color: var(--astra-faint) transparent;
 }
 
-/* FloatingArrow used an unstyled black path in the released cards. */
+/* Keep the preview pointer high-contrast against the page behind the card. */
 .lightcone-brand.astra-ui.astra-preview-popover-portal
   .astra-preview-popover__arrow,
 .lightcone-brand.astra-ui.astra-preview-popover-portal
   .astra-preview-popover__arrow path {
   fill: #000;
   stroke: none;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal[data-astra-color-scheme="dark"]
+  .astra-preview-popover__arrow,
+.lightcone-brand.astra-ui.astra-preview-popover-portal[data-astra-color-scheme="dark"]
+  .astra-preview-popover__arrow path {
+  fill: #fff;
 }
 
 .lightcone-brand.astra-ui.astra-preview-popover-portal

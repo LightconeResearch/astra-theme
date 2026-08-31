@@ -54,6 +54,9 @@ describe('shared ASTRA stylesheet contract', () => {
     );
     expect(css).toContain('.astra-preview-popover__arrow path');
     expect(css).toContain('fill: #000;');
+    expect(css).toMatch(
+      /\.lightcone-brand\.astra-ui\.astra-preview-popover-portal\[data-astra-color-scheme="dark"\][^{}]*\.astra-preview-popover__arrow path \{\s*fill: #fff;/,
+    );
     expect(css).toContain('font: 600 20px/1.25 var(--astra-label);');
     expect(css).toContain('font: 500 10px/1.5 var(--astra-label);');
     expect(css).toContain('border-left: 2px solid var(--astra-rule-strong);');
