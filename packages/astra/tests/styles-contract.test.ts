@@ -50,8 +50,21 @@ describe('shared ASTRA stylesheet contract', () => {
     );
     expect(css).toContain('max-width: calc(100vw - 2rem);');
     expect(css).toContain(
-      'border-color: color-mix(in srgb, var(--astra-kind) 55%, transparent);',
+      'border: 1px solid color-mix(in srgb, var(--astra-kind) 55%, transparent);',
     );
+    expect(css).toContain('.astra-preview-popover__arrow path');
+    expect(css).toContain('fill: #000;');
+    expect(css).toContain('font: 600 20px/1.25 var(--astra-label);');
+    expect(css).toContain('font: 500 10px/1.5 var(--astra-label);');
+    expect(css).toContain('border-left: 2px solid var(--astra-rule-strong);');
+    expect(css).toContain('font: 400 11px/1.5 var(--astra-mono);');
+    expect(css).toContain('data-value-product');
+    expect(css).toContain('color: #60a5fa;');
+    expect(css).toContain('color: #3b82f6;');
+    expect(css).toContain('color: #93c5fd;');
+    expect(css).toContain('.astra-citation-preview-portal');
+    expect(css).toContain('.astra-citation-preview');
+    expect(css).toContain('z-index: 70;');
     expect(css).toContain(
       '.astra-record-preview__artifact > .astra-output__thumb > img',
     );

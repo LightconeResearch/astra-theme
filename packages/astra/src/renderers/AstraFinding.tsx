@@ -5,6 +5,7 @@ import type { GenericNode } from 'myst-common';
 
 import {
   BlockKindLabel,
+  displayScope,
   NeutralNode,
   nodeClassName,
   nodeHtmlId,
@@ -101,6 +102,10 @@ export function AstraFinding({ node }: AstraFindingProps): React.ReactElement {
   }
 
   const { publication, record } = located;
+  const scope = displayScope(
+    record.scope,
+    publication.document.universe.universeId,
+  );
   const hasNeutralFallback = Boolean(node.children?.length);
   const notesAppearInNeutral = Boolean(
     record.notes && hasNeutralFallback && neutralIncludes(node, record.notes),
@@ -127,9 +132,9 @@ export function AstraFinding({ node }: AstraFindingProps): React.ReactElement {
       <div className="astra-finding__claim">
         <Prose text={record.claim} field="claim" />
       </div>
-      {showScope && record.scope ? (
+      {showScope && scope ? (
         <span className="astra-scope-chip">
-          <Prose text={record.scope} />
+          <Prose text={scope} />
         </span>
       ) : null}
       {showNotes && record.notes ? (

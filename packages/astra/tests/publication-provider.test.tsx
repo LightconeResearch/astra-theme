@@ -133,7 +133,7 @@ describe('AstraPublicationProvider', () => {
     expect(screen.getByTestId('publication')).toHaveTextContent('neutral');
   });
 
-  it('keeps shared unavailable states for visual artifacts the host cannot render', () => {
+  it('omits unavailable compact artifacts while retaining full-detail states', () => {
     const publication = {
       ...makePublication(),
       artifactUrls: new Map<string, string>(),
@@ -147,9 +147,7 @@ describe('AstraPublicationProvider', () => {
     const { container, rerender } = render(
       <>{renderArtifact(figure as ResolvedOutput, { compact: true })}</>,
     );
-    expect(container.querySelector('[data-slot="artifact-preview"]')).toHaveTextContent(
-      'This host has not supplied an artifact preview.',
-    );
+    expect(container.querySelector('[data-slot="artifact-preview"]')).toBeNull();
 
     const table = { ...figure, type: 'table' } as ResolvedOutput;
     rerender(<>{renderArtifact(table, { compact: false })}</>);

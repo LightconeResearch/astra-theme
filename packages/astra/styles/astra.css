@@ -151,46 +151,626 @@
   );
 }
 
-/* Keep the established card's mobile gutter and kind-tinted four-sided hairline;
-   astra-ui intentionally defaults to a tighter gutter and a tinted top only. */
-:where(.lightcone-brand.astra-ui, .lightcone-brand .astra-ui)
+/* MyST's prose rules are deliberately unlayered, while astra-ui ships its
+   portable component styles in cascade layers. Reassert the released ASTRA
+   card contract only at the branded portal boundary so those page rules
+   cannot leak into RecordPreview. The shared component still owns structure,
+   content, positioning, interaction and accessibility. */
+.lightcone-brand.astra-ui.astra-preview-popover-portal
   .astra-preview-popover {
   max-width: calc(100vw - 2rem);
-}
-:where(.lightcone-brand.astra-ui, .lightcone-brand .astra-ui)
-  .astra-preview-popover__surface {
-  border-color: color-mix(in srgb, var(--astra-kind) 55%, transparent);
+  color: var(--astra-ink);
+  font: 400 15px/1.5 var(--astra-serif);
 }
 
-/* The shared artifact preview keeps the legacy card's unpadded thumbnail.
-   RecordPreview owns the outer hairline, so suppress the nested legacy border
-   and let the image fill that frame. */
-:where(.lightcone-brand.astra-ui, .lightcone-brand .astra-ui)
-  .astra-record-preview__artifact > .astra-output__thumb {
-  border: 0;
-  border-radius: inherit;
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-preview-popover__surface {
+  box-sizing: border-box;
+  padding: 19px 20px;
+  border: 1px solid color-mix(in srgb, var(--astra-kind) 55%, transparent);
+  border-radius: var(--astra-radius);
+  background: var(--astra-surface);
+  box-shadow: var(--astra-shadow);
 }
-:where(.lightcone-brand.astra-ui, .lightcone-brand .astra-ui)
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-preview-popover__scroll {
+  scrollbar-color: var(--astra-faint) transparent;
+}
+
+/* FloatingArrow used an unstyled black path in the released cards. */
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-preview-popover__arrow,
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-preview-popover__arrow path {
+  fill: #000;
+  stroke: none;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview {
+  overflow: hidden;
+  background: var(--astra-surface);
+  color: var(--astra-ink);
+  font: 400 15px/1.5 var(--astra-serif);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__header.astra-surface-header {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__header .astra-surface-header__content {
+  gap: 8px;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__header .astra-surface-header__eyebrow {
+  color: var(--astra-kind);
+  font: 500 10px/1.5 var(--astra-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55em;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__header .astra-surface-header__title {
+  margin: 0;
+  color: var(--astra-ink);
+  font: 600 20px/1.25 var(--astra-label);
+  letter-spacing: -0.01em;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__body {
+  padding: 0.4rem 0 0;
+}
+
+/* An untitled prior-insight card flowed directly from its kind row. */
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__header:not(:has(.astra-surface-header__title))
+  + .astra-record-preview__body {
+  padding-top: 0.5rem;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__description {
+  margin: 0 0 0.75rem;
+  color: var(--astra-ink-soft);
+  font: 400 15px/1.5 var(--astra-serif);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__claim {
+  margin: 0 0 0.6rem;
+  color: var(--astra-ink);
+  font: 500 19px/1.35 var(--astra-label);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__section > h4 {
+  margin: 0.9rem 0 0.4rem;
+  color: var(--astra-muted);
+  font: 500 10px/1.5 var(--astra-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  :is(
+    .astra-record-preview__options,
+    .astra-record-preview__relations,
+    .astra-record-preview__evidence,
+    .astra-record-preview__flow
+  ) {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  :is(
+    .astra-record-preview__options,
+    .astra-record-preview__relations,
+    .astra-record-preview__evidence
+  ) {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Decision options retain the released seven-pixel wells and custom dots. */
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__options {
+  gap: 0.55rem;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__options > li {
+  position: relative;
+  display: block;
+  padding: 0.5rem 0.5rem 0.5rem 1.4rem;
+  border: 1px solid var(--astra-rule);
+  border-radius: 7px;
+  background: var(--astra-surface-2);
+  color: var(--astra-muted);
+  font: 400 15px/1.5 var(--astra-serif);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__options > li > [aria-hidden="true"] {
+  position: absolute;
+  top: 0.85rem;
+  left: 0.55rem;
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid var(--astra-faint);
+  border-radius: 50%;
+  background: var(--astra-surface);
+  color: transparent;
+  font-size: 0;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__options > li strong {
+  color: var(--astra-muted);
+  font: 500 16px/1.5 var(--astra-label);
+  text-decoration: none;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__options > li[data-unselected] {
+  opacity: 0.72;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__options > li[data-selected] {
+  border-color: var(--astra-kind);
+  background: color-mix(in srgb, var(--astra-kind) 10%, var(--astra-surface));
+  color: var(--astra-kind);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__options > li[data-selected]
+  > [aria-hidden="true"] {
+  border-color: var(--astra-kind);
+  background: var(--astra-kind);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--astra-kind) 16%, transparent);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__options > li[data-selected] strong {
+  color: var(--astra-ink);
+}
+
+/* Compact related-record rows are the old SUPPORTED BY presentation. */
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__relations > li {
+  padding: 5px 10px;
+  border: 0;
+  border-radius: var(--astra-radius);
+  background: var(--astra-surface-2);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__relation-trigger {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: baseline;
+  gap: 0.5em;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--astra-ink);
+  font: 500 14px/1.5 var(--astra-label);
+  text-align: start;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__relations .astra-record-preview__relation-trigger {
+  font-size: 13px;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  button.astra-record-preview__relation-trigger {
+  cursor: pointer;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__relation-glyph {
+  flex: none;
+  color: var(--astra-kind);
+  font-size: 0.85em;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__relation-label {
+  color: inherit;
+  text-decoration: none;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  button.astra-record-preview__relation-trigger
+  .astra-record-preview__relation-label {
+  color: var(--astra-link);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--astra-link) 45%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  button.astra-record-preview__relation-trigger:hover
+  .astra-record-preview__relation-label {
+  background: var(--astra-accent-soft);
+  text-decoration-color: var(--astra-link);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__relation-detail {
+  margin-inline-start: 0;
+  color: var(--astra-muted);
+  font: 400 11px/1.5 var(--astra-label);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__remaining {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--astra-muted);
+  font: 400 11px/1.4 var(--astra-label);
+}
+
+/* Finding evidence wells and thumbnails keep their old border geometry. */
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__evidence > li {
+  padding: 8px 12px;
+  border: 0;
+  border-radius: var(--astra-radius);
+  background: var(--astra-surface-2);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__artifact {
+  margin: 2px 0 6px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__artifact > .astra-output__thumb {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
   .astra-record-preview__artifact > .astra-output__thumb > img {
   display: block;
   width: 100%;
   padding: 0;
+  border: 1px solid var(--astra-rule);
+  border-radius: 6px;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal[data-astra-color-scheme="dark"]
+  .astra-record-preview__artifact > .astra-output__thumb > img {
+  border-radius: 3px;
+  background: #fbf9f4;
+}
+
+/* Evidence quotes were small; literature-card quotes were full body size and
+   carried the distinctive left rule. */
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__quote {
+  margin: 0.6rem 0;
+  padding-left: 0.85rem;
+  border: 0;
+  border-left: 2px solid var(--astra-rule-strong);
+  color: var(--astra-ink-soft);
+  font: italic 15px/1.5 var(--astra-serif);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__evidence .astra-record-preview__quote {
+  margin: 2px 0 0;
+  padding: 0;
+  border: 0;
+  color: var(--astra-muted);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__quote::before {
+  content: "\201C";
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__quote::after {
+  content: "\201D";
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__citation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4em 0.8em;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--astra-rule);
+  color: var(--astra-muted);
+  font: 400 12px/1.5 var(--astra-label);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__citation a {
+  color: var(--astra-kind);
+  font: 400 11px/1.5 var(--astra-mono);
+  text-decoration: none;
+}
+
+/* The released MyST dark citation utility resolves to Tailwind blue-400. */
+.lightcone-brand.astra-ui.astra-preview-popover-portal[data-astra-color-scheme="dark"]
+  .astra-record-preview__citation a {
+  color: #60a5fa;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__citation a:hover {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal[data-astra-color-scheme="dark"]
+  .astra-record-preview__citation a:hover {
+  color: #93c5fd;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__scope {
+  display: inline-flex;
+  margin: 0;
+  padding: 0.1em 0.6em;
+  border: 1px solid color-mix(in srgb, var(--astra-kind) 30%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--astra-kind) 10%, var(--astra-surface));
+  color: var(--astra-kind);
+  font: 400 11px/1.5 var(--astra-label);
+  letter-spacing: 0.04em;
+  vertical-align: 0.05em;
+}
+
+/* Output provenance retains the compact mono boxes and triangular separators. */
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__flow {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: stretch;
+  gap: 0;
+  margin: 0.4rem 0 0.2rem;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__flow > li {
+  display: flex;
+  align-items: stretch;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__flow > li:not(:last-child)::after {
+  content: "\25B8";
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  padding: 0 0.45em;
+  color: var(--astra-faint);
+  font-size: 12px;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  :is(
+    .astra-record-preview__flow code,
+    .astra-record-preview__source,
+    .astra-record-preview__selection code
+  ) {
+  color: var(--astra-ink-soft);
+  font-family: var(--astra-mono);
+  font-size: 11px;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__flow code {
+  max-width: 11em;
+  overflow: hidden;
+  padding: 0.3em 0.55em;
+  border: 1px solid var(--astra-rule-strong);
+  border-radius: 6px;
+  background: var(--astra-surface-2);
+  font-size: 12px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__source {
+  display: block;
+  max-width: 60ch;
+  margin-top: 0.35rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--astra-muted);
+  word-break: break-all;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__analysis-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__analysis-link:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--astra-kind);
+  text-underline-offset: 2px;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__counts {
+  margin: 0;
+  color: var(--astra-muted);
+  font: 400 12px/1.5 var(--astra-label);
+}
+
+/* A value remains an output semantically, but its card title is the original
+   dotted, tabular inline value and has no output diamond. */
+.lightcone-brand.astra-ui.astra-preview-popover-portal[data-entry-kind="value"]
+  .astra-record-preview__kind > [aria-hidden="true"] {
+  display: none;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__value {
+  padding: 0.05em 0.1em;
+  border-radius: 3px;
+  color: var(--astra-ink);
+  font: inherit;
+  font-feature-settings: "tnum" 1;
+  font-variant-numeric: tabular-nums;
+  text-decoration: underline dotted
+    color-mix(in srgb, var(--astra-c-value) 60%, transparent);
+  text-underline-offset: 2px;
+  white-space: nowrap;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__unit {
+  margin-inline-start: 0.25em;
+  color: var(--astra-muted);
+  font-family: var(--astra-label);
+  font-size: 0.7em;
+  font-weight: 400;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__selection {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5em;
+  margin: -0.35rem 0 0.6rem;
+  color: var(--astra-muted);
+  font: 400 12px/1.5 var(--astra-label);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__selection code {
+  padding: 0.1em 0.4em;
+  border: 0;
+  border-radius: 3px;
+  background: var(--astra-surface-2);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__selection > span {
+  color: var(--astra-ink-soft);
+  font: 400 11px/1.5 var(--astra-mono);
+  font-style: normal;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal[data-value-product]
+  .astra-record-preview__selection > span:last-child {
+  color: var(--astra-muted);
+  font: 400 12px/1.5 var(--astra-label);
+  font-style: italic;
 }
 
 /* astra-ui's generic input glyph is a bent arrow; the publication theme has
-   always used the data-family ▤ mark. The original text remains aria-hidden,
-   and only its decorative visual is substituted. */
-:where(.lightcone-brand.astra-ui, .lightcone-brand .astra-ui)
+   always used the data-family ▤ mark. */
+.lightcone-brand.astra-ui.astra-preview-popover-portal
   .astra-record-preview[data-kind="input"]
   .astra-record-preview__kind > [aria-hidden="true"] {
   font-size: 0;
 }
-:where(.lightcone-brand.astra-ui, .lightcone-brand .astra-ui)
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
   .astra-record-preview[data-kind="input"]
   .astra-record-preview__kind > [aria-hidden="true"]::before {
   content: "\25A4";
-  font-size: 0.625rem;
+  font-size: 10px;
   line-height: 1;
+}
+
+/* Citation previews use the shared floating tree so pointer travel remains
+   coordinated with their parent record card. Their inner document keeps the
+   stock MyST bibliography appearance; this only makes the shared shell inert. */
+.astra-ui.astra-preview-popover-portal.astra-citation-preview-portal
+  .astra-citation-preview {
+  z-index: 70;
+  width: 500px;
+  max-width: calc(100vw - 1rem);
+  color: inherit;
+  font: 400 16px/1.5 ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+    "Noto Color Emoji";
+}
+
+.astra-citation-preview-portal
+  .astra-citation-preview
+  .astra-preview-popover__surface {
+  max-height: none;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.astra-citation-preview-portal
+  .astra-citation-preview
+  .astra-preview-popover__scroll {
+  overflow: visible;
+}
+
+.astra-citation-preview-portal
+  .astra-citation-preview
+  .astra-preview-popover__arrow,
+.astra-citation-preview-portal
+  .astra-citation-preview
+  .astra-preview-popover__arrow path {
+  fill: #fff;
+  stroke: none;
+}
+
+.astra-citation-preview-portal
+  .astra-citation-preview
+  .astra-preview-popover__arrow {
+  width: 10px;
+  height: 5px;
+}
+
+.astra-citation-preview-portal
+  .astra-citation-preview
+  .astra-preview-popover__arrow path {
+  transform: scaleY(2);
+  transform-origin: center top;
 }
 
 /* -----------------------------------------------------------------------------

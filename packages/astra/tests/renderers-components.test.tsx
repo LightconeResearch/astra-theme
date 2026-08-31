@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { fireEvent, screen, within } from '@testing-library/react';
-import type { ResolvedInsight } from '@astra-spec/sdk';
+import { indexAnalysis, type ResolvedInsight } from '@astra-spec/sdk';
 import type { GenericNode } from 'myst-common';
 import { MyST } from 'myst-to-react';
 import { describe, expect, it } from 'vitest';
@@ -322,6 +322,108 @@ describe('canonical SDK-backed ASTRA renderers', () => {
     expect(portal).toHaveAttribute('data-astra-color-scheme', 'light');
   });
 
+  it('retains the released prior-insight preview label', async () => {
+    const node: GenericNode = {
+      type: 'span',
+      class: 'astra-ref astra-ref--prior_insight',
+      data: {
+        astra: {
+          kind: 'prior_insight',
+          id: 'kids_s8_low',
+          canonicalPath: 'prior_insights.kids_s8_low',
+        },
+      },
+      children: [{ type: 'text', key: 'kids-result', value: 'KiDS result' }],
+    };
+    const { container } = renderWithProviders(
+      <AstraInlineRef node={node} />,
+      makePublication(),
+    );
+    fireEvent.focus(container.querySelector('.astra-ref-trigger')!);
+    const preview = await screen.findByRole('dialog', {
+      name: /KiDS S8 low prior insight preview/i,
+    });
+    expect(preview.querySelector('.astra-record-preview__kind')).toHaveTextContent(
+      'Prior insight',
+    );
+  });
+
+  it('keeps an authored input alias visible in its preview', async () => {
+    const publication = makePublication();
+    const input = publication.document.analysis.inputs[0]!;
+    input.from = '../reconstruction.post_recon_catalog_lrg_full';
+    input.resolvedFrom =
+      'reconstruction.outputs.post_recon_catalog_lrg_full';
+    const node: GenericNode = {
+      type: 'span',
+      class: 'astra-ref astra-ref--input',
+      data: {
+        astra: {
+          kind: 'input',
+          id: input.id,
+          canonicalPath: input.canonicalPath,
+        },
+      },
+      children: [{ type: 'text', key: 'input-alias', value: 'catalog alias' }],
+    };
+    const { container } = renderWithProviders(
+      <AstraInlineRef node={node} />,
+      publication,
+    );
+    fireEvent.focus(container.querySelector('.astra-ref-trigger')!);
+    const preview = await screen.findByRole('dialog', {
+      name: /Shear catalog input preview/i,
+    });
+    expect(preview).toHaveTextContent(
+      '../reconstruction.post_recon_catalog_lrg_full',
+    );
+    expect(preview).not.toHaveTextContent(
+      'reconstruction.outputs.post_recon_catalog_lrg_full',
+    );
+  });
+
+  it('retains the released decision overflow copy', async () => {
+    const publication = makePublication();
+    const analysis = publication.document.analysis;
+    const source = analysis.prior_insights[0]!;
+    const paths = [source.canonicalPath];
+    for (let number = 2; number <= 4; number += 1) {
+      const canonicalPath = `prior_insights.support_${number}`;
+      analysis.prior_insights.push({
+        ...source,
+        id: `support_${number}`,
+        canonicalPath,
+        label: `Supporting insight ${number}`,
+      });
+      paths.push(canonicalPath);
+    }
+    analysis.decisions[0]!.options[0]!.resolvedInsightPaths = paths;
+    publication.index = indexAnalysis(publication.document);
+
+    const node: GenericNode = {
+      type: 'span',
+      class: 'astra-ref astra-ref--decision',
+      data: {
+        astra: {
+          kind: 'decision',
+          id: 'cov_source',
+          canonicalPath: 'decisions.cov_source',
+        },
+      },
+      children: [
+        { type: 'text', key: 'overflow-decision', value: 'covariance choice' },
+      ],
+    };
+    const { container } = renderWithProviders(
+      <AstraInlineRef node={node} />,
+      publication,
+    );
+    fireEvent.focus(container.querySelector('.astra-ref-trigger')!);
+    expect(
+      await screen.findByText('+ 1 more in the decision panel'),
+    ).toBeVisible();
+  });
+
   it('opens one scoped detail dialog and preserves it through drill-down/back', async () => {
     const node: GenericNode = {
       type: 'span',
@@ -442,7 +544,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
     ).toBeVisible();
   });
 
-  it('keeps an analysis link as the direct popover trigger', () => {
+  it('keeps an analysis link as the direct popover trigger', async () => {
     const node: GenericNode = {
       type: 'span',
       class: 'astra-ref astra-ref--analysis',
@@ -471,6 +573,15 @@ describe('canonical SDK-backed ASTRA renderers', () => {
     expect(anchor).not.toHaveAttribute('role', 'button');
     expect(anchor?.parentElement?.classList.contains('astra-ref-trigger')).toBe(false);
     expect(anchor).toHaveAttribute('aria-haspopup', 'dialog');
+    fireEvent.focus(anchor!);
+    const preview = await screen.findByRole('dialog', {
+      name: /Calibration analysis preview/i,
+    });
+    expect(preview.querySelector('.astra-record-preview__kind')).toHaveTextContent(
+      'Sub-analysis',
+    );
+    expect(preview).toHaveTextContent('0 decisions · 0 outputs');
+    expect(preview).not.toHaveTextContent('Shear calibration sub-analysis.');
   });
 
   it('previews a value while keeping MySTRA formatted children authoritative', async () => {
@@ -507,11 +618,47 @@ describe('canonical SDK-backed ASTRA renderers', () => {
     expect(
       preview.closest('[data-slot="preview-popover-portal"]'),
     ).toHaveAttribute('data-entry-kind', 'value');
+    expect(
+      preview.closest('[data-slot="preview-popover-portal"]'),
+    ).toHaveAttribute('data-value-product', '');
 
     fireEvent.keyDown(trigger!, { key: ' ' });
     expect(
       await screen.findByRole('dialog', { name: 'sigma8 metric' }),
     ).toBeVisible();
+  });
+
+  it('marks a value product only when the preview actually renders one', async () => {
+    const publication = makePublication();
+    publication.document.analysis.outputs[0]!.label = undefined;
+    const node: GenericNode = {
+      type: 'span',
+      class: 'astra-ref astra-ref--value astra-ref--metric',
+      data: {
+        astra: {
+          kind: 'value',
+          id: 'sigma8_metric',
+          canonicalPath: 'outputs.sigma8_metric',
+          filter: 'tracer=elg1, recon=Pre',
+          selection: 'alpha1_std',
+        },
+      },
+      children: [{ type: 'text', key: 'value-without-product', value: '0.0696' }],
+    };
+    const { container } = renderWithProviders(
+      <AstraValue node={node} />,
+      publication,
+    );
+    fireEvent.focus(container.querySelector('.astra-ref-trigger')!);
+    const preview = await screen.findByRole('dialog', {
+      name: /sigma8_metric output preview/i,
+    });
+    expect(
+      preview.closest('[data-slot="preview-popover-portal"]'),
+    ).not.toHaveAttribute('data-value-product');
+    expect(preview.querySelector('.astra-record-preview__selection span')).toHaveTextContent(
+      'tracer=elg1, recon=Pre',
+    );
   });
 
   it('renders only the transport-verified artifact URL in output previews', async () => {
@@ -552,7 +699,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
     expect(detail.querySelector('.astra-output__thumb')).toBeNull();
   });
 
-  it('recovers metric display parts from neutral children and adds provenance', () => {
+  it('recovers metric display parts and terminal source provenance', () => {
     const node: GenericNode = {
       type: 'div',
       class: 'astra-output astra-output--metric',
@@ -585,6 +732,196 @@ describe('canonical SDK-backed ASTRA renderers', () => {
     expect(container.querySelector('.astra-output__provenance')).toHaveTextContent(
       'shear_catalog',
     );
+  });
+
+  it('keeps decision provenance without exposing direct inputs as source data', () => {
+    const node: GenericNode = {
+      type: 'div',
+      class: 'astra-output astra-output--figure',
+      identifier: 'output-shear_plot',
+      data: {
+        astra: {
+          kind: 'output',
+          id: 'shear_plot',
+          canonicalPath: 'outputs.shear_plot',
+        },
+      },
+    };
+    const { container } = renderWithProviders(
+      <AstraOutput node={node} />,
+      makePublication(),
+    );
+    const provenance = container.querySelector('.astra-output__provenance');
+    expect(provenance).toHaveTextContent('Decisions (1)');
+    expect(provenance).toHaveTextContent('Covariance source');
+    expect(provenance).not.toHaveTextContent('Source data');
+  });
+
+  it('does not present an intermediate output as source data', () => {
+    const publication = makePublication();
+    publication.document.analysis.outputs[0]!.provenance.inputPaths = [
+      'outputs.shear_plot',
+    ];
+    const node: GenericNode = {
+      type: 'div',
+      class: 'astra-output astra-output--metric',
+      identifier: 'output-sigma8_metric',
+      data: {
+        astra: {
+          kind: 'output',
+          id: 'sigma8_metric',
+          canonicalPath: 'outputs.sigma8_metric',
+        },
+      },
+      children: [
+        {
+          type: 'paragraph',
+          children: [
+            { type: 'strong', children: [{ type: 'text', value: 'sigma8: ' }] },
+            { type: 'text', value: '0.811' },
+          ],
+        },
+      ],
+    };
+    const { container } = renderWithProviders(
+      <AstraOutput node={node} />,
+      publication,
+    );
+    const provenance = container.querySelector('.astra-output__provenance');
+    expect(provenance).toHaveTextContent('Covariance source');
+    expect(provenance).not.toHaveTextContent('Source data');
+    expect(provenance).not.toHaveTextContent('shear_plot');
+  });
+
+  it('keeps depth-first provenance order and terminates cyclic branches', () => {
+    const publication = makePublication();
+    const analysis = publication.document.analysis;
+    const target = analysis.outputs[0]!;
+    const firstBranch = analysis.outputs[1]!;
+
+    analysis.inputs.push({
+      kind: 'input',
+      canonicalPath: 'inputs.second_catalog',
+      id: 'second_catalog',
+      label: 'Second catalog',
+      type: 'data',
+    });
+    analysis.decisions.push(
+      {
+        kind: 'decision',
+        canonicalPath: 'decisions.nested_method',
+        id: 'nested_method',
+        label: 'Nested method',
+        active: true,
+        options: [],
+      },
+      {
+        kind: 'decision',
+        canonicalPath: 'decisions.branch_method',
+        id: 'branch_method',
+        label: 'Branch method',
+        active: true,
+        options: [],
+      },
+    );
+    analysis.outputs.push(
+      {
+        kind: 'output',
+        canonicalPath: 'outputs.nested_stage',
+        id: 'nested_stage',
+        label: 'Nested stage',
+        type: 'data',
+        format: 'json',
+        active: true,
+        provenance: {
+          inputPaths: ['inputs.shear_catalog', target.canonicalPath],
+          decisionPaths: ['decisions.nested_method'],
+        },
+      },
+      {
+        kind: 'output',
+        canonicalPath: 'outputs.second_branch',
+        id: 'second_branch',
+        label: 'Second branch',
+        type: 'data',
+        format: 'json',
+        active: true,
+        provenance: {
+          inputPaths: ['inputs.second_catalog'],
+          decisionPaths: ['decisions.branch_method'],
+        },
+      },
+    );
+    firstBranch.provenance.inputPaths = ['outputs.nested_stage'];
+    target.provenance.inputPaths = [
+      firstBranch.canonicalPath,
+      'outputs.second_branch',
+    ];
+    publication.index = indexAnalysis(publication.document);
+
+    const node: GenericNode = {
+      type: 'div',
+      class: 'astra-output astra-output--metric',
+      identifier: 'output-sigma8_metric',
+      data: {
+        astra: {
+          kind: 'output',
+          id: target.id,
+          canonicalPath: target.canonicalPath,
+        },
+      },
+      children: [],
+    };
+    const { container } = renderWithProviders(
+      <AstraOutput node={node} />,
+      publication,
+    );
+    const provenance = container.querySelector('.astra-output__provenance')!;
+    expect(
+      [...provenance.querySelectorAll('.astra-output__prov-decisions li')].map(
+        (item) => item.querySelector('.astra-ref--decision')?.textContent,
+      ),
+    ).toEqual(['Covariance source', 'Nested method', 'Branch method']);
+    expect(
+      [...provenance.querySelectorAll('.astra-output__prov-row > code')].map(
+        (item) => item.textContent,
+      ),
+    ).toEqual(['shear_catalog', 'second_catalog']);
+  });
+
+  it('keeps inherited provenance decisions as navigation-only links', () => {
+    const publication = makePublication();
+    const analysis = publication.document.analysis;
+    const calibration = analysis.analyses[0]!;
+    calibration.decisions.push({
+      kind: 'decision',
+      canonicalPath: 'calibration.decisions.photo_z',
+      id: 'photo_z',
+      label: 'Photo-z calibration',
+      active: true,
+      options: [],
+    });
+    analysis.outputs[0]!.provenance.decisionPaths = [
+      'calibration.decisions.photo_z',
+    ];
+    publication.index = indexAnalysis(publication.document);
+    const node: GenericNode = {
+      type: 'div',
+      class: 'astra-output astra-output--metric',
+      identifier: 'output-sigma8_metric',
+      data: {
+        astra: {
+          kind: 'output',
+          id: 'sigma8_metric',
+          canonicalPath: 'outputs.sigma8_metric',
+        },
+      },
+      children: [],
+    };
+    renderWithProviders(<AstraOutput node={node} />, publication);
+    const link = screen.getByText('Photo-z calibration');
+    expect(link).toHaveAttribute('href', '/calibration#decision-photo_z');
+    expect(link.parentElement).not.toHaveClass('astra-ref-trigger');
   });
 
   it('preserves MySTRA data/report outputs as stock collapsed details', () => {
@@ -644,6 +981,10 @@ describe('canonical SDK-backed ASTRA renderers', () => {
 
   it('uses registry row canonical paths and analysisPath for cards', () => {
     const publication = makePublication();
+    publication.document.analysis.inputs[0]!.from =
+      '../reconstruction.post_recon_catalog_lrg_full';
+    publication.document.analysis.inputs[0]!.resolvedFrom =
+      'reconstruction.outputs.post_recon_catalog_lrg_full';
     const registry: GenericNode = {
       type: 'table',
       class: 'astra-inputs',
@@ -685,6 +1026,12 @@ describe('canonical SDK-backed ASTRA renderers', () => {
       'id',
       'input-shear_catalog',
     );
+    expect(screen.getByText('shear_catalog').closest('tr')).toHaveTextContent(
+      '../reconstruction.post_recon_catalog_lrg_full',
+    );
+    expect(screen.getByText('shear_catalog').closest('tr')).not.toHaveTextContent(
+      'reconstruction.outputs.post_recon_catalog_lrg_full',
+    );
     unmount();
     renderWithProviders(<AstraSubanalysis node={card} />, publication);
     expect(screen.getByText('Calibration')).toHaveAttribute('href', '/calibration');
@@ -702,8 +1049,8 @@ describe('canonical SDK-backed ASTRA renderers', () => {
           data: {
             astra: {
               kind: 'output',
-              id: 'sigma8_metric',
-              canonicalPath: 'outputs.sigma8_metric',
+              id: 'shear_plot',
+              canonicalPath: 'outputs.shear_plot',
             },
           },
           children: [],
@@ -715,19 +1062,25 @@ describe('canonical SDK-backed ASTRA renderers', () => {
       <AstraDataSources node={registry} />,
       publication,
     );
-    expect(screen.getByText('sigma8_metric').tagName).toBe('SPAN');
+    expect(screen.getByText('shear_plot').tagName).toBe('SPAN');
+    expect(screen.getByText('shear_plot').closest('tr')).toHaveTextContent(
+      '/myst-assets/shear_plot.png',
+    );
+    expect(screen.getByText('shear_plot').closest('tr')).not.toHaveTextContent(
+      'results/shear_plot.png',
+    );
 
     unmount();
     renderWithProviders(
       <AstraDataSources node={registry} />,
       {
         ...publication,
-        placedIdentifiers: new Set(['output-sigma8_metric']),
+        placedIdentifiers: new Set(['output-shear_plot']),
       },
     );
-    expect(screen.getByText('sigma8_metric')).toHaveAttribute(
+    expect(screen.getByText('shear_plot')).toHaveAttribute(
       'href',
-      '#output-sigma8_metric',
+      '#output-shear_plot',
     );
   });
 

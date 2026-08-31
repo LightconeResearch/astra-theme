@@ -5,7 +5,7 @@ import type {
   ResolvedOutput,
 } from '@astra-spec/sdk';
 import {
-  outputRelations,
+  linkedRecord,
   selectedOptionLabel,
   type LinkedRecord,
 } from '@astra-spec/ui/model';
@@ -115,6 +115,68 @@ function provenanceDecisions(
   return decisions;
 }
 
+interface TracedProvenance {
+  decisions: LinkedRecord[];
+  inputs: LinkedRecord[];
+}
+
+/** Preserve the released decision anchor for direct and inherited records. */
+function decisionHref(item: ProvenanceDecision): string {
+  const anchor = `#decision-${item.decision.id}`;
+  if (!item.via) return anchor;
+  return item.via === 'root'
+    ? `/${anchor}`
+    : `/${item.via.split('.').join('/')}${anchor}`;
+}
+
+/**
+ * Trace provenance in authored, depth-first order. This matches the released
+ * transport's flattened provenance while deriving it from canonical records.
+ */
+function traceOutputProvenance(
+  publication: AstraPublication,
+  output: ResolvedOutput,
+): TracedProvenance {
+  const decisions = new Map<string, LinkedRecord>();
+  const roots = new Map<string, LinkedRecord>();
+  const seenOutputs = new Set<string>();
+  const seenDependencies = new Set<string>();
+
+  const visitDependency = (path: string): void => {
+    if (seenDependencies.has(path)) return;
+    seenDependencies.add(path);
+    const link = linkedRecord(publication.index, path);
+    const record = link.record;
+    if (!record) {
+      roots.set(path, link);
+    } else if (record.kind === 'input') {
+      if (record.resolvedFrom) visitDependency(record.resolvedFrom);
+      else roots.set(record.canonicalPath, link);
+    } else if (record.kind === 'output') {
+      visitOutput(record);
+    }
+  };
+
+  const visitOutput = (candidate: ResolvedOutput): void => {
+    if (seenOutputs.has(candidate.canonicalPath)) return;
+    seenOutputs.add(candidate.canonicalPath);
+    for (const path of candidate.provenance.decisionPaths) {
+      if (!decisions.has(path)) {
+        decisions.set(path, linkedRecord(publication.index, path));
+      }
+    }
+    for (const path of candidate.provenance.inputPaths) {
+      visitDependency(path);
+    }
+  };
+
+  visitOutput(output);
+  return {
+    decisions: [...decisions.values()],
+    inputs: [...roots.values()],
+  };
+}
+
 function ProvenanceDecisionRef({
   item,
   publication,
@@ -123,10 +185,16 @@ function ProvenanceDecisionRef({
   publication: AstraPublication;
 }) {
   const trigger = (
-    <span className="astra-ref astra-ref--decision">
+    <a
+      className="astra-ref astra-ref--decision"
+      href={decisionHref(item)}
+    >
       {item.decision.label ?? item.decision.id}
-    </span>
+    </a>
   );
+  // Released inherited decisions were navigable but not joined to the local
+  // preview store. Preserve that behavior and its natural row geometry.
+  if (item.via) return trigger;
   return (
     <AstraPreviewPopover
       publication={publication}
@@ -143,12 +211,9 @@ function ProvenanceDrawer({
   output: ResolvedOutput;
   publication: AstraPublication;
 }) {
-  const relations = outputRelations(publication.index, output);
-  const decisions = provenanceDecisions(publication, [
-    ...relations.decisions,
-    ...(relations.indirectDecisions ?? []),
-  ]);
-  const inputs = relations.inputs;
+  const traced = traceOutputProvenance(publication, output);
+  const decisions = provenanceDecisions(publication, traced.decisions);
+  const inputs = traced.inputs;
   if (!decisions.length && !inputs.length) return null;
 
   return (

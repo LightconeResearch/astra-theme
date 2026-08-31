@@ -5,6 +5,7 @@ import type { GenericNode } from 'myst-common';
 
 import { AstraCite } from '../cite';
 import {
+  displayScope,
   kindLabel,
   NeutralNode,
   nodeClassName,
@@ -26,7 +27,11 @@ export const AstraPriorInsight: React.FC<{ node: GenericNode }> = ({ node }) => 
     return <NeutralNode node={node} recognitionClass="astra-prior-insight" />;
   }
 
-  const { record } = located;
+  const { publication, record } = located;
+  const scope = displayScope(
+    record.scope,
+    publication.document.universe.universeId,
+  );
   const source = primaryLiteratureEvidence(record);
   const quote = source?.quote;
   return (
@@ -36,9 +41,9 @@ export const AstraPriorInsight: React.FC<{ node: GenericNode }> = ({ node }) => 
     >
       <div className="astra-prior-insight__kind">
         {kindLabel('prior_insight')}
-        {record.scope ? (
+        {scope ? (
           <span className="astra-scope-chip">
-            <Prose text={record.scope} />
+            <Prose text={scope} />
           </span>
         ) : null}
       </div>

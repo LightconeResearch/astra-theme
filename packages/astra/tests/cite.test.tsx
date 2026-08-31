@@ -14,11 +14,18 @@
 import * as React from 'react';
 import { describe, it, expect } from 'vitest';
 import { screen, fireEvent } from '@testing-library/react';
+import { PreviewPopover } from '@astra-spec/ui/primitives';
+import { SiteProvider } from '@myst-theme/providers';
 import type { GenericNode, References } from 'myst-common';
 import { renderWithProviders } from './helpers/renderWithProviders';
 import { makePublication } from './helpers/publication';
 
-import { AstraCite, buildDoiCiteIndex, normalizeDoi } from '../src/cite';
+import {
+  AstraCite,
+  AstraPreviewCite,
+  buildDoiCiteIndex,
+  normalizeDoi,
+} from '../src/cite';
 import { AstraPriorInsight } from '../src/renderers/AstraPriorInsight';
 import { AstraInlineRef } from '../src/renderers/AstraInlineRef';
 
@@ -30,6 +37,7 @@ function makeCiteNode(kind: 'narrative' | 'parenthetical' = 'narrative'): Generi
     type: 'cite',
     kind,
     label: 'Asgari_2021',
+    enumerator: '1',
     identifier: `https://doi.org/${DOI}`,
     children: [
       {
@@ -116,6 +124,111 @@ describe('AstraCite', () => {
     expect(container.querySelector('cite')).toBeNull();
     const link = screen.getByText(DOI).closest('a');
     expect(link).toHaveAttribute('href', `https://doi.org/${DOI}`);
+  });
+});
+
+/* --------------------------------------------------------------- *
+ * <AstraPreviewCite/> — shared nested preview adapter
+ * --------------------------------------------------------------- */
+describe('AstraPreviewCite', () => {
+  it('preserves MyST citation markup inside a nested shared preview', () => {
+    const references = makeReferences();
+    renderWithProviders(
+      <PreviewPopover
+        trigger={<button type="button">Preview record</button>}
+        label="Record preview"
+      >
+        <div>
+          Nested citation: <AstraPreviewCite doi={DOI} />
+        </div>
+      </PreviewPopover>,
+      undefined,
+      references,
+    );
+
+    fireEvent.focus(screen.getByRole('button', { name: 'Preview record' }));
+    const outer = screen.getByRole('dialog', { name: 'Record preview' });
+    const cite = outer.querySelector('cite');
+    expect(cite).toBeInTheDocument();
+    const link = cite!.querySelector('a');
+    expect(link).toHaveAttribute('tabindex', '0');
+    expect(link).toHaveClass('hover-link');
+    expect(link).toHaveAttribute('href', `https://doi.org/${DOI}`);
+    expect(link).toHaveTextContent('Asgari et al. (2021)');
+
+    fireEvent.focus(link!);
+    const nested = screen.getByRole('dialog', {
+      name: `${DOI} citation preview`,
+    });
+    expect(outer).toBeInTheDocument();
+    expect(nested).toHaveAttribute('data-kind', 'paper');
+    expect(nested).toHaveClass('exclude-from-outline', 'astra-citation-preview');
+    const portal = nested.closest('[data-slot="preview-popover-portal"]');
+    expect(portal).toHaveClass('astra-citation-preview-portal');
+    expect(portal).toHaveAttribute('data-astra-color-scheme', 'light');
+    const document = nested.querySelector('.hover-document');
+    expect(document).toHaveClass(
+      'article',
+      'w-[500px]',
+      'sm:max-w-[500px]',
+      'p-3',
+    );
+    expect(document?.innerHTML).toBe(
+      references.cite!.data.Asgari_2021.html,
+    );
+    // The nested card belongs to the same FloatingTree; no Radix hover-card
+    // portal is introduced inside or alongside the shared preview.
+    expect(globalThis.document.querySelector('.hover-card-content')).toBeNull();
+  });
+
+  it('falls back to the raw DOI link without citation references', () => {
+    const { container } = renderWithProviders(<AstraPreviewCite doi={DOI} />);
+    expect(container.querySelector('cite')).toBeNull();
+    expect(screen.getByText(DOI).closest('a')).toHaveAttribute(
+      'href',
+      `https://doi.org/${DOI}`,
+    );
+    expect(
+      globalThis.document.querySelector('.astra-citation-preview-portal'),
+    ).toBeNull();
+  });
+
+  it('keeps resolved citation text without opening an empty partial-data card', () => {
+    const references = makeReferences();
+    delete references.cite;
+    const { container } = renderWithProviders(
+      <AstraPreviewCite doi={DOI} />,
+      undefined,
+      references,
+    );
+    const cite = container.querySelector('cite');
+    expect(cite).toHaveTextContent('Asgari et al. (2021)');
+    expect(cite?.querySelector('a')).toHaveAttribute(
+      'href',
+      `https://doi.org/${DOI}`,
+    );
+    expect(
+      globalThis.document.querySelector('.astra-citation-preview-portal'),
+    ).toBeNull();
+  });
+
+  it('matches MyST numbered parenthetical citation contents', () => {
+    renderWithProviders(
+      <SiteProvider
+        config={{
+          version: 1,
+          myst: '1.3.0',
+          options: { numbered_references: true },
+        }}
+      >
+        <AstraPreviewCite doi={DOI} parenthetical />
+      </SiteProvider>,
+      undefined,
+      makeReferences(makeCiteNode('parenthetical')),
+    );
+    expect(screen.getByText('1').closest('cite')?.parentElement).toHaveTextContent(
+      '(1)',
+    );
   });
 });
 

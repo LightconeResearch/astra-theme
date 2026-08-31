@@ -1,6 +1,27 @@
 import { describe, expect, it } from 'vitest';
 
-import { safeNavigationHref } from '../src/rendererUtils';
+import { displayScope, safeNavigationHref } from '../src/rendererUtils';
+
+describe('displayScope', () => {
+  it('removes only the conventional active-universe clause', () => {
+    expect(
+      displayScope(
+        'LRG1/LRG2/LRG3/ELG1 under the baseline universe.',
+        'baseline',
+      ),
+    ).toBe('LRG1/LRG2/LRG3/ELG1.');
+    expect(displayScope('All tracers, baseline universe.', 'baseline')).toBe(
+      'All tracers.',
+    );
+    expect(displayScope('baseline universe.', 'baseline')).toBeUndefined();
+    expect(displayScope('The baseline sample.', 'baseline')).toBe(
+      'The baseline sample.',
+    );
+    expect(displayScope('All tracers in the c000 universe.', 'c000')).toBe(
+      'All tracers.',
+    );
+  });
+});
 
 describe('safeNavigationHref', () => {
   it('accepts trimmed site-relative and explicit HTTP(S) navigation', () => {

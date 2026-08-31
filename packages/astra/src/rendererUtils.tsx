@@ -46,6 +46,33 @@ export function stringMetadata(
   return typeof value === 'string' && value.trim() ? value : undefined;
 }
 
+/**
+ * Preserve the released reader-facing scope: the active universe is already
+ * page-wide context, so its conventional trailing clause is not repeated.
+ */
+export function displayScope(
+  scope: string | undefined,
+  universeId: string | undefined,
+): string | undefined {
+  if (!scope || !universeId) return scope || undefined;
+  const escaped = universeId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const clause = new RegExp(
+    `\\s*(?:[,;:\u2014\u2013-]|\\b(?:under|in|for)\\s+the\\b)?\\s*(?:the\\s+)?${escaped}\\s+universe\\b`,
+    'gi',
+  );
+  let result = scope.replace(clause, '');
+  result = result.replace(/\s{2,}/g, ' ').trim();
+  result = result
+    .replace(/^[,;:\u2014\u2013-]\s*/, '')
+    .replace(/\s*[,;:\u2014\u2013-]+\s*(\.?)$/, '$1')
+    .trim();
+  if (result === '.') result = '';
+  if (result && /[A-Za-z0-9)\]]$/.test(result) && /\.\s*$/.test(scope)) {
+    result += '.';
+  }
+  return result || undefined;
+}
+
 export function nodeClassName(node: GenericNode, fallback = ''): string {
   const value = (node as { class?: unknown }).class;
   if (typeof value === 'string') return value;

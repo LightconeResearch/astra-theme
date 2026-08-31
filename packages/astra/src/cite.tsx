@@ -1,20 +1,17 @@
 /**
- * AstraCite — render an SDK evidence DOI through the SAME citation pipeline the main
- * text uses, so overlay cards show the resolved citation (author–year link +
- * hover bibliography) instead of a raw DOI string.
+ * Citation adapters for SDK evidence DOIs.
  *
  * How the main text resolves citations: at build time MyST converts every
  * doi.org link into a `cite` node (author–year children, `label` keyed into
  * `references.cite.data` which carries the formatted html + the doi). The
  * stock `CiteRenderer` then joins `label → data` via `useReferences()`.
  *
- * The resolved publication carries the raw DOI string, so we join the other
- * way around: scan the page AST (exposed as `references.article` by
- * ArticlePage) for the already-resolved `cite` node whose citation data
- * matches this DOI, and render THAT node through `<MyST>`. This reuses the
- * stock renderer end-to-end — same label text, link, hover card and numbering
- * as the main text, in the block renderer and inside the floating preview
- * cards alike (React context crosses the FloatingPortal).
+ * The resolved publication carries the raw DOI string, so these adapters join
+ * the other way around: scan the page AST (exposed as `references.article` by
+ * ArticlePage) for the already-resolved `cite` node whose citation data matches
+ * this DOI. AstraCite reuses the stock renderer end-to-end in page content;
+ * AstraPreviewCite preserves its trigger and bibliography markup while using
+ * the shared nested-popover primitive inside ASTRA preview cards.
  *
  * GRACEFUL DEGRADATION: when the references, the cite table, or a matching
  * node is missing we fall back to a plain doi.org link. Never throws.
@@ -22,9 +19,12 @@
 import * as React from 'react';
 import { normalizeDoi as normalizeSdkDoi } from '@astra-spec/sdk';
 import { doiHref } from '@astra-spec/ui/model';
+import { PreviewPopover } from '@astra-spec/ui/primitives';
 import type { GenericNode, References } from 'myst-common';
-import { useReferences } from '@myst-theme/providers';
+import { useReferences, useSiteManifest } from '@myst-theme/providers';
 import { MyST } from 'myst-to-react';
+
+import { useAstraColorScheme } from './themeScope';
 
 /** Normalize a raw DOI (tolerates full URLs and `doi:` prefixes) to a key. */
 export function normalizeDoi(raw: string | undefined): string | undefined {
@@ -89,6 +89,21 @@ export function useCiteNodeForDoi(
   return entry?.[kind] ?? entry?.[kind === 'narrative' ? 'parenthetical' : 'narrative'];
 }
 
+function RawDoiLink({
+  doi,
+  parenthetical,
+}: {
+  doi: string;
+  parenthetical?: boolean;
+}) {
+  const link = (
+    <a href={doiHref(doi)} target="_blank" rel="noreferrer">
+      {doi}
+    </a>
+  );
+  return parenthetical ? <>({link})</> : link;
+}
+
 /**
  * A DOI rendered as the main text renders it: the page's resolved citation
  * when one exists, a plain doi.org link otherwise. With `parenthetical`, the
@@ -111,12 +126,103 @@ export const AstraCite: React.FC<{ doi: string; parenthetical?: boolean }> = ({
     }
     return <MyST ast={citeNode} />;
   }
-  const link = (
-    <a href={doiHref(doi)} target="_blank" rel="noreferrer">
-      {doi}
-    </a>
+  return <RawDoiLink doi={doi} parenthetical={parenthetical} />;
+};
+
+export interface AstraPreviewCiteProps {
+  doi: string;
+  parenthetical?: boolean;
+}
+
+/** Render the contents of a resolved citation exactly as MyST's CiteRenderer. */
+function CiteContents({ node }: { node: GenericNode }) {
+  const numbered = !!useSiteManifest()?.options?.numbered_references;
+  if (numbered && node.kind === 'parenthetical') return node.enumerator;
+  return <MyST ast={node.children} />;
+}
+
+/**
+ * The citation adapter used inside shared ASTRA previews.
+ *
+ * MyST's stock CiteRenderer uses a standalone Radix portal. That portal is not
+ * part of the Floating UI tree owned by RecordPreview, so a nested citation can
+ * be painted below its parent and crossing into it can close the parent. Keep
+ * MyST's cite trigger and bibliography markup, but let the shared
+ * PreviewPopover own positioning and nested-hover coordination.
+ */
+export const AstraPreviewCite: React.FC<AstraPreviewCiteProps> = ({
+  doi,
+  parenthetical,
+}) => {
+  const references = useReferences();
+  const scheme = useAstraColorScheme();
+  const citeNode = useCiteNodeForDoi(
+    doi,
+    parenthetical ? 'parenthetical' : 'narrative',
   );
-  return parenthetical ? <>({link})</> : link;
+
+  if (!citeNode) return <RawDoiLink doi={doi} parenthetical={parenthetical} />;
+
+  const data = citeNode.label
+    ? references?.cite?.data[citeNode.label]
+    : undefined;
+  const className =
+    typeof citeNode.class === 'string' ? citeNode.class : undefined;
+  const isButtonLike = (className ?? '').split(' ').includes('button');
+  const url = data
+    ? data.doi
+      ? doiHref(data.doi)
+      : data.url
+    : doiHref(doi);
+  const contents = <CiteContents node={citeNode} />;
+  const trigger = (
+    url ? (
+      <a
+        href={url}
+        target="_blank"
+        rel="noreferrer"
+        className={isButtonLike ? undefined : 'hover-link'}
+      >
+        {contents}
+      </a>
+    ) : (
+      <span className="hover-link">{contents}</span>
+    )
+  );
+
+  // A node found through its DOI-bearing identifier may not have a matching
+  // citation-table entry. Preserve its resolved author/year text without
+  // creating an empty preview in that partial-data case.
+  const citation = (
+    <cite className={className}>
+      {data ? (
+        <PreviewPopover
+          trigger={trigger}
+          label={`${normalizeDoi(doi) ?? doi} citation preview`}
+          kind="paper"
+          openDelay={300}
+          className="exclude-from-outline astra-citation-preview"
+          portalProps={{
+            className: 'astra-citation-preview-portal',
+            'data-lightcone-color-scheme': scheme,
+            'data-astra-color-scheme': scheme,
+          }}
+        >
+          <div
+            className="hover-document article w-[500px] sm:max-w-[500px] p-3"
+            dangerouslySetInnerHTML={{ __html: data.html || '' }}
+          />
+        </PreviewPopover>
+      ) : (
+        trigger
+      )}
+    </cite>
+  );
+
+  if (parenthetical && citeNode.kind === 'parenthetical') {
+    return <>({citation})</>;
+  }
+  return citation;
 };
 
 export default AstraCite;

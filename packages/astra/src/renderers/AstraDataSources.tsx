@@ -46,12 +46,6 @@ function rowsFor(
   const dataRows = (node.children ?? []).slice(1);
   if (!dataRows.length) return undefined;
   const rows: Row[] = [];
-  const bindingPaths = new Map(
-    publication.bundle.bindings.map((binding) => [
-      binding.outputPath,
-      binding.path,
-    ]),
-  );
 
   for (const row of dataRows) {
     const metadata = astraMetadata(row);
@@ -69,7 +63,7 @@ function rowsFor(
         type: record.type,
         description: record.description,
         source:
-          record.source ?? record.ref ?? record.resolvedFrom ?? record.from,
+          record.source ?? record.from ?? record.ref ?? record.resolvedFrom,
       });
     } else {
       if (record?.kind !== 'output' || !record.active) return undefined;
@@ -81,9 +75,9 @@ function rowsFor(
         description: record.description,
         source:
           record.recipe?.command ??
-          bindingPaths.get(record.canonicalPath) ??
-          record.resolvedFrom ??
-          record.from,
+          publication.artifactUrls.get(record.canonicalPath) ??
+          record.from ??
+          record.resolvedFrom,
       });
     }
   }

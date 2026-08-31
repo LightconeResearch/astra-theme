@@ -57,7 +57,7 @@ export function createAstraArtifactRenderer(
       );
     }
     if (output.type === 'figure' || output.type === 'table') {
-      return <ArtifactPreview output={output} compact={compact} />;
+      return compact ? null : <ArtifactPreview output={output} compact={false} />;
     }
     return null;
   };

@@ -6,16 +6,19 @@ import {
 } from '@astra-spec/ui/components';
 import { analysisTitle, recordTitle } from '@astra-spec/ui/model';
 import {
+  LabelsProvider,
   PreviewPopover,
+  type AstraLabelOverrides,
   type SurfaceKind,
 } from '@astra-spec/ui/primitives';
 
-import { AstraCite } from './cite';
+import { AstraPreviewCite } from './cite';
 import {
   createAstraArtifactRenderer,
   useAstraPublicationDetails,
   type AstraPublication,
 } from './publication/AstraPublicationProvider';
+import { displayScope } from './rendererUtils';
 import { useAstraColorScheme } from './themeScope';
 
 export interface AstraPreviewPopoverProps {
@@ -28,6 +31,18 @@ export interface AstraPreviewPopoverProps {
   openDetailsOnTrigger?: boolean;
 }
 
+/** Copy retained by the publication theme's pre-astra-ui preview cards. */
+const PREVIEW_LABELS = {
+  kinds: {
+    analysis: 'Sub-analysis',
+    prior_insight: 'Prior insight',
+  },
+  preview: {
+    remainingDecisionDetails: (count: number) =>
+      `+ ${count} more in the decision panel`,
+  },
+} satisfies AstraLabelOverrides;
+
 function entryKind(entry: RecordPreviewEntry): SurfaceKind {
   if (entry.kind === 'analysis') return 'analysis';
   return entry.record.kind;
@@ -37,6 +52,45 @@ function entryTitle(entry: RecordPreviewEntry): string {
   return entry.kind === 'analysis'
     ? analysisTitle(entry.analysis)
     : recordTitle(entry.record);
+}
+
+function entryForPreview(
+  publication: AstraPublication,
+  entry: RecordPreviewEntry,
+): RecordPreviewEntry {
+  // The released analysis preview intentionally showed its title and counts,
+  // while the full analysis page remains the source of descriptive copy.
+  if (entry.kind === 'analysis') {
+    return entry.analysis.description
+      ? { ...entry, analysis: { ...entry.analysis, description: undefined } }
+      : entry;
+  }
+  if (
+    entry.kind === 'record' &&
+    entry.record.kind === 'input' &&
+    entry.record.from &&
+    entry.record.resolvedFrom
+  ) {
+    // Keep the authored alias visible, as it was in the released input card;
+    // the canonical target remains available to details and provenance.
+    return {
+      ...entry,
+      record: { ...entry.record, resolvedFrom: undefined },
+    };
+  }
+  if (
+    entry.kind !== 'record' ||
+    (entry.record.kind !== 'finding' && entry.record.kind !== 'prior_insight')
+  ) {
+    return entry;
+  }
+  const scope = displayScope(
+    entry.record.scope,
+    publication.document.universe.universeId,
+  );
+  return scope === entry.record.scope
+    ? entry
+    : { ...entry, record: { ...entry.record, scope } };
 }
 
 function withDetailInteraction(
@@ -104,6 +158,7 @@ export function AstraPreviewPopover({
     [publication],
   );
   const kind = entryKind(entry);
+  const previewEntry = entryForPreview(publication, entry);
   const wrappedTrigger = triggerClassName ? (
     <span className={triggerClassName}>{trigger}</span>
   ) : (
@@ -124,19 +179,23 @@ export function AstraPreviewPopover({
       portalProps={{
         className: 'lightcone-brand',
         'data-entry-kind': entry.kind,
+        'data-value-product':
+          entry.kind === 'value' && entry.product ? '' : undefined,
         'data-lightcone-color-scheme': scheme,
         'data-astra-color-scheme': scheme,
       }}
     >
-      <RecordPreview
-        entry={entry}
-        document={publication.document}
-        index={publication.index}
-        renderArtifact={renderArtifact}
-        renderCitation={(doi) => <AstraCite doi={doi} />}
-        renderRecordReference={renderRecordReference}
-        onOpenRecord={details?.onOpenRecord}
-      />
+      <LabelsProvider labels={PREVIEW_LABELS}>
+        <RecordPreview
+          entry={previewEntry}
+          document={publication.document}
+          index={publication.index}
+          renderArtifact={renderArtifact}
+          renderCitation={(doi) => <AstraPreviewCite doi={doi} />}
+          renderRecordReference={renderRecordReference}
+          onOpenRecord={details?.onOpenRecord}
+        />
+      </LabelsProvider>
     </PreviewPopover>
   );
 }
