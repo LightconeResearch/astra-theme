@@ -1,7 +1,7 @@
-import http from 'node:http';
-import https from 'node:https';
-import nodeFetch from 'node-fetch';
+import fetch from 'node-fetch';
+import { redirect } from '@remix-run/node';
 import type { SiteManifest } from 'myst-config';
+import { slugToUrl } from 'myst-common';
 import {
   MYST_SPEC_VERSION,
   type PageLoader,
@@ -10,21 +10,11 @@ import {
   updatePageStaticLinksInplace,
   updateSiteManifestStaticLinksInplace,
 } from '@myst-theme/common';
-import { redirect } from '@remix-run/node';
 import { responseNoArticle, responseNoSite, getDomainFromRequest } from '@myst-theme/site';
-import { slugToUrl } from 'myst-common';
 import { migrate } from 'myst-migrate';
 
 const CONTENT_CDN_PORT = process.env.CONTENT_CDN_PORT ?? '3100';
 const CONTENT_CDN = process.env.CONTENT_CDN ?? `http://localhost:${CONTENT_CDN_PORT}`;
-
-// Reuse connections to the content server across requests (every page view
-// otherwise opens fresh TCP connections for config + content + assets).
-const httpAgent = new http.Agent({ keepAlive: true });
-const httpsAgent = new https.Agent({ keepAlive: true });
-const agent = (url: URL) => (url.protocol === 'http:' ? httpAgent : httpsAgent);
-const fetch = (url: Parameters<typeof nodeFetch>[0], init?: Parameters<typeof nodeFetch>[1]) =>
-  nodeFetch(url, { agent, ...init });
 
 type LinkRewriteOptions = { rewriteStaticFolder?: boolean };
 
@@ -54,7 +44,6 @@ function updateLink(
   }
   return `${CONTENT_CDN}${url}`;
 }
-
 async function getStaticContent(project?: string, slug?: string): Promise<PageLoader | null> {
   if (!slug) return null;
   const projectSlug = project ? `${project}/` : '';
@@ -80,12 +69,10 @@ export async function getPage(
     loadIndexPage?: boolean;
     slug?: string;
     redirect?: boolean;
-    /** Pass an already-fetched site config to avoid re-fetching it per request. */
-    config?: SiteManifest;
   },
 ) {
   const projectName = opts.project;
-  const config = opts.config ?? (await getConfig());
+  const config = await getConfig();
   if (!config) throw responseNoSite();
   const project = getProject(config, projectName);
   if (!project) throw responseNoArticle();
@@ -99,6 +86,7 @@ export async function getPage(
   let slug = opts.loadIndexPage || opts.slug == null ? project.index : opts.slug;
   let loader = await getStaticContent(projectName, slug).catch(() => null);
   if (!loader) {
+    // If you haven't loaded the first time, try the `.index`
     slug = `${slug}.index`;
     loader = await getStaticContent(projectName, slug).catch(() => null);
     if (!loader) throw responseNoArticle();

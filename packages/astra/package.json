@@ -1,7 +1,7 @@
 {
   "name": "@astra-spec/theme-astra",
   "version": "0.0.8",
-  "description": "The ASTRA overlay shared by the astra themes: glyph-tagged inline references, preview cards, decision/finding/output renderers, the resolved-store provider, and the ASTRA stylesheet. Consumed as TypeScript source — the themes' Remix builds bundle it.",
+  "description": "The shared ASTRA overlay for MyST themes: publication rehydration, ASTRA renderers, shared UI integration, and Lightcone branding.",
   "license": "BSD-3-Clause",
   "type": "module",
   "main": "./src/index.ts",
@@ -18,17 +18,15 @@
     "typecheck": "tsc --noEmit --skipLibCheck"
   },
   "dependencies": {
-    "@astra-spec/store-types": "*",
-    "@floating-ui/react": "^0.27.0",
-    "@myst-theme/common": "^1.3.1",
+    "@astra-spec/sdk": "^0.1.2",
+    "@astra-spec/ui": "^0.0.3",
+    "@lightcone-research/brand": "^0.0.2",
     "@myst-theme/providers": "^1.3.1",
-    "doi-utils": "^2.0.6",
-    "katex": "^0.16.22",
     "myst-common": "^1.8.1",
-    "myst-config": "^1.8.1",
     "myst-to-react": "^1.3.1"
   },
   "peerDependencies": {
-    "react": ">=18"
+    "react": ">=18",
+    "react-dom": ">=18"
   }
 }

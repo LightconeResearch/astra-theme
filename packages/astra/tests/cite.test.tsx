@@ -1,10 +1,10 @@
 /**
- * AstraCite — the shared DOI→citation join used by the prior-insight block
- * renderer AND the inline preview overlays.
+ * AstraCite — the shared SDK-evidence DOI→citation join used by the
+ * prior-insight block renderer AND the inline preview overlays.
  *
  * The main text resolves citations through the stock CiteRenderer: a build-time
  * transform turns doi.org links into `cite` nodes (author–year children) keyed
- * into `references.cite.data`. AstraCite joins the other way (store DOI →
+ * into `references.cite.data`. AstraCite joins the other way (evidence DOI →
  * resolved cite node found in `references.article`) so the SAME pipeline
  * renders inside the overlays. These tests pin both branches:
  *   - GIVEN page references with a matching resolved cite → the author–year
@@ -16,7 +16,7 @@ import { describe, it, expect } from 'vitest';
 import { screen, fireEvent } from '@testing-library/react';
 import type { GenericNode, References } from 'myst-common';
 import { renderWithProviders } from './helpers/renderWithProviders';
-import { makeStore } from './helpers/store';
+import { makePublication } from './helpers/publication';
 
 import { AstraCite, buildDoiCiteIndex, normalizeDoi } from '../src/cite';
 import { AstraPriorInsight } from '../src/renderers/AstraPriorInsight';
@@ -34,6 +34,7 @@ function makeCiteNode(kind: 'narrative' | 'parenthetical' = 'narrative'): Generi
     children: [
       {
         type: 'text',
+        key: `cite-${kind}`,
         value: kind === 'narrative' ? 'Asgari et al. (2021)' : 'Asgari et al., 2021',
       },
     ],
@@ -60,17 +61,6 @@ function makeReferences(...citeNodes: GenericNode[]): References {
       children: [{ type: 'paragraph', children: citeNodes }],
     },
   } as References;
-}
-
-/** The store with a DOI + quote on the prior insight (as the plugin emits). */
-function makeStoreWithDoi() {
-  const store = makeStore();
-  store.prior_insights.kids_s8_low = {
-    ...store.prior_insights.kids_s8_low,
-    doi: DOI,
-    quote: 'S8 is lower than Planck.',
-  };
-  return store;
 }
 
 /* --------------------------------------------------------------- *
@@ -137,20 +127,37 @@ describe('citation resolution in insight surfaces', () => {
     type: 'admonition',
     class: 'astra-prior-insight',
     identifier: 'prior_insight-kids_s8_low',
-    children: [{ type: 'text', value: 'stock seealso body' }],
+    data: {
+      astra: {
+        kind: 'prior_insight',
+        id: 'kids_s8_low',
+        canonicalPath: 'prior_insights.kids_s8_low',
+      },
+    },
+    children: [
+      { type: 'text', key: 'prior-insight-body', value: 'stock seealso body' },
+    ],
   };
 
   const inlineNode: GenericNode = {
     type: 'span',
     class: 'astra-ref astra-ref--prior_insight',
-    data: { astra: { kind: 'prior_insight', id: 'kids_s8_low' } },
-    children: [{ type: 'text', value: 'KiDS S8 low ref' }],
+    data: {
+      astra: {
+        kind: 'prior_insight',
+        id: 'kids_s8_low',
+        canonicalPath: 'prior_insights.kids_s8_low',
+      },
+    },
+    children: [
+      { type: 'text', key: 'prior-insight-reference', value: 'KiDS S8 low ref' },
+    ],
   };
 
   it('AstraPriorInsight (main text) renders the resolved citation', () => {
     renderWithProviders(
       <AstraPriorInsight node={blockNode} />,
-      makeStoreWithDoi(),
+      makePublication({ doi: DOI }),
       makeReferences(),
     );
     expect(screen.getByText('Asgari et al. (2021)')).toBeInTheDocument();
@@ -159,7 +166,7 @@ describe('citation resolution in insight surfaces', () => {
   it('AstraInlineRef insight overlay renders the resolved citation', () => {
     const { container } = renderWithProviders(
       <AstraInlineRef node={inlineNode} />,
-      makeStoreWithDoi(),
+      makePublication({ doi: DOI }),
       makeReferences(),
     );
     const trigger = container.querySelector('.astra-ref-trigger');
@@ -167,18 +174,18 @@ describe('citation resolution in insight surfaces', () => {
     fireEvent.focus(trigger!);
     // The portaled card resolves the DOI through the same cite pipeline. (The
     // auto-appended inline citation matches the same text — scope to the card.)
-    const card = document.querySelector('.astra-card .astra-cite');
+    const card = document.querySelector('.astra-record-preview__citation');
     expect(card).toHaveTextContent('Asgari et al. (2021)');
   });
 
   it('overlay degrades to the raw DOI link when the page has no citation', () => {
     const { container } = renderWithProviders(
       <AstraInlineRef node={inlineNode} />,
-      makeStoreWithDoi(),
+      makePublication({ doi: DOI }),
     );
     const trigger = container.querySelector('.astra-ref-trigger');
     fireEvent.focus(trigger!);
-    const card = document.querySelector('.astra-card .astra-cite');
+    const card = document.querySelector('.astra-record-preview__citation');
     expect(card).toBeTruthy();
     const link = card!.querySelector('a');
     expect(link).toHaveAttribute('href', `https://doi.org/${DOI}`);
@@ -187,7 +194,7 @@ describe('citation resolution in insight surfaces', () => {
   it('auto-appends the parenthetical citation after inline prior-insight tokens', () => {
     const { container } = renderWithProviders(
       <AstraInlineRef node={inlineNode} />,
-      makeStoreWithDoi(),
+      makePublication({ doi: DOI }),
       makeReferences(makeCiteNode(), makeCiteNode('parenthetical')),
     );
     // Without any hover/focus: token + " (Asgari et al., 2021)" in prose.
@@ -201,7 +208,7 @@ describe('citation resolution in insight surfaces', () => {
   it('auto-citation falls back to the narrative form, bare, when no parenthetical cite resolved', () => {
     const { container } = renderWithProviders(
       <AstraInlineRef node={inlineNode} />,
-      makeStoreWithDoi(),
+      makePublication({ doi: DOI }),
       makeReferences(), // narrative only (older bundles)
     );
     const citation = container.querySelector('.astra-ref-citation');
@@ -212,7 +219,7 @@ describe('citation resolution in insight surfaces', () => {
   it('appends no citation when the insight has no DOI', () => {
     const { container } = renderWithProviders(
       <AstraInlineRef node={inlineNode} />,
-      makeStore(), // kids_s8_low without doi
+      makePublication(), // kids_s8_low without doi
       makeReferences(),
     );
     expect(container.querySelector('.astra-ref-citation')).toBeNull();

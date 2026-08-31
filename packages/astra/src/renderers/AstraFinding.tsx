@@ -1,91 +1,140 @@
-/**
- * AstraFinding — block renderer for the `:::{astra:finding}` carrier.
- *
- * The finding carrier is a stock `heading` node bearing the `astra-finding`
- * class and a stable `finding-<id>` identifier; the claim/notes/scope come from
- * the joined `findings` table entry (`SerializedFinding { id, label?, claim?,
- * notes?, scope? }`), not from the heading's title children.
- *
- * Presentation (Vellum): an editorial "finding card" — a FINDING kind row, the
- * claim as the card's spoken line, a scope chip, and (unless `:compact:`) the
- * notes. The component re-implements no ASTRA logic; it only joins by id and
- * decorates. If the store entry is missing it degrades gracefully to the node's
- * own stock children, and it never throws.
- */
 import * as React from 'react';
+import type { ResolvedInsight } from '@astra-spec/sdk';
+import { Prose } from '@astra-spec/ui/primitives';
 import type { GenericNode } from 'myst-common';
-import { MyST } from 'myst-to-react';
-import { useEntryByIdentifier } from '../store/useAstraStore';
-import { KindLabel } from '../card';
-import { StoreProse } from '../storeProse';
-import type { SerializedFinding } from '@astra-spec/store-types';
 
-/**
- * Decide whether this finding is in `:compact:` form (no notes). The plugin may
- * surface the directive option in a few neutral ways depending on stock-node
- * shape — a modifier class, a `data.compact` / `data.astra.compact` flag, or a
- * plain node property — so we look in all of them and degrade to `false`.
- */
-function isCompact(node: GenericNode): boolean {
-  const data = (node.data ?? {}) as { compact?: unknown; astra?: { compact?: unknown } };
-  return (
-    /\bastra-finding--compact\b/.test(typeof node.class === 'string' ? node.class : '') ||
-    data.compact === true ||
-    data.astra?.compact === true ||
-    (node as Record<string, unknown>).compact === true
-  );
-}
+import {
+  BlockKindLabel,
+  NeutralNode,
+  nodeClassName,
+  nodeHtmlId,
+  useAstraRecord,
+} from '../rendererUtils';
+import type { AstraPublication } from '../publication/AstraPublicationProvider';
 
 export interface AstraFindingProps {
   node: GenericNode;
 }
 
+function nodeText(node: GenericNode): string {
+  if (typeof node.value === 'string') return node.value;
+  return (node.children ?? []).map(nodeText).join(' ');
+}
+
+function normalizedProse(value: string): string {
+  return value
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/<[^>]*>/g, ' ')
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim();
+}
+
+/** MySTRA keeps authored show/hide choices only in the neutral subtree. */
+function neutralIncludes(node: GenericNode, value: string): boolean {
+  const expected = normalizedProse(value);
+  return Boolean(expected) && normalizedProse(nodeText(node)).includes(expected);
+}
+
+function isNeutralScopeNode(node: GenericNode, scope: string): boolean {
+  const expected = normalizedProse(`Scope: ${scope}`);
+  return (
+    node.type === 'paragraph' &&
+    Boolean(node.children?.some((part) => part.type === 'emphasis')) &&
+    normalizedProse(nodeText(node)) === expected
+  );
+}
+
+function neutralIncludesScope(node: GenericNode, scope: string): boolean {
+  return (node.children ?? []).some((child) => isNeutralScopeNode(child, scope));
+}
+
 /**
- * Render the finding carrier as a finding card. Falls back to the node's stock
- * children whenever the store entry cannot be resolved.
+ * A Markdown source string cannot be compared losslessly with its rendered
+ * MDAST text (entities and reference definitions are two common examples).
+ * If unmatched body nodes remain, preserve the authored neutral subtree
+ * instead of guessing that notes were hidden and silently dropping content.
  */
-export function AstraFinding({ node }: AstraFindingProps): React.ReactElement {
-  const entry = useEntryByIdentifier(node.identifier) as
-    | SerializedFinding
-    | undefined;
+function notesVisibilityIsUncertain(node: GenericNode, scope?: string): boolean {
+  return (node.children ?? []).some(
+    (child) =>
+      child.type !== 'heading' &&
+      !(scope && isNeutralScopeNode(child, scope)),
+  );
+}
 
-  // Preserve the carrier's own astra-* (and any other) classes on the root so
-  // the stylesheet's `.astra-finding` treatment applies regardless of branch.
-  const rootClass = typeof node.class === 'string' ? node.class : 'astra-finding';
-
-  // Graceful degradation: no joined entry -> render the node's stock children.
-  if (!entry) {
-    return (
-      <div className={rootClass} id={node.identifier}>
-        <MyST ast={node.children} />
-      </div>
+function notesVisibilityIsAmbiguous(
+  record: ResolvedInsight,
+  publication: AstraPublication,
+): boolean {
+  if (!record.notes) return false;
+  const notes = normalizedProse(record.notes);
+  const competingText = [record.claim, record.scope];
+  for (const evidence of record.evidence) {
+    competingText.push(
+      evidence.quote?.exact,
+      evidence.doi,
+      evidence.artifact,
     );
+    const output = evidence.resolvedOutputPath
+      ? publication.index.recordByPath.get(evidence.resolvedOutputPath)
+      : undefined;
+    if (output?.kind === 'output') {
+      competingText.push(output.id, output.label, output.description);
+    }
+  }
+  return competingText.some((value) => {
+    if (!value) return false;
+    return normalizedProse(value).includes(notes);
+  });
+}
+
+/** Preserve the placed finding card while sourcing its content from the SDK. */
+export function AstraFinding({ node }: AstraFindingProps): React.ReactElement {
+  const located = useAstraRecord(node, 'finding');
+  const rootClass = nodeClassName(node, 'astra-finding');
+
+  if (!located) {
+    return <NeutralNode node={node} recognitionClass="astra-finding" />;
   }
 
-  const compact = isCompact(node);
-  const claim = entry.claim ?? entry.label;
-
+  const { publication, record } = located;
+  const hasNeutralFallback = Boolean(node.children?.length);
+  const notesAppearInNeutral = Boolean(
+    record.notes && hasNeutralFallback && neutralIncludes(node, record.notes),
+  );
+  if (
+    hasNeutralFallback &&
+    record.notes &&
+    (notesVisibilityIsAmbiguous(record, publication) ||
+      (!notesAppearInNeutral && notesVisibilityIsUncertain(node, record.scope)))
+  ) {
+    return <NeutralNode node={node} recognitionClass="astra-finding" />;
+  }
+  const showScope = Boolean(
+    record.scope &&
+      (!hasNeutralFallback || neutralIncludesScope(node, record.scope)),
+  );
+  const showNotes = Boolean(
+    record.notes &&
+      (!hasNeutralFallback || notesAppearInNeutral),
+  );
   return (
-    // The carrier's `finding-<id>` identifier becomes the anchor id so
-    // cross-page `#finding-<id>` links resolve to the placed card.
-    <div className={rootClass} id={node.identifier}>
-      <KindLabel kind="finding" className="astra-finding__kind" />
-
-      {claim ? (
-        <div className="astra-finding__claim">
-          <StoreProse text={claim} />
-        </div>
-      ) : null}
-
-      {entry.scope ? (
+    <div className={rootClass} id={nodeHtmlId(node)}>
+      <BlockKindLabel kind="finding" className="astra-finding__kind" />
+      <div className="astra-finding__claim">
+        <Prose text={record.claim} field="claim" />
+      </div>
+      {showScope && record.scope ? (
         <span className="astra-scope-chip">
-          <StoreProse text={entry.scope} />
+          <Prose text={record.scope} />
         </span>
       ) : null}
-
-      {!compact && entry.notes ? (
+      {showNotes && record.notes ? (
         <div className="astra-finding__notes">
-          <StoreProse text={entry.notes} />
+          <Prose text={record.notes} field="notes" />
         </div>
       ) : null}
     </div>

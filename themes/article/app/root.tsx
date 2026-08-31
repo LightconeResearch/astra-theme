@@ -19,7 +19,7 @@ import { mergeRenderers } from '@myst-theme/providers';
 import { JUPYTER_RENDERERS } from '@myst-theme/jupyter';
 import { ANY_RENDERERS } from '@myst-theme/anywidget';
 
-// ── ASTRA overlay (the only ASTRA-aware code in the theme) ──────────────────
+// ── ASTRA renderer overlay ─────────────────────────────────────────────────
 // Merged LAST so its class-selector renderers win for `astra-*` nodes; every
 // other node falls back to the stock article-theme renderer. See packages/astra.
 import { ASTRA_RENDERERS } from '@astra-spec/theme-astra';

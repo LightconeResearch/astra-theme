@@ -40,7 +40,7 @@ export const loader: LoaderFunction = async ({ params, request }) => {
   const project = getProject(config);
   if (!project) throw responseNoArticle();
   if (project.slug) return redirect(`/${project.slug}`);
-  const page = await getPage(request, { config, slug: project.index });
+  const page = await getPage(request, { slug: project.index });
   return { config, project, page };
 };
 

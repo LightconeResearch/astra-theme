@@ -58,7 +58,6 @@ export const loader: LoaderFunction = async ({ params, request }) => {
   const flat = isFlatSite(config);
   try {
     const page = await getPage(request, {
-      config,
       project: flat ? projectName : (projectName ?? slug),
       slug: flat ? slug : projectName ? slug : undefined,
       // MODE=static is set by mystmd when pre-rendering pages for `myst build --html`; skip index redirects in that case.

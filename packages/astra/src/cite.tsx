@@ -1,5 +1,5 @@
 /**
- * AstraCite — render a store DOI through the SAME citation pipeline the main
+ * AstraCite — render an SDK evidence DOI through the SAME citation pipeline the main
  * text uses, so overlay cards show the resolved citation (author–year link +
  * hover bibliography) instead of a raw DOI string.
  *
@@ -8,7 +8,7 @@
  * `references.cite.data` which carries the formatted html + the doi). The
  * stock `CiteRenderer` then joins `label → data` via `useReferences()`.
  *
- * The `ResolvedStore` only carries the raw DOI string, so we join the other
+ * The resolved publication carries the raw DOI string, so we join the other
  * way around: scan the page AST (exposed as `references.article` by
  * ArticlePage) for the already-resolved `cite` node whose citation data
  * matches this DOI, and render THAT node through `<MyST>`. This reuses the
@@ -20,7 +20,8 @@
  * node is missing we fall back to a plain doi.org link. Never throws.
  */
 import * as React from 'react';
-import { doi as doiUtils } from 'doi-utils';
+import { normalizeDoi as normalizeSdkDoi } from '@astra-spec/sdk';
+import { doiHref } from '@astra-spec/ui/model';
 import type { GenericNode, References } from 'myst-common';
 import { useReferences } from '@myst-theme/providers';
 import { MyST } from 'myst-to-react';
@@ -28,13 +29,10 @@ import { MyST } from 'myst-to-react';
 /** Normalize a raw DOI (tolerates full URLs and `doi:` prefixes) to a key. */
 export function normalizeDoi(raw: string | undefined): string | undefined {
   if (!raw) return undefined;
-  return doiUtils.normalize(raw.trim().replace(/^doi:\s*/i, ''))?.toLowerCase();
+  return normalizeSdkDoi(raw) || undefined;
 }
 
-/** Build a doi.org URL from a raw DOI string (tolerates a full URL already). */
-export function doiHref(raw: string): string {
-  return doiUtils.buildUrl(raw.trim()) ?? raw.trim();
-}
+export { doiHref };
 
 /** A DOI's resolved cite nodes, one per citation kind found on the page. */
 export type CiteKind = 'narrative' | 'parenthetical';

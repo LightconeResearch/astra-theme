@@ -2,6 +2,7 @@ import React from 'react';
 import {
   ArticleProvider,
   useProjectManifest,
+  useSiteManifest,
   useThemeTop,
   useMediaQuery,
 } from '@myst-theme/providers';
@@ -11,12 +12,12 @@ import {
   FrontmatterParts,
   BackmatterParts,
   DocumentOutline,
-  combineDownloads,
   extractKnownParts,
   Footnotes,
 } from '@myst-theme/site';
+import type { SiteManifest } from 'myst-config';
 import type { PageLoader } from '@myst-theme/common';
-import { copyNode } from 'myst-common';
+import { copyNode, type GenericParent } from 'myst-common';
 import { SourceFileKind } from 'myst-spec-ext';
 import {
   ExecuteScopeProvider,
@@ -28,8 +29,28 @@ import {
 } from '@myst-theme/jupyter';
 import { MyST } from 'myst-to-react';
 import { FrontmatterBlock } from '@myst-theme/frontmatter';
-import { AstraStoreProvider, useTemplateOptions } from '@astra-spec/theme-astra';
+import type { SiteAction } from 'myst-config';
+import { AstraPublicationProvider } from '@astra-spec/theme-astra';
 import type { TemplateOptions } from '../types.js';
+
+/**
+ * Combines the project downloads and the export options
+ */
+function combineDownloads(
+  siteDownloads: SiteAction[] | undefined,
+  pageFrontmatter: PageLoader['frontmatter'],
+) {
+  if (pageFrontmatter.downloads) {
+    return pageFrontmatter.downloads;
+  }
+  // No downloads on the page, combine the exports if they exist
+  if (siteDownloads) {
+    return [...(pageFrontmatter.exports ?? []), ...siteDownloads];
+  }
+  return pageFrontmatter.exports;
+}
+
+const TOP_OFFSET = 33;
 
 export const ArticlePage = React.memo(function ({
   article,
@@ -44,29 +65,25 @@ export const ArticlePage = React.memo(function ({
   const compute = useComputeOptions();
   const top = useThemeTop();
 
-  const { hide_title_block, hide_footer_links, hide_outline, outline_maxdepth, hide_authors } =
-    useTemplateOptions<TemplateOptions>(article.frontmatter);
+  const pageDesign: TemplateOptions = (article.frontmatter as any)?.site ?? {};
+  const siteDesign: TemplateOptions =
+    (useSiteManifest() as SiteManifest & TemplateOptions)?.options ?? {};
+  const { hide_title_block, hide_footer_links, hide_outline, outline_maxdepth, hide_authors } = {
+    ...siteDesign,
+    ...pageDesign,
+  };
   const downloads = combineDownloads(manifest?.downloads, article.frontmatter);
-  // copyNode deep-copies the whole article AST; memoize so re-renders (theme
-  // top, media query, compute options) keep stable identities and <MyST> /
-  // the store scan are not invalidated.
-  const { tree, parts } = React.useMemo(() => {
-    const tree = copyNode(article.mdast);
-    return { tree, parts: extractKnownParts(tree, article.frontmatter?.parts) };
-  }, [article]);
-  const references = React.useMemo(
-    () => ({ ...article.references, article: article.mdast }),
-    [article],
-  );
+  const tree = copyNode(article.mdast);
   const keywords = article.frontmatter?.keywords ?? [];
+  const parts = extractKnownParts(tree, article.frontmatter?.parts);
   const isOutlineMargin = useMediaQuery('(min-width: 1024px)');
   const { thebe } = manifest as any;
   const { location } = article;
 
-  return (
+  const content = (
     <ArticleProvider
       kind={article.kind}
-      references={references}
+      references={{ ...article.references, article: article.mdast }}
       frontmatter={article.frontmatter}
     >
       <BusyScopeProvider>
@@ -100,14 +117,9 @@ export const ArticlePage = React.memo(function ({
             <ErrorTray pageSlug={article.slug} />
           )}
           <div id="skip-to-article" />
-          {/* The store provider must wrap the frontmatter/backmatter parts too:
-              the abstract is extracted from the tree and rendered separately,
-              and its astra refs need the store context for preview cards. */}
-          <AstraStoreProvider mdast={tree}>
-            <FrontmatterParts parts={parts} keywords={keywords} hideKeywords={hideKeywords} />
-            <MyST ast={tree} />
-            <BackmatterParts parts={parts} />
-          </AstraStoreProvider>
+          <FrontmatterParts parts={parts} keywords={keywords} hideKeywords={hideKeywords} />
+          <MyST ast={tree} />
+          <BackmatterParts parts={parts} />
           <Footnotes />
           <Bibliography />
           <ConnectionStatusTray />
@@ -117,5 +129,8 @@ export const ArticlePage = React.memo(function ({
         </ExecuteScopeProvider>
       </BusyScopeProvider>
     </ArticleProvider>
+  );
+  return (
+    <AstraPublicationProvider mdast={article.mdast}>{content}</AstraPublicationProvider>
   );
 });

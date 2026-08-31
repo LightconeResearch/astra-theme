@@ -16,15 +16,19 @@ import { BusyScopeProvider, ExecuteScopeProvider } from '@myst-theme/jupyter';
 import { DownloadLinksArea } from './Downloads';
 import { Article } from './Article';
 import type { TemplateOptions } from '../types.js';
-import { useTemplateOptions } from '@astra-spec/theme-astra';
 
 export function ArticlePage({ article }: { article: PageLoader }) {
   const grid = useGridSystemProvider();
 
   const siteManifest = useSiteManifest() as SiteManifest;
+  const pageDesign: TemplateOptions = (article.frontmatter as any)?.site ?? {};
+  const siteDesign: TemplateOptions = siteManifest?.options ?? {};
+
   const { projects } = siteManifest;
-  const { hide_footer_links, hide_outline, outline_maxdepth, hide_authors } =
-    useTemplateOptions<TemplateOptions>(article.frontmatter);
+  const { hide_footer_links, hide_outline, outline_maxdepth, hide_authors } = {
+    ...siteDesign,
+    ...pageDesign,
+  };
   const Link = useLinkProvider();
   const baseurl = useBaseurl();
   const compute = useComputeOptions();

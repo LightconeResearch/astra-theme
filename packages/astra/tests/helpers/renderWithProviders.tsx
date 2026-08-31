@@ -3,7 +3,7 @@
  * needs at runtime —
  *   1. the MyST node-renderers context (so nested <MyST/> can resolve renderers)
  *      supplied by @myst-theme/providers' ThemeProvider via its `renderers` prop,
- *   2. the AstraStoreProvider (passed an explicit `store`, no mdast scanning),
+ *   2. the AstraPublicationProvider (passed decoded SDK data),
  *   3. optionally the ArticleProvider's `references` (cite data + page AST),
  *      which AstraCite joins exactly as the stock CiteRenderer does.
  *
@@ -16,21 +16,25 @@ import { ArticleProvider, ThemeProvider, mergeRenderers } from '@myst-theme/prov
 import { SourceFileKind } from 'myst-spec-ext';
 import type { References } from 'myst-common';
 import { DEFAULT_RENDERERS } from 'myst-to-react';
-import type { ResolvedStore } from '@astra-spec/store-types';
 import { ASTRA_RENDERERS } from '../../src/renderers';
-import { AstraStoreProvider } from '../../src/store/AstraStoreProvider';
+import {
+  AstraPublicationProvider,
+  type AstraPublication,
+} from '../../src/publication/AstraPublicationProvider';
 
 const RENDERERS = mergeRenderers([DEFAULT_RENDERERS, ASTRA_RENDERERS]);
 
 export function renderWithProviders(
   ui: React.ReactElement,
-  store?: ResolvedStore,
+  publication?: AstraPublication,
   references?: References,
 ) {
   return render(
     <ThemeProvider theme={null} setTheme={() => undefined} renderers={RENDERERS}>
       <ArticleProvider kind={SourceFileKind.Article} references={references}>
-        <AstraStoreProvider store={store}>{ui}</AstraStoreProvider>
+        <AstraPublicationProvider publication={publication}>
+          {ui}
+        </AstraPublicationProvider>
       </ArticleProvider>
     </ThemeProvider>,
   );

@@ -66,8 +66,7 @@ jobs:
         run: |
           set -euo pipefail
           v="${VERSION#v}" # strip leading "v": v0.0.8 -> 0.0.8
-          # Themes + overlay + root move in lockstep; store-types versions independently
-          # (it mirrors the MySTRA plugin's store contract).
+          # Themes, shared overlay, and repository root move in lockstep.
           npm version "$v" --no-git-tag-version --allow-same-version \
             --include-workspace-root -w packages/astra -w themes/article -w themes/book
           sed -i -E "s/^version:.*/version: $v/" themes/${{ matrix.theme }}/template.yml
@@ -86,7 +85,7 @@ jobs:
           # exactly the set declared in template.yml `files:`, plus the manifest + legal
           cp "$theme/template.yml" "$theme/server.js" dist-publish/
           cp -r "$theme/build" "$theme/public" dist-publish/
-          for f in LICENSE NOTICE; do [ -f "$f" ] && cp "$f" dist-publish/; done
+          for f in LICENSE NOTICE FONT-LICENSES; do [ -f "$f" ] && cp "$f" dist-publish/; done
           # Minimal runtime manifest: only what server.js requires — the Remix
           # build already bundles everything else. Versions are copied from the
           # theme's package.json so they are the ranges the build was tested with.

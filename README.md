@@ -1,105 +1,81 @@
 # astra-theme
 
-**Rich [MyST](https://mystmd.org/) web themes for [ASTRA](https://github.com/LightconeResearch/ASTRA) analyses.**
+Rich [MyST](https://mystmd.org/) web themes for
+[ASTRA](https://astra-spec.org/) publications.
 
-`astra-theme` is the presentation half of a pair. You author an ASTRA report with
-the [`@astra-spec/mystra`](https://github.com/LightconeResearch/MySTRA) plugin —
-Markdown that imports and cites ASTRA components by reference — and that document
-renders cleanly on any stock MyST theme. Switch to one of the astra themes and
-the same document gains the **rich** experience: glyph-tagged inline references
-with hover preview cards, decision/finding/output treatments, live-value
-provenance, and author-placed dependency graphs.
+This repository provides two site templates built on the corresponding
+[`myst-theme`](https://github.com/jupyter-book/myst-theme) 1.3.1 themes:
 
-This repo produces **two site templates**, mirroring the upstream
-[myst-theme](https://github.com/jupyter-book/myst-theme) pair:
+- `themes/article` for a single scrolling publication;
+- `themes/book` for a multi-page publication with navigation and search.
 
-- **`themes/book`** — extends `@myst-theme/book`: multi-page sites with a table
-  of contents, top navigation, and search.
-- **`themes/article`** — extends `@myst-theme/article`: a single scrolling
-  article with supporting notebooks.
+Both use the same small ASTRA integration from `packages/astra`. Content that
+does not use ASTRA continues through the stock MyST renderers unchanged.
 
-Both layer the same ASTRA overlay, [`packages/astra`](./packages/astra).
+## Runtime architecture
 
-```yaml
-site:
-  template: astra-book-theme    # one line; nothing else changes
-  # or the single-article flavor:
-  # template: astra-article-theme
-```
+The [`MySTRA`](https://github.com/LightconeResearch/MySTRA) plugin resolves an
+ASTRA project at build time and emits readable, neutral MyST nodes. It also
+embeds a versioned `astra-publication-bundle.v1` carrier and static resource
+links for richer themes.
 
-## How it fits with the plugin
+At render time, the shared overlay:
 
-MyST is two-stage — the **engine** turns source into AST at build time, the
-**theme** renders that AST in the browser — and the theme never reads
-`astra.yaml`. So the work splits cleanly:
+1. validates and indexes the embedded bundle with
+   [`@astra-spec/sdk`](https://www.npmjs.com/package/@astra-spec/sdk);
+2. rejoins only resource URLs whose output path and cache token match the SDK
+   binding;
+3. enriches ASTRA nodes with the published
+   [`@astra-spec/ui`](https://www.npmjs.com/package/@astra-spec/ui) previews and
+   popovers; and
+4. applies the scoped
+   [`@lightcone-research/brand`](https://www.npmjs.com/package/@lightcone-research/brand)
+   tokens through its ASTRA adapter.
 
-- **`@astra-spec/mystra` (the plugin)** reads `astra.yaml` at build time and
-  emits neutral, stock MyST AST decorated with `astra-*` classes, stable
-  identifiers, and a fully **resolved data store**. It bakes no presentation.
-- **`astra-theme` (this repo)** recognizes those markers, joins them to the
-  store, and renders every visual and interactive treatment. It re-implements no
-  ASTRA logic and reads only the build output. All of that lives once in
-  `packages/astra`; each theme touches it in exactly three places (renderer
-  merge + stylesheet in `root.tsx`, the store provider around the article body,
-  and the shared template-options hook).
+Invalid, unsupported, or incomplete transport data fails locally: the neutral
+MyST content remains visible. The browser never reads `astra.yaml`, resolves a
+project, guesses an artifact path, or maintains a second ASTRA data model.
 
-The interface between them — classes, identifiers, and the store shape — is the
-only coupling, and it's specified and versioned.
+The article and book app shells deliberately stay close to upstream. Each has
+only two ASTRA-aware source seams: renderer/style registration in `app/root.tsx`
+and an `AstraPublicationProvider` around the rendered article surface.
 
-## Quickstart
+## Local development
 
-Each theme is a MyST **site template** (a Remix app). Build once, then point
-any ASTRA project at the flavor you want:
+Node.js 20 or newer is required.
 
 ```bash
-git clone https://github.com/LightconeResearch/astra-theme && cd astra-theme
-npm install
-npm run build          # both themes → themes/*/build + themes/*/public
-# or npm run build:book / npm run build:article
+npm ci
+npm test
+npm run typecheck
+npm run build
 ```
 
-In your ASTRA project's `myst.yml`:
+To exercise a built checkout from a MyST project:
+
+```yaml
+project:
+  plugins:
+    - /path/to/MySTRA/dist/mystra.mjs
+site:
+  template: /path/to/astra-theme/themes/article
+  # or /path/to/astra-theme/themes/book
+```
+
+Then run `myst start` or `myst build --html` in that project. The
+`desi-myst-proto` sibling repository is the end-to-end publication fixture used
+during development.
+
+Published builds can be selected directly:
 
 ```yaml
 site:
-  template: https://github.com/EiffL/astra-book-theme    # the published builds
-  # template: https://github.com/EiffL/astra-article-theme
-  # template: /path/to/astra-theme/themes/book           # or a built local checkout
-  # template: /path/to/astra-theme/themes/article
+  template: https://github.com/EiffL/astra-article-theme
+  # or https://github.com/EiffL/astra-book-theme
 ```
-
-then `myst start`. A complete worked example lives in
-[`examples/desi-dr1/`](./examples/desi-dr1) (the DESI DR1 BAO reproduction) — see
-its README to run it locally.
-
-## Status
-
-✅ **Phases 0–2 complete and running.** The themes are standalone forks of the
-[`@myst-theme`](https://github.com/jupyter-book/myst-theme) book and article
-themes (classic Remix, React 19) built on the published `@myst-theme/*`
-packages, with the ASTRA layer compiled in: the `@astra-spec/store-types`
-contract mirror, the Vellum design system, the `AstraStoreProvider`, and **all
-eight** renderers wired via `mergeRenderers`. `npm run build` produces the theme server; `myst start` renders
-the DESI DR1 example end-to-end — inline hover preview cards, the interactive
-decision panel (narrative⇄options), output figures with provenance drawers,
-finding/insight cards, registry tables, and live value tokens. Phase 3
-(author-placed `astra:dag`/`astra:gallery` patterns) needs plugin-side directive
-hooks first and is not started.
-
-- **[STATUS.md](./STATUS.md)** — what's implemented per phase and the remaining items.
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)** — how the pieces connect at runtime,
-  the directory tree, and the per-element selector → component → store table map.
-- **[DEVELOPING.md](./DEVELOPING.md)** — the build, dev, and distribution loop.
-- **[CONTRACT.md](./CONTRACT.md)** — the exact plugin↔theme interface: every
-  emitted class, identifier, inline token, and the resolved-store shape.
 
 ## License
 
-BSD 3-Clause (this repo's ASTRA code: `packages/astra/`,
-`packages/store-types`, configuration, and docs).
-
-astra-theme is built on the MyST theme stack: it depends on the published
-`@myst-theme/*` packages and **vendors the MIT-licensed app shells** of the
-[`@myst-theme`](https://github.com/jupyter-book/myst-theme) book and article
-themes (each theme's Remix `app/`, `styles/`, and Remix/Tailwind config, plus
-`server.js`). Those files retain their MIT license — see [`NOTICE`](./NOTICE).
+The ASTRA overlay and repository configuration are available under the BSD
+3-Clause License. The vendored MyST article and book app shells remain under
+the upstream MIT License; see [NOTICE](./NOTICE).
