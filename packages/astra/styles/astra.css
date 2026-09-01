@@ -1,3 +1,6 @@
+@import "@lightcone-research/brand/adapters/astra.css";
+@import "@astra-spec/ui/components.css";
+
 /* =============================================================================
    ASTRA — the Lightcone Research design system
    Editorial, narrative-first, parchment presentation layer for the
@@ -10,31 +13,34 @@
 
    Conventions
    -----------
-   - Every token is a CSS custom property on :root, prefixed --astra-.
+   - Legacy theme tokens are prefixed --astra- and resolve through the
+     Lightcone foundations when a branded scope is present.
    - Every class below is part of the theme's internal contract: the renderers in
      packages/astra/src/ emit these classes, this file styles them.
    - Restrained, print-like. Hairline rules over heavy borders, no loud colour.
    ========================================================================== */
 
-/* Fonts (Quattrocento / Alegreya / Newsreader / JetBrains Mono) are linked by
-   the theme in app/root.tsx (<link rel="stylesheet">), not @import-ed here, so
-   this file can be bundled at any position by the Remix/esbuild CSS pipeline. */
+/* The adapter bundles Lightcone's upright fallback faces. The Google families
+   (including true italics) plus JetBrains Mono remain linked by app/root.tsx. */
 
 /* -----------------------------------------------------------------------------
    1. Tokens
    -------------------------------------------------------------------------- */
-:root {
+:root,
+:where(.lightcone-brand) {
   /* surfaces — the brand's Background Neutrals ramp */
-  --astra-paper: #FFFFFF;     /* page background — white; parchment is reserved
-                                 for raised chrome (header band, cards, rail) */
-  --astra-surface: #F1EFE9;   /* cards, rail, header band — Darker Parchment */
+  --astra-paper: var(--lc-palette-white, #FFFFFF); /* page background — white;
+                                 parchment is reserved for raised chrome */
+  --astra-surface: var(--lc-palette-darker-parchment, #F1EFE9);
+                              /* cards, rail, header band — Darker Parchment */
   --astra-surface-2: #E9E6DD; /* recessed insets: figure frames, diagram wells
                                  (Darker Parchment, deepened one step) */
 
   /* ink */
-  --astra-ink: #221F20;       /* Charcoal */
-  --astra-ink-soft: #4E5A70;  /* Blue Ink — secondary text, per the type-style page */
-  --astra-muted: #8B7D70;     /* Mushroom Cap */
+  --astra-ink: var(--lc-palette-charcoal, #221F20);
+  --astra-ink-soft: var(--lc-palette-blue-ink, #4E5A70);
+                              /* Blue Ink — secondary text */
+  --astra-muted: var(--lc-palette-mushroom-cap, #8B7D70);
   --astra-faint: #BCB2A6;     /* Mushroom Cap, lightened */
 
   /* rules — cool parchment hairlines */
@@ -42,36 +48,736 @@
   --astra-rule-strong: #D2CCBF;
 
   /* brand accent — Antique Gold (rail mark + inline links + headings) */
-  --astra-accent: #A67C3C;
-  --astra-link: #A67C3C;
+  --astra-accent: var(--lc-palette-antique-gold, #A67C3C);
+  --astra-link: var(--lc-palette-antique-gold, #A67C3C);
   --astra-accent-soft: rgba(166, 124, 60, 0.12); /* the warm hover hotspot */
 
   /* kickers / uppercase labels — Slate Blue, as in the brand's type-style page */
-  --astra-kicker: #3F7280;
+  --astra-kicker: var(--lc-palette-slate-blue, #3F7280);
 
   /* per-kind accents — mapped onto the brand palette */
-  --astra-c-decision: #A67C3C; /* ◇ Antique Gold  */
-  --astra-c-finding:  #3B7A73; /* ● Vert de Gris  */
-  --astra-c-insight:  #A45A43; /* ◈ Wax Red       */
-  --astra-c-analysis: #3F7280; /* ◐ Slate Blue    */
-  --astra-c-output:   #4E5A70; /* ◆ Blue Ink      */
-  --astra-c-input:    #4E5A70; /* ▤ Blue Ink (inputs share the data family) */
-  --astra-c-value:    #3F7280; /* Slate Blue      */
+  --astra-c-decision: var(--lc-palette-antique-gold, #A67C3C); /* ◇ */
+  --astra-c-finding: var(--lc-palette-vert-de-gris, #3B7A73);  /* ● */
+  --astra-c-insight: var(--lc-palette-wax-red, #A45A43);       /* ◈ */
+  --astra-c-analysis: var(--lc-palette-slate-blue, #3F7280);   /* ◐ */
+  --astra-c-output: var(--lc-palette-blue-ink, #4E5A70);       /* ◆ */
+  --astra-c-input: var(--lc-palette-blue-ink, #4E5A70);        /* ▤ */
+  --astra-c-value: var(--lc-palette-slate-blue, #3F7280);
 
-  /* layout + type — the three brand typefaces by role */
+  /* Keep the Google families first: the brand package currently bundles only
+     the upright variable cuts, while editorial copy requires true italics.
+     The packaged Lightcone faces remain the offline-safe fallback. */
   --astra-measure: 40rem;      /* the 640px editorial column */
-  --astra-heading: "Quattrocento", Georgia, "Times New Roman", serif;
-  --astra-serif: "Newsreader", Georgia, "Times New Roman", serif; /* body */
-  --astra-label: "Alegreya", Georgia, serif; /* subheadings, kickers, UI labels */
-  --astra-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --astra-heading: "Quattrocento", var(--lc-font-heading, Georgia, "Times New Roman", serif);
+  --astra-serif: "Newsreader", var(--lc-font-body, Georgia, "Times New Roman", serif);
+  --astra-label: "Alegreya", var(--lc-font-ui, Georgia, serif);
+  --astra-mono: "JetBrains Mono", var(--lc-font-mono, ui-monospace, "SF Mono", Menlo, monospace);
 
   /* card — sharp editorial corners, soft warm shadow (exact mock values) */
   --astra-card-w: 27.5rem;     /* 440px overlay width */
   --astra-radius: 3px;
   --astra-shadow: 0 6px 18px rgba(38, 28, 15, 0.10);
 
-  /* the kind accent in scope — overridden by .astra-card--<kind> etc. */
+  /* the kind accent in scope — overridden by placed blocks / [data-kind] */
   --astra-kind: var(--astra-accent);
+}
+
+/* The published Lightcone adapter supplies @astra-spec/ui's host-neutral
+   contract. These few overrides preserve the legacy ASTRA theme assignment:
+   parchment cards, gold interactions, and ASTRA's original record-kind hues.
+   Keeping them on the shared branded UI boundary prevents leakage into either
+   upstream MyST theme or another unbranded ASTRA interface. */
+:where(.lightcone-brand.astra-ui, .lightcone-brand .astra-ui) {
+  --astra-color-canvas: var(--lc-palette-white);
+  --astra-color-surface: var(--lc-palette-darker-parchment);
+  --astra-color-surface-raised: var(--lc-palette-darker-parchment);
+  --astra-color-surface-muted: var(--lc-palette-darker-parchment);
+  --astra-color-header: var(--lc-palette-darker-parchment);
+  --astra-color-artifact-paper: var(--lc-palette-white);
+  --astra-color-artifact-ink: var(--lc-palette-charcoal);
+
+  --astra-color-text: var(--lc-palette-charcoal);
+  --astra-color-text-muted: var(--lc-palette-blue-ink);
+  --astra-color-text-subtle: var(--lc-palette-mushroom-cap);
+  --astra-color-text-faint: #BCB2A6;
+  --astra-color-eyebrow: var(--lc-palette-slate-blue);
+  --astra-color-border-subtle: #E4E1D7;
+  --astra-color-border: #E4E1D7;
+  --astra-color-border-strong: #D2CCBF;
+
+  --astra-color-accent: var(--lc-palette-antique-gold);
+  --astra-color-accent-contrast: var(--lc-palette-white);
+  --astra-color-link: var(--lc-palette-antique-gold);
+  --astra-color-focus: var(--lc-palette-slate-blue);
+  --astra-color-danger: var(--lc-palette-wax-red);
+  --astra-color-danger-soft: rgb(164 90 67 / 0.1);
+
+  --astra-color-kind-input: var(--lc-palette-blue-ink);
+  --astra-color-kind-analysis: var(--lc-palette-slate-blue);
+  --astra-color-kind-output: var(--lc-palette-blue-ink);
+  --astra-color-kind-decision: var(--lc-palette-antique-gold);
+  --astra-color-kind-decision-ink: var(--lc-palette-antique-gold);
+  --astra-color-kind-finding: var(--lc-palette-vert-de-gris);
+  --astra-color-kind-insight: var(--lc-palette-wax-red);
+  --astra-color-kind-insight-ink: var(--lc-palette-wax-red);
+  --astra-color-kind-input-soft: rgb(78 90 112 / 0.1);
+  --astra-color-kind-analysis-soft: rgb(63 114 128 / 0.1);
+  --astra-color-kind-output-soft: rgb(78 90 112 / 0.1);
+  --astra-color-kind-decision-soft: rgb(166 124 60 / 0.12);
+  --astra-color-kind-finding-soft: rgb(59 122 115 / 0.1);
+  --astra-color-kind-insight-soft: rgb(164 90 67 / 0.1);
+
+  --astra-font-ui: "Alegreya", var(--lc-font-ui);
+  --astra-font-body: "Newsreader", var(--lc-font-body);
+  --astra-font-heading: "Quattrocento", var(--lc-font-heading);
+  --astra-font-mono: "JetBrains Mono", var(--lc-font-mono);
+  --astra-radius-control: 3px;
+  --astra-radius-preview: 3px;
+  --astra-shadow-raised: var(--astra-shadow);
+  --astra-shadow-preview: var(--astra-shadow);
+  --astra-width-preview: var(--astra-card-w);
+  --astra-z-preview: 60;
+}
+
+/* A value is still an output record semantically, but the publication theme's
+   inline-value preview has always used Slate Blue rather than the output hue. */
+.lightcone-brand.astra-ui[data-entry-kind="value"],
+.lightcone-brand .astra-ui[data-entry-kind="value"] {
+  --astra-color-kind-output: var(--astra-c-value);
+  --astra-color-kind-output-soft: color-mix(
+    in srgb,
+    var(--astra-c-value) 10%,
+    transparent
+  );
+}
+
+/* MyST's prose rules are deliberately unlayered, while astra-ui ships its
+   portable component styles in cascade layers. Reassert the released ASTRA
+   card contract only at the branded portal boundary so those page rules
+   cannot leak into RecordPreview. The shared component still owns structure,
+   content, positioning, interaction and accessibility. */
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-preview-popover {
+  max-width: calc(100vw - 2rem);
+  color: var(--astra-ink);
+  font: 400 15px/1.5 var(--astra-serif);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-preview-popover__surface {
+  box-sizing: border-box;
+  padding: 19px 20px;
+  border: 1px solid color-mix(in srgb, var(--astra-kind) 55%, transparent);
+  border-radius: var(--astra-radius);
+  background: var(--astra-surface);
+  box-shadow: var(--astra-shadow);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-preview-popover__scroll {
+  scrollbar-color: var(--astra-faint) transparent;
+}
+
+/* Keep the preview pointer high-contrast against the page behind the card. */
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-preview-popover__arrow,
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-preview-popover__arrow path {
+  fill: #000;
+  stroke: none;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal[data-astra-color-scheme="dark"]
+  .astra-preview-popover__arrow,
+.lightcone-brand.astra-ui.astra-preview-popover-portal[data-astra-color-scheme="dark"]
+  .astra-preview-popover__arrow path {
+  fill: #fff;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview {
+  overflow: hidden;
+  background: var(--astra-surface);
+  color: var(--astra-ink);
+  font: 400 15px/1.5 var(--astra-serif);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__header.astra-surface-header {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__header .astra-surface-header__content {
+  gap: 8px;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__header .astra-surface-header__eyebrow {
+  color: var(--astra-kind);
+  font: 500 10px/1.5 var(--astra-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55em;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__header .astra-surface-header__title {
+  margin: 0;
+  color: var(--astra-ink);
+  font: 600 20px/1.25 var(--astra-label);
+  letter-spacing: -0.01em;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__body {
+  padding: 0.4rem 0 0;
+}
+
+/* An untitled prior-insight card flowed directly from its kind row. */
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__header:not(:has(.astra-surface-header__title))
+  + .astra-record-preview__body {
+  padding-top: 0.5rem;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__description {
+  margin: 0 0 0.75rem;
+  color: var(--astra-ink-soft);
+  font: 400 15px/1.5 var(--astra-serif);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__claim {
+  margin: 0 0 0.6rem;
+  color: var(--astra-ink);
+  font: 500 19px/1.35 var(--astra-label);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__section > h4 {
+  margin: 0.9rem 0 0.4rem;
+  color: var(--astra-muted);
+  font: 500 10px/1.5 var(--astra-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  :is(
+    .astra-record-preview__options,
+    .astra-record-preview__relations,
+    .astra-record-preview__evidence,
+    .astra-record-preview__flow
+  ) {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  :is(
+    .astra-record-preview__options,
+    .astra-record-preview__relations,
+    .astra-record-preview__evidence
+  ) {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Decision options retain the released seven-pixel wells and custom dots. */
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__options {
+  gap: 0.55rem;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__options > li {
+  position: relative;
+  display: block;
+  padding: 0.5rem 0.5rem 0.5rem 1.4rem;
+  border: 1px solid var(--astra-rule);
+  border-radius: 7px;
+  background: var(--astra-surface-2);
+  color: var(--astra-muted);
+  font: 400 15px/1.5 var(--astra-serif);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__options > li > [aria-hidden="true"] {
+  position: absolute;
+  top: 0.85rem;
+  left: 0.55rem;
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid var(--astra-faint);
+  border-radius: 50%;
+  background: var(--astra-surface);
+  color: transparent;
+  font-size: 0;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__options > li strong {
+  color: var(--astra-muted);
+  font: 500 16px/1.5 var(--astra-label);
+  text-decoration: none;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__options > li[data-unselected] {
+  opacity: 0.72;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__options > li[data-selected] {
+  border-color: var(--astra-kind);
+  background: color-mix(in srgb, var(--astra-kind) 10%, var(--astra-surface));
+  color: var(--astra-kind);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__options > li[data-selected]
+  > [aria-hidden="true"] {
+  border-color: var(--astra-kind);
+  background: var(--astra-kind);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--astra-kind) 16%, transparent);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__options > li[data-selected] strong {
+  color: var(--astra-ink);
+}
+
+/* Compact related-record rows are the old SUPPORTED BY presentation. */
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__relations > li {
+  padding: 5px 10px;
+  border: 0;
+  border-radius: var(--astra-radius);
+  background: var(--astra-surface-2);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__relation-trigger {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: baseline;
+  gap: 0.5em;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--astra-ink);
+  font: 500 14px/1.5 var(--astra-label);
+  text-align: start;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__relations .astra-record-preview__relation-trigger {
+  font-size: 13px;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  button.astra-record-preview__relation-trigger {
+  cursor: pointer;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__relation-glyph {
+  flex: none;
+  color: var(--astra-kind);
+  font-size: 0.85em;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__relation-label {
+  color: inherit;
+  text-decoration: none;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  button.astra-record-preview__relation-trigger
+  .astra-record-preview__relation-label {
+  color: var(--astra-link);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--astra-link) 45%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  button.astra-record-preview__relation-trigger:hover
+  .astra-record-preview__relation-label {
+  background: var(--astra-accent-soft);
+  text-decoration-color: var(--astra-link);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__relation-detail {
+  margin-inline-start: 0;
+  color: var(--astra-muted);
+  font: 400 11px/1.5 var(--astra-label);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__remaining {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--astra-muted);
+  font: 400 11px/1.4 var(--astra-label);
+}
+
+/* Finding evidence wells and thumbnails keep their old border geometry. */
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__evidence > li {
+  padding: 8px 12px;
+  border: 0;
+  border-radius: var(--astra-radius);
+  background: var(--astra-surface-2);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__artifact {
+  margin: 2px 0 6px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__artifact > .astra-output__thumb {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__artifact > .astra-output__thumb > img {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 1px solid var(--astra-rule);
+  border-radius: 6px;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal[data-astra-color-scheme="dark"]
+  .astra-record-preview__artifact > .astra-output__thumb > img {
+  border-radius: 3px;
+  background: #fbf9f4;
+}
+
+/* Evidence quotes were small; literature-card quotes were full body size and
+   carried the distinctive left rule. */
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__quote {
+  margin: 0.6rem 0;
+  padding-left: 0.85rem;
+  border: 0;
+  border-left: 2px solid var(--astra-rule-strong);
+  color: var(--astra-ink-soft);
+  font: italic 15px/1.5 var(--astra-serif);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__evidence .astra-record-preview__quote {
+  margin: 2px 0 0;
+  padding: 0;
+  border: 0;
+  color: var(--astra-muted);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__quote::before {
+  content: "\201C";
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__quote::after {
+  content: "\201D";
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__citation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4em 0.8em;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--astra-rule);
+  color: var(--astra-muted);
+  font: 400 12px/1.5 var(--astra-label);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__citation a {
+  color: var(--astra-kind);
+  font: 400 11px/1.5 var(--astra-mono);
+  text-decoration: none;
+}
+
+/* The released MyST dark citation utility resolves to Tailwind blue-400. */
+.lightcone-brand.astra-ui.astra-preview-popover-portal[data-astra-color-scheme="dark"]
+  .astra-record-preview__citation a {
+  color: #60a5fa;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__citation a:hover {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal[data-astra-color-scheme="dark"]
+  .astra-record-preview__citation a:hover {
+  color: #93c5fd;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__scope {
+  display: inline-flex;
+  margin: 0;
+  padding: 0.1em 0.6em;
+  border: 1px solid color-mix(in srgb, var(--astra-kind) 30%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--astra-kind) 10%, var(--astra-surface));
+  color: var(--astra-kind);
+  font: 400 11px/1.5 var(--astra-label);
+  letter-spacing: 0.04em;
+  vertical-align: 0.05em;
+}
+
+/* Output provenance retains the compact mono boxes and triangular separators. */
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__flow {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: stretch;
+  gap: 0;
+  margin: 0.4rem 0 0.2rem;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__flow > li {
+  display: flex;
+  align-items: stretch;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__flow > li:not(:last-child)::after {
+  content: "\25B8";
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  padding: 0 0.45em;
+  color: var(--astra-faint);
+  font-size: 12px;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  :is(
+    .astra-record-preview__flow code,
+    .astra-record-preview__source,
+    .astra-record-preview__selection code
+  ) {
+  color: var(--astra-ink-soft);
+  font-family: var(--astra-mono);
+  font-size: 11px;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__flow code {
+  max-width: 11em;
+  overflow: hidden;
+  padding: 0.3em 0.55em;
+  border: 1px solid var(--astra-rule-strong);
+  border-radius: 6px;
+  background: var(--astra-surface-2);
+  font-size: 12px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__source {
+  display: block;
+  max-width: 60ch;
+  margin-top: 0.35rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--astra-muted);
+  word-break: break-all;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__analysis-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__analysis-link:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--astra-kind);
+  text-underline-offset: 2px;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__counts {
+  margin: 0;
+  color: var(--astra-muted);
+  font: 400 12px/1.5 var(--astra-label);
+}
+
+/* A value remains an output semantically, but its card title is the original
+   dotted, tabular inline value and has no output diamond. */
+.lightcone-brand.astra-ui.astra-preview-popover-portal[data-entry-kind="value"]
+  .astra-record-preview__kind > [aria-hidden="true"] {
+  display: none;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__value {
+  padding: 0.05em 0.1em;
+  border-radius: 3px;
+  color: var(--astra-ink);
+  font: inherit;
+  font-feature-settings: "tnum" 1;
+  font-variant-numeric: tabular-nums;
+  text-decoration: underline dotted
+    color-mix(in srgb, var(--astra-c-value) 60%, transparent);
+  text-underline-offset: 2px;
+  white-space: nowrap;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__unit {
+  margin-inline-start: 0.25em;
+  color: var(--astra-muted);
+  font-family: var(--astra-label);
+  font-size: 0.7em;
+  font-weight: 400;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__selection {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5em;
+  margin: -0.35rem 0 0.6rem;
+  color: var(--astra-muted);
+  font: 400 12px/1.5 var(--astra-label);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__selection code {
+  padding: 0.1em 0.4em;
+  border: 0;
+  border-radius: 3px;
+  background: var(--astra-surface-2);
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview__selection > span {
+  color: var(--astra-ink-soft);
+  font: 400 11px/1.5 var(--astra-mono);
+  font-style: normal;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal[data-value-product]
+  .astra-record-preview__selection > span:last-child {
+  color: var(--astra-muted);
+  font: 400 12px/1.5 var(--astra-label);
+  font-style: italic;
+}
+
+/* astra-ui's generic input glyph is a bent arrow; the publication theme has
+   always used the data-family ▤ mark. */
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview[data-kind="input"]
+  .astra-record-preview__kind > [aria-hidden="true"] {
+  font-size: 0;
+}
+
+.lightcone-brand.astra-ui.astra-preview-popover-portal
+  .astra-record-preview[data-kind="input"]
+  .astra-record-preview__kind > [aria-hidden="true"]::before {
+  content: "\25A4";
+  font-size: 10px;
+  line-height: 1;
+}
+
+/* Citation previews use the shared floating tree so pointer travel remains
+   coordinated with their parent record card. Their inner document keeps the
+   stock MyST bibliography appearance; this only makes the shared shell inert. */
+.astra-ui.astra-preview-popover-portal.astra-citation-preview-portal
+  .astra-citation-preview {
+  z-index: 70;
+  width: 500px;
+  max-width: calc(100vw - 1rem);
+  color: inherit;
+  font: 400 16px/1.5 ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+    "Noto Color Emoji";
+}
+
+.astra-citation-preview-portal
+  .astra-citation-preview
+  .astra-preview-popover__surface {
+  max-height: none;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.astra-citation-preview-portal
+  .astra-citation-preview
+  .astra-preview-popover__scroll {
+  overflow: visible;
+}
+
+.astra-citation-preview-portal
+  .astra-citation-preview
+  .astra-preview-popover__arrow,
+.astra-citation-preview-portal
+  .astra-citation-preview
+  .astra-preview-popover__arrow path {
+  fill: #fff;
+  stroke: none;
+}
+
+.astra-citation-preview-portal
+  .astra-citation-preview
+  .astra-preview-popover__arrow {
+  width: 10px;
+  height: 5px;
+}
+
+.astra-citation-preview-portal
+  .astra-citation-preview
+  .astra-preview-popover__arrow path {
+  transform: scaleY(2);
+  transform-origin: center top;
 }
 
 /* -----------------------------------------------------------------------------
@@ -334,8 +1040,7 @@ hr.astra-rule {
   vertical-align: 0.02em;
 }
 
-.astra-ref:hover,
-.astra-ref[data-open="true"] {
+.astra-ref:hover {
   background: var(--astra-accent-soft);
   text-decoration-color: var(--astra-link);
 }
@@ -380,69 +1085,8 @@ hr.astra-rule {
 }
 
 /* -----------------------------------------------------------------------------
-   4. Card chrome (shared by the floating preview + placed cards)
+   4. Shared placed-record chrome
    -------------------------------------------------------------------------- */
-
-/* The floating-ui portal wrapper is the positioned element, so the stacking
-   order must live HERE (a z-index on the static .astra-card inside it is
-   ignored) — it has to beat the book theme's sticky TOC (z-10) and the fixed
-   rail (z-40), or open cards render clipped underneath them. */
-.astra-card-portal {
-  z-index: 60;
-}
-
-.astra-card {
-  --astra-kind: var(--astra-accent);
-  width: var(--astra-card-w);
-  max-width: calc(100vw - 2rem);
-  box-sizing: border-box;
-  background: var(--astra-surface);
-  /* translucent kind-coloured hairline — the signature card edge in the mocks */
-  border: 1px solid color-mix(in srgb, var(--astra-kind) 55%, transparent);
-  border-radius: var(--astra-radius);
-  box-shadow: var(--astra-shadow);
-  padding: 19px 20px;
-  font-family: var(--astra-serif);
-  color: var(--astra-ink);
-  font-size: 15px;
-  line-height: 1.5;
-  /* Height cap set by PreviewCard's `size` middleware (viewport-available
-     space); the inner scroll layer absorbs the overflow. Unset for placed
-     (non-floating) cards, where the var never gets defined. */
-  max-height: var(--astra-card-max-h, none);
-  display: flex;
-  flex-direction: column;
-}
-
-/* Scrollable body of a floating card: overflow lives one layer inside the
-   card so the protruding arrow is never clipped. `min-height: 0` lets the
-   flex child actually shrink below its content height. */
-.astra-card__scroll {
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-  scrollbar-color: var(--astra-faint) transparent;
-}
-
-.astra-card__kind {
-  font-family: var(--astra-label);
-  font-size: 10px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--astra-kind);
-  display: flex;
-  align-items: center;
-  gap: 0.55em;
-  margin-bottom: 0.5rem;
-}
-
-.astra-card__kind::before {
-  content: var(--astra-glyph, "");
-  font-size: 1em;
-  line-height: 1;
-}
 
 .astra-card__title {
   font-family: var(--astra-label); /* Alegreya — the brand's subheading face */
@@ -452,47 +1096,6 @@ hr.astra-rule {
   letter-spacing: -0.01em;
   color: var(--astra-ink);
   margin: 0 0 0.4rem;
-}
-
-.astra-card__desc {
-  color: var(--astra-ink-soft);
-  margin: 0 0 0.75rem;
-}
-
-/* small muted unit appended to a value/title (e.g. "Mpc", "km/s") */
-.astra-card__unit {
-  font-family: var(--astra-label);
-  font-size: 0.7em;
-  color: var(--astra-muted);
-  margin-left: 0.25em;
-}
-
-/* the selection line in a value card: which column/row of which product the
-   interpolated number came from ("alpha1_std · tracer=elg1, recon=Pre · from
-   BAO dilation parameters") */
-.astra-value__selection {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.5em;
-  margin: -0.35rem 0 0.6rem;
-  font-family: var(--astra-label);
-  font-size: 12px;
-  color: var(--astra-muted);
-}
-.astra-value__col,
-.astra-value__where {
-  font-family: var(--astra-mono);
-  font-size: 11px;
-  color: var(--astra-ink-soft);
-}
-.astra-value__col {
-  background: var(--astra-surface-2);
-  padding: 0.1em 0.4em;
-  border-radius: 3px;
-}
-.astra-value__product {
-  font-style: italic;
 }
 
 .astra-card__section {
@@ -505,10 +1108,7 @@ hr.astra-rule {
   margin: 0.9rem 0 0.4rem;
 }
 
-/* evidence rows — the decision panel's Evidence view and the cards'
-   SUPPORTED BY / EVIDENCE sections. Each item: optional artifact thumb, a
-   title row (kind glyph + human label + type tag), and an optional
-   plain-language note or evidence quote. */
+/* evidence rows in the placed decision panel's Evidence view */
 .astra-evidence {
   list-style: none;
   margin: 0.15rem 0 0;
@@ -531,10 +1131,7 @@ hr.astra-rule {
   align-items: baseline;
   gap: 0.5em;
 }
-.astra-evidence--compact .astra-evidence__item { padding: 5px 10px; }
-.astra-evidence--compact .astra-evidence__title { font-size: 13px; }
 .astra-evidence__glyph--insight { color: var(--astra-c-insight); font-size: 0.85em; }
-.astra-evidence__glyph--output  { color: var(--astra-c-output);  font-size: 0.85em; }
 .astra-evidence__tag {
   font-family: var(--astra-label);
   font-size: 11px;
@@ -563,50 +1160,9 @@ hr.astra-rule {
   color: var(--astra-ink-soft);
   margin-top: 2px;
 }
-.astra-evidence__quote {
-  font-family: var(--astra-serif);
-  font-style: italic;
-  font-size: 12.5px;
-  line-height: 1.45;
-  color: var(--astra-muted);
-  margin-top: 2px;
-}
-.astra-evidence__quote::before { content: "\201C"; }
-.astra-evidence__quote::after  { content: "\201D"; }
-.astra-evidence__thumb { margin: 2px 0 6px; }
-.astra-evidence__thumb img {
-  display: block;
-  width: 100%;
-  border-radius: 6px;
-  border: 1px solid var(--astra-rule);
-}
-.astra-evidence__more {
-  font-family: var(--astra-label);
-  font-size: 11px;
-  color: var(--astra-muted);
-}
-
-/* kind modifiers set the accent the kind label + glyph + diagrams use */
-.astra-card--decision      { --astra-kind: var(--astra-c-decision); --astra-glyph: "\25C7"; }
-.astra-card--prior_insight { --astra-kind: var(--astra-c-insight);  --astra-glyph: "\25C8"; }
-.astra-card--finding       { --astra-kind: var(--astra-c-finding);  --astra-glyph: "\25CF"; }
-.astra-card--analysis,
-.astra-card--subanalysis   { --astra-kind: var(--astra-c-analysis); --astra-glyph: "\25D0"; }
-.astra-card--output        { --astra-kind: var(--astra-c-output);   --astra-glyph: "\25C6"; }
-.astra-card--input         { --astra-kind: var(--astra-c-input);    --astra-glyph: "\25A4"; }
-.astra-card--value         { --astra-kind: var(--astra-c-value);    --astra-glyph: ""; }
-
 /* -----------------------------------------------------------------------------
-   5. Card diagrams — data flow: a row of mono boxes joined by arrows
+   5. Data-flow nodes used in placed output provenance
    -------------------------------------------------------------------------- */
-.astra-flow {
-  display: flex;
-  align-items: stretch;
-  flex-wrap: wrap;
-  gap: 0;
-  margin: 0.4rem 0 0.2rem;
-}
-
 .astra-flow__node {
   font-family: var(--astra-mono);
   font-size: 12px;
@@ -622,30 +1178,9 @@ hr.astra-rule {
   text-overflow: ellipsis;
 }
 
-.astra-flow__arrow {
-  display: inline-flex;
-  align-items: center;
-  padding: 0 0.45em;
-  color: var(--astra-faint);
-  font-size: 12px;
-}
-.astra-flow__arrow::before { content: "\25B8"; } /* ▸ */
-
 /* -----------------------------------------------------------------------------
    6. Decision panel (block)
    -------------------------------------------------------------------------- */
-
-/* BACK-COMPAT with plugin releases ≤ v0.0.5 (MySTRA#9): those emitted the
-   neutral fallback ("<label> — selected: <option>" dropdown) as a SIBLING of
-   the decision carrier, so once the rich panel rendered the reader saw the
-   decision twice. Hide the stock dropdown only when it directly follows a
-   rendered panel — on store-less pages the panel doesn't render (the fallback
-   branch emits no .astra-decision element) and the dropdown stays visible.
-   From MySTRA#11 on the fallback is nested inside the carrier and this
-   selector matches nothing; drop it when pre-#11 plugins no longer matter. */
-details.astra-decision + details.myst-dropdown {
-  display: none;
-}
 
 .astra-decision {
   --astra-kind: var(--astra-c-decision);
@@ -705,7 +1240,7 @@ details.astra-decision + details.myst-dropdown {
   letter-spacing: 0.02em;
 }
 .astra-decision__toggle button + button { border-left: 1px solid var(--astra-rule); }
-.astra-decision__toggle button[aria-selected="true"],
+.astra-decision__toggle button[aria-pressed="true"],
 .astra-decision__toggle button.is-active {
   background: color-mix(in srgb, var(--astra-kind) 12%, var(--astra-surface));
   color: var(--astra-kind);
@@ -1174,6 +1709,11 @@ details.astra-decision + details.myst-dropdown {
   font-size: 12px;
   color: var(--astra-ink);
 }
+.astra-inputs .astra-id,
+.astra-outputs .astra-id {
+  font-weight: 500;
+  text-decoration: underline;
+}
 
 /* The source/recipe line under a registry description: its own dimmed line
    (not run-on with the prose), wrapping anywhere so an unbreakable
@@ -1285,12 +1825,16 @@ details.astra-decision + details.myst-dropdown {
    truth and can diverge from the media query after a toggle). `html.dark`
    (0,1,1) outranks the `:root` (0,1,0) light defaults above.
    -------------------------------------------------------------------------- */
-html.dark {
-  --astra-paper: #221F20;     /* Charcoal */
+html.dark,
+:where(html.dark .lightcone-brand),
+:where(.lightcone-brand[data-lightcone-color-scheme="dark"]),
+:where(.lightcone-brand[data-astra-color-scheme="dark"]) {
+  --astra-paper: var(--lc-palette-charcoal, #221F20);
   --astra-surface: #2A2728;
   --astra-surface-2: #312D2E;
 
-  --astra-ink: #F1EFE9;       /* Darker Parchment, as ink */
+  --astra-ink: var(--lc-palette-darker-parchment, #F1EFE9);
+                              /* Darker Parchment, as ink */
   --astra-ink-soft: #B4BDCD;  /* Blue Ink, lifted */
   --astra-muted: #9C9085;     /* Mushroom Cap, lifted */
   --astra-faint: #6E6660;
@@ -1314,14 +1858,73 @@ html.dark {
   --astra-shadow: 0 6px 18px rgba(0, 0, 0, .45);
 }
 
+/* ASTRA UI can carry either the host-neutral attribute or Lightcone's generic
+   scheme attribute (portaled previews carry both). The html.dark branches
+   bridge the brief pre-hydration interval before those attributes synchronize. */
+:where(
+  html.dark .lightcone-brand.astra-ui,
+  html.dark .lightcone-brand .astra-ui,
+  .lightcone-brand.astra-ui[data-lightcone-color-scheme="dark"],
+  .lightcone-brand.astra-ui[data-astra-color-scheme="dark"],
+  .lightcone-brand[data-lightcone-color-scheme="dark"] .astra-ui,
+  .lightcone-brand[data-astra-color-scheme="dark"] .astra-ui,
+  .lightcone-brand .astra-ui[data-lightcone-color-scheme="dark"],
+  .lightcone-brand .astra-ui[data-astra-color-scheme="dark"]
+) {
+  --astra-color-canvas: var(--lc-palette-charcoal);
+  --astra-color-surface: #2A2728;
+  --astra-color-surface-raised: #2A2728;
+  --astra-color-surface-muted: #2A2728;
+  --astra-color-header: #2A2728;
+  --astra-color-artifact-paper: #FBF9F4;
+  --astra-color-artifact-ink: var(--lc-palette-charcoal);
+
+  --astra-color-text: var(--lc-palette-darker-parchment);
+  --astra-color-text-muted: #B4BDCD;
+  --astra-color-text-subtle: #9C9085;
+  --astra-color-text-faint: #6E6660;
+  --astra-color-eyebrow: #7FA8B5;
+  --astra-color-border-subtle: #3B3738;
+  --astra-color-border: #3B3738;
+  --astra-color-border-strong: #4C4747;
+
+  --astra-color-accent: #C2924A;
+  --astra-color-accent-contrast: var(--lc-palette-charcoal);
+  --astra-color-link: #C2924A;
+  --astra-color-focus: #7FA8B5;
+  --astra-color-danger: #C97F66;
+  --astra-color-danger-soft: rgb(201 127 102 / 0.15);
+
+  /* Keep these assignments aligned with the pre-astra-ui preview cards. */
+  --astra-color-kind-input: var(--lc-palette-blue-ink);
+  --astra-color-kind-analysis: #6FA0AE;
+  --astra-color-kind-output: #93A1BC;
+  --astra-color-kind-decision: #C2924A;
+  --astra-color-kind-decision-ink: #C2924A;
+  --astra-color-kind-finding: #5FA199;
+  --astra-color-kind-insight: #C97F66;
+  --astra-color-kind-insight-ink: #C97F66;
+  --astra-color-kind-input-soft: color-mix(
+    in srgb,
+    var(--lc-palette-blue-ink) 15%,
+    transparent
+  );
+  --astra-color-kind-analysis-soft: rgb(111 160 174 / 0.15);
+  --astra-color-kind-output-soft: rgb(147 161 188 / 0.15);
+  --astra-color-kind-decision-soft: rgb(194 146 74 / 0.16);
+  --astra-color-kind-finding-soft: rgb(95 161 153 / 0.15);
+  --astra-color-kind-insight-soft: rgb(201 127 102 / 0.15);
+
+  --astra-shadow-raised: var(--astra-shadow);
+  --astra-shadow-preview: var(--astra-shadow);
+}
+
 /* Transparent-background figure PNGs (matplotlib default) are unreadable on
    charcoal — dark axis labels vanish. Give artifact images a paper backdrop
    in dark mode; images that already carry a white background are unchanged
-   visually. Applies to placed figures, hover-card thumbnails, and finding
-   evidence thumbs. */
+   visually. Applies to placed figures and preview thumbnails. */
 html.dark .astra-output img,
-html.dark .astra-output__thumb img,
-html.dark .astra-evidence__thumb img {
+html.dark .astra-output__thumb img {
   background: #FBF9F4;
   border-radius: 3px;
 }

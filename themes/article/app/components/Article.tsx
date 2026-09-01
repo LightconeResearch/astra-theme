@@ -28,7 +28,7 @@ import type { GenericParent } from 'myst-common';
 import { copyNode } from 'myst-common';
 import { SourceFileKind } from 'myst-spec-ext';
 import { MyST } from 'myst-to-react';
-import { AstraStoreProvider } from '@astra-spec/theme-astra';
+import { AstraPublicationProvider } from '@astra-spec/theme-astra';
 
 const TOP_OFFSET = 24;
 
@@ -49,17 +49,8 @@ export function Article({
 }) {
   const manifest = useProjectManifest();
   const keywords = article.frontmatter?.keywords ?? [];
-  // copyNode deep-copies the whole article AST; memoize so re-renders (theme
-  // top, media query, compute options) keep stable identities and <MyST> /
-  // the store scan are not invalidated.
-  const { tree, parts } = React.useMemo(() => {
-    const tree = copyNode(article.mdast);
-    return { tree, parts: extractKnownParts(tree, article.frontmatter?.parts) };
-  }, [article]);
-  const references = React.useMemo(
-    () => ({ ...article.references, article: article.mdast }),
-    [article],
-  );
+  const tree = copyNode(article.mdast);
+  const parts = extractKnownParts(tree, article.frontmatter?.parts);
   const { title, subtitle } = article.frontmatter;
   const compute = useComputeOptions();
   const top = useThemeTop();
@@ -67,10 +58,10 @@ export function Article({
 
   const { thebe } = manifest as any;
   const { location } = article;
-  return (
+  const content = (
     <ArticleProvider
       kind={article.kind}
-      references={references}
+      references={{ ...article.references, article: article.mdast }}
       frontmatter={article.frontmatter}
     >
       <BusyScopeProvider>
@@ -105,19 +96,17 @@ export function Article({
             article.kind === SourceFileKind.Notebook && <NotebookToolbar showLaunch />}
           <ErrorTray pageSlug={article.slug} />
           <div id="skip-to-article" />
-          {/* The store provider must wrap the frontmatter/backmatter parts too:
-              the abstract is extracted from the tree and rendered separately,
-              and its astra refs need the store context for preview cards. */}
-          <AstraStoreProvider mdast={tree}>
-            <FrontmatterParts parts={parts} keywords={keywords} hideKeywords={hideKeywords} />
-            <MyST ast={tree} />
-            <BackmatterParts parts={parts} />
-          </AstraStoreProvider>
+          <FrontmatterParts parts={parts} keywords={keywords} hideKeywords={hideKeywords} />
+          <MyST ast={tree} />
+          <BackmatterParts parts={parts} />
           <Footnotes />
           <Bibliography />
           <ConnectionStatusTray />
         </ExecuteScopeProvider>
       </BusyScopeProvider>
     </ArticleProvider>
+  );
+  return (
+    <AstraPublicationProvider mdast={article.mdast}>{content}</AstraPublicationProvider>
   );
 }

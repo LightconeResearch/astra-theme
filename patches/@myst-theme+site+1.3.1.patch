@@ -1,0 +1,11 @@
+diff --git a/node_modules/@myst-theme/site/src/components/DocumentOutline.tsx b/node_modules/@myst-theme/site/src/components/DocumentOutline.tsx
+index be02915..34cd4e2 100644
+--- a/node_modules/@myst-theme/site/src/components/DocumentOutline.tsx
++++ b/node_modules/@myst-theme/site/src/components/DocumentOutline.tsx
+@@ -127,5 +127,5 @@
+ function useMutationObserver(
+-  targetRef: RefObject<Element>,
++  targetRef: RefObject<Element | null>,
+   callback: MutationCallback,
+   options: Record<string, any>,
+ ) {

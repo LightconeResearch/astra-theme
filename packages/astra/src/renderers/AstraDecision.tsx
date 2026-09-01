@@ -1,181 +1,159 @@
-/**
- * AstraDecision — block renderer for the `:::{astra:decision}` carrier.
- *
- * The plugin emits a stock `heading` node carrying the `astra-decision` class
- * and an `identifier` of the form `decision-<id>`; the decision body follows as
- * sibling nodes. This component joins that id to the per-page store's
- * `decisions` table and renders the rich Vellum "decision panel" entirely from
- * the store entry: a kind label + title, a segmented narrative|options|evidence
- * toggle, the rationale prose (narrative), the option list (options), or the
- * prior insights cited by the options (evidence — segment only shown when at
- * least one option cites an insight), and a muted footer summarising the
- * default selection and option count.
- *
- * Graceful degradation (CONTRACT §"degrade gracefully"): if the store entry is
- * missing we fall back to the node's own stock children (`<MyST>` over the
- * heading title text) and never throw.
- */
 import * as React from 'react';
+import type { ResolvedAnalysisNode, ResolvedInsight } from '@astra-spec/sdk';
+import { primaryLiteratureEvidence } from '@astra-spec/ui/components';
+import { decisionInsights } from '@astra-spec/ui/model';
+import { Prose } from '@astra-spec/ui/primitives';
 import type { GenericNode } from 'myst-common';
-import { MyST } from 'myst-to-react';
-import type { SerializedDecision, SerializedInsight } from '@astra-spec/store-types';
-import { useAstraStore, useEntryByIdentifier } from '../store/useAstraStore';
-import { decisionEvidenceInsights } from '../store/decisionEvidence';
-import { InsightRef } from '../card';
-import { AstraCite } from '../cite';
-import { labelFor } from '../glyphs';
-import { StoreProse } from '../storeProse';
 
-const KIND = 'decision' as const;
+import { AstraCite } from '../cite';
+import { AstraPreviewPopover } from '../preview';
+import type { AstraPublication } from '../publication/AstraPublicationProvider';
+import {
+  kindLabel,
+  NeutralNode,
+  nodeClassName,
+  nodeHtmlId,
+  useAstraRecord,
+} from '../rendererUtils';
 
 type DecisionView = 'narrative' | 'options' | 'evidence';
 
-/**
- * Type guard: a store entry is a `SerializedDecision` when it exposes an
- * `options` record. (The shared `AstraEntry` union is structural, so we narrow
- * here rather than trust the carrier prefix alone.)
- */
-function isDecision(entry: unknown): entry is SerializedDecision {
-  return (
-    !!entry &&
-    typeof entry === 'object' &&
-    'options' in (entry as Record<string, unknown>)
-  );
+function claimExcerpt(claim: string): string | undefined {
+  const text = claim.trim().replace(/\s+/g, ' ');
+  if (!text) return undefined;
+  const sentence = /^.{10,90}?[.!?](?=\s|$)/.exec(text)?.[0];
+  if (sentence) return sentence;
+  if (text.length <= 90) return text;
+  return `${text.slice(0, 80).replace(/\s+\S*$/, '')}…`;
 }
 
-/**
- * One Evidence-view row: hoverable insight reference (opens the full insight
- * card), the claim as a plain-language note (only when the row is named by an
- * authored label — an unlabelled row is already named by the claim's opening,
- * and the hover card shows it in its entirety), and the resolved citation.
- */
-const EvidenceItem: React.FC<{ ins: SerializedInsight }> = ({ ins }) => {
+function EvidenceItem({
+  insight,
+  analysis,
+  publication,
+}: {
+  insight: ResolvedInsight;
+  analysis: ResolvedAnalysisNode;
+  publication: AstraPublication;
+}) {
+  const source = primaryLiteratureEvidence(insight);
+  const name = insight.label ?? claimExcerpt(insight.claim) ?? insight.id;
   return (
     <li className="astra-evidence__item">
-      <InsightRef entry={ins} tag="prior insight" />
-      {ins.label && ins.claim ? (
+      <AstraPreviewPopover
+        publication={publication}
+        entry={{ kind: 'record', record: insight, analysis }}
+        trigger={
+          <span className="astra-evidence__title">
+            <span className="astra-evidence__glyph--insight" aria-hidden="true">
+              ◈
+            </span>
+            <span className="astra-evidence__name">{name}</span>
+            <span className="astra-evidence__tag">prior insight</span>
+          </span>
+        }
+      />
+      {insight.label ? (
         <div className="astra-evidence__note">
-          <StoreProse text={ins.claim} />
+          <Prose text={insight.claim} field="claim" />
         </div>
       ) : null}
-      {ins.doi ? (
+      {source?.doi ? (
         <div className="astra-cite">
-          <AstraCite doi={ins.doi} />
+          <AstraCite doi={source.doi} />
         </div>
       ) : null}
     </li>
   );
-};
+}
 
+/** Existing decision panel, now joined exclusively through SDK paths. */
 export const AstraDecision: React.FC<{ node: GenericNode }> = ({ node }) => {
-  const entry = useEntryByIdentifier(node.identifier);
-  const store = useAstraStore();
+  const located = useAstraRecord(node, 'decision');
   const [view, setView] = React.useState<DecisionView>('narrative');
-
-  // Preserve whatever astra-* classes the carrier already declares so the
-  // stylesheet's `.astra-decision` (and any future modifiers) still apply, and
-  // self-set the kind modifier that plumbs the per-kind accent var. The Set
-  // dedupes against the carrier's own `astra-decision`.
   const rootClass = Array.from(
     new Set([
       'astra-decision',
-      ...String(node.class ?? '').split(/\s+/).filter(Boolean),
+      ...nodeClassName(node).split(/\s+/).filter(Boolean),
     ]),
   ).join(' ');
 
-  // ── Graceful fallback ──────────────────────────────────────────────────────
-  // No store, no table, or no matching id → render the stock details children.
-  if (!isDecision(entry)) {
-    return <MyST ast={node.children} />;
-  }
+  if (!located) return <NeutralNode node={node} recognitionClass="astra-decision" />;
 
-  const { label, rationale, selected, options } = entry;
-  const optionIds = Object.keys(options ?? {});
-  const optionCount = optionIds.length;
-  const selectedLabel =
-    (selected != null ? options[selected] : undefined) ?? selected ?? '—';
-  // The prior insights cited by the options — shown under the Evidence segment
-  // (the segment itself only renders when at least one insight resolves).
-  const evidence = decisionEvidenceInsights(entry, store);
-  const views: DecisionView[] =
-    evidence.length > 0 ? ['narrative', 'options', 'evidence'] : ['narrative', 'options'];
+  const { publication, record } = located;
+  const evidence = decisionInsights(publication.index, record);
+  const views: DecisionView[] = evidence.length
+    ? ['narrative', 'options', 'evidence']
+    : ['narrative', 'options'];
+  const selectedLabel = record.selectedOptionId
+    ? record.options.find((option) => option.id === record.selectedOptionId)?.label ??
+      record.selectedOptionId
+    : '—';
 
   return (
-    // The carrier's `decision-<id>` identifier becomes the anchor id — the
-    // provenance drawer links to `/<scope>#decision-<id>` and cross-page
-    // MyST anchors rely on it.
-    <details className={rootClass} data-kind={KIND} id={node.identifier} open>
-      {/* The native <summary> is the kind row: it carries the uppercase sans
-          styling and supplies the ◇ glyph via `.astra-decision > summary::before`.
-          The title sits below it. */}
-      <summary className="astra-decision__head">{labelFor(KIND)}</summary>
-      {label ? <div className="astra-decision__title">{label}</div> : null}
-
-      {/* Segmented narrative | options [| evidence] toggle (default: narrative).
-          The plain <button> children inside `.astra-decision__toggle` get the
-          CSS descendant-button styling. */}
-      <div className="astra-decision__toggle" role="tablist" aria-label="Decision view">
-        {views.map((v) => (
+    <details className={rootClass} data-kind="decision" id={nodeHtmlId(node)} open>
+      <summary className="astra-decision__head">{kindLabel('decision')}</summary>
+      {record.label ? <div className="astra-decision__title">{record.label}</div> : null}
+      <div className="astra-decision__toggle" role="group" aria-label="Decision view">
+        {views.map((nextView) => (
           <button
-            key={v}
+            key={nextView}
             type="button"
-            role="tab"
-            aria-selected={view === v}
-            className={view === v ? 'is-active' : undefined}
-            data-view={v}
-            onClick={() => setView(v)}
+            aria-pressed={view === nextView}
+            className={view === nextView ? 'is-active' : undefined}
+            data-view={nextView}
+            onClick={() => setView(nextView)}
           >
-            {v[0].toUpperCase() + v.slice(1)}
+            {nextView[0].toUpperCase() + nextView.slice(1)}
           </button>
         ))}
       </div>
-
-      {/* Narrative view — rationale prose. A missing rationale renders an
-          empty view (the footer still names the default): since MySTRA#11 the
-          carrier's children are the ENTIRE neutral fallback (heading +
-          dropdown), so rendering them here would nest a second copy of the
-          decision inside the rich panel. */}
-      {view === 'narrative' && rationale ? (
+      {view === 'narrative' && record.rationale ? (
         <div className="astra-decision__rationale">
           <p>
-            <StoreProse text={rationale} />
+            <Prose text={record.rationale} field="rationale" />
           </p>
         </div>
       ) : null}
-
-      {/* Options view — the full option list with selected / excluded states. */}
       {view === 'options' ? (
         <ul className="astra-options">
-          {optionIds.map((optId) => {
-            const isSelected = optId === selected;
-            const optClass = [
-              'astra-option',
-              isSelected ? 'astra-option--selected' : 'astra-option--excluded',
-            ].join(' ');
-            const optLabel = options[optId] ?? optId;
+          {record.options.map((option) => {
+            const selected = option.id === record.selectedOptionId;
             return (
-              <li key={optId} className={optClass} aria-current={isSelected ? 'true' : undefined}>
+              <li
+                key={option.id}
+                className={`astra-option ${
+                  selected ? 'astra-option--selected' : 'astra-option--excluded'
+                }`}
+                aria-current={selected ? 'true' : undefined}
+              >
                 <span className="astra-option__dot" aria-hidden="true" />
-                <span className="astra-option__label">{optLabel}</span>
+                <span className="astra-option__label">{option.label}</span>
               </li>
             );
           })}
         </ul>
       ) : null}
-
-      {/* Evidence view — the prior insights the options cite, in plain
-          language: hoverable name, the claim, and the resolved citation. */}
       {view === 'evidence' ? (
         <ul className="astra-evidence">
-          {evidence.map((ins) => (
-            <EvidenceItem key={ins.id} ins={ins} />
-          ))}
+          {evidence.map((insight) => {
+            const analysis = publication.index.analysisByRecordPath.get(
+              insight.canonicalPath,
+            );
+            return analysis ? (
+              <EvidenceItem
+                key={insight.canonicalPath}
+                insight={insight}
+                analysis={analysis}
+                publication={publication}
+              />
+            ) : null;
+          })}
         </ul>
       ) : null}
-
-      {/* Footer meta: default selection + option count. */}
       <div className="astra-decision__meta">
-        default: {selectedLabel} · {optionCount} option{optionCount === 1 ? '' : 's'}
+        default: {selectedLabel} · {record.options.length} option
+        {record.options.length === 1 ? '' : 's'}
       </div>
     </details>
   );

@@ -29,13 +29,14 @@ import {
   BannerStateProvider,
 } from '@myst-theme/providers';
 import { ComputeOptionsProvider, ThebeLoaderAndServer } from '@myst-theme/jupyter';
+import { MadeWithMyst } from '@myst-theme/icons';
 import { ArticlePage } from '../components/ArticlePage.js';
 import { Footer } from '../components/Footer.js';
 import { Banner } from '../components/Banner.js';
 import { SidebarFooter } from '../components/SidebarFooter.js';
-import type { ManifestProject, TemplateOptions } from '../types.js';
-import { useTemplateOptions } from '@astra-spec/theme-astra';
+import type { TemplateOptions } from '../types.js';
 import { useRouteError, isRouteErrorResponse } from '@remix-run/react';
+type ManifestProject = Required<SiteManifest>['projects'][0];
 
 export const meta: V2_MetaFunction<typeof loader> = ({ data, matches, location }) => {
   if (!data) return [];
@@ -73,7 +74,6 @@ export const loader: LoaderFunction = async ({ params, request }) => {
   const flat = isFlatSite(config);
   try {
     const page = await getPage(request, {
-      config,
       project: flat ? projectName : (projectName ?? slug),
       slug: flat ? slug : projectName ? slug : undefined,
       // MODE=static is set by mystmd when pre-rendering pages for `myst build --html`; skip index redirects in that case.
@@ -113,8 +113,6 @@ function ArticlePageAndNavigationInternal({
       </TabStateProvider>
       <TopNav hideToc={hide_toc} hideSearch={hideSearch} navbarEnd={projectParts?.navbar_end?.mdast} />
       <PrimaryNavigation
-        // React 19's useRef yields RefObject<T | null>; PrimaryNavigation (typed
-        // for the React 18 RefObject<T>) accepts it at runtime — cast to match.
         sidebarRef={toc as React.RefObject<HTMLDivElement>}
         hide_toc={hide_toc}
         footer={<SidebarFooter content={projectParts?.primary_sidebar_footer?.mdast} />}
@@ -122,8 +120,12 @@ function ArticlePageAndNavigationInternal({
         projectSlug={projectSlug}
       />
       <TabStateProvider>
-        {/* article does not need a top offset as it is in the page flow (z-0) */}
-        <main ref={container} className="article-grid grid-gap">
+        <main
+          ref={container}
+          className="article-grid grid-gap"
+          // article does not need to get top as it is in the page flow (z-0)
+          // style={{ marginTop: top }}
+        >
           {children}
         </main>
       </TabStateProvider>
@@ -167,13 +169,20 @@ export default function Page() {
   const { container } = useOutlineHeight();
   const data = useLoaderData() as { page: PageLoader; project: ManifestProject };
   const baseurl = useBaseurl();
-  const { hide_toc, hide_search, hide_footer_links } = useTemplateOptions<TemplateOptions>(data.page.frontmatter);
+  const pageDesign: TemplateOptions = (data.page.frontmatter as any)?.site ?? {};
+  const siteDesign: TemplateOptions =
+    (useSiteManifest() as SiteManifest & TemplateOptions)?.options ?? {};
+  const { hide_toc, hide_search, hide_footer_links } = {
+    ...siteDesign,
+    ...pageDesign,
+  };
   return (
     <ArticlePageAndNavigation
       hide_toc={hide_toc}
       hideSearch={hide_search}
       projectSlug={data.page.project}
     >
+      {/* <ProjectProvider project={project}> */}
       <ProjectProvider>
         <ComputeOptionsProvider
           features={{ notebookCompute: true, figureCompute: true, launchBinder: false }}

@@ -10,7 +10,8 @@ import { getConfig, getPage } from '~/utils/loaders.server';
 import Page from './$';
 import { SiteManifest } from 'myst-config';
 import { getProject } from '@myst-theme/common';
-import type { ManifestProject } from '../types.js';
+
+type ManifestProject = Required<SiteManifest>['projects'][0];
 
 export const meta: V2_MetaFunction<typeof loader> = ({ data, location }) => {
   if (!data) return [];
@@ -37,7 +38,7 @@ export const loader: LoaderFunction = async ({ params, request }) => {
   const project = getProject(config);
   if (!project) throw responseNoArticle();
   if (project.slug) return redirect(`/${project.slug}`);
-  const page = await getPage(request, { config, slug: project.index });
+  const page = await getPage(request, { slug: project.index });
   return json({ config, page, project });
 };
 

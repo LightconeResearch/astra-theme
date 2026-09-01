@@ -1,11 +1,15 @@
 /**
  * @astra-spec/theme-astra — barrel for the ASTRA overlay.
  *
- * The only ASTRA-aware surface of the themes: each theme's `app/root.tsx`
- * merges in the renderers map and its article component mounts the store
- * provider. Renderer components import their hooks/helpers directly from
- * `./store/*`.
+ * The themes merge the renderer map in `app/root.tsx` and mount the publication
+ * provider around article content. The provider opts the existing document
+ * root into the brand tokens; shared UI portals repeat that scope explicitly.
  */
 export { ASTRA_RENDERERS } from './renderers';
-export { AstraStoreProvider } from './store/AstraStoreProvider';
-export { useTemplateOptions } from './useTemplateOptions';
+export {
+  AstraPublicationProvider,
+  useAstraPublication,
+} from './publication/AstraPublicationProvider';
+export type { AstraPublication } from './publication/AstraPublicationProvider';
+export { AstraThemeScope, useAstraColorScheme } from './themeScope';
+export type { AstraColorScheme, AstraThemeScopeProps } from './themeScope';

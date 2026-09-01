@@ -25,7 +25,7 @@ import { LANDING_PAGE_RENDERERS } from '@myst-theme/landing-pages';
 import { ANY_RENDERERS } from '@myst-theme/anywidget';
 import { useCallback } from 'react';
 
-// ── ASTRA overlay (the only ASTRA-aware code in the theme) ──────────────────
+// ── ASTRA renderer overlay ─────────────────────────────────────────────────
 // Merged LAST so its class-selector renderers win for `astra-*` nodes; every
 // other node falls back to the stock book-theme renderer. See packages/astra.
 import { ASTRA_RENDERERS } from '@astra-spec/theme-astra';
