@@ -1,7 +1,7 @@
 {
   "name": "@astra-spec/astra-theme-book",
   "version": "0.0.9",
-  "description": "ASTRA book theme — @myst-theme/book plus the ASTRA overlay (multi-page sites with a table of contents).",
+  "description": "ASTRA book theme \u2014 @myst-theme/book plus the ASTRA overlay (multi-page sites with a table of contents).",
   "license": "BSD-3-Clause",
   "private": true,
   "sideEffects": false,
@@ -13,11 +13,12 @@
     "dev:copy": "cp remix.config.dev.js remix.config.js",
     "build:css": "tailwindcss -m -i ./styles/app.css -o app/styles/app.css",
     "build:thebe": "copy-thebe-assets ./public",
-    "build": "npm run prod:copy && npm run build:thebe && npm run build:css && remix build",
-    "dev": "npm run dev:copy && npm run build:thebe && npm run build:css && remix dev",
+    "build:pdfjs": "copy-pdfjs-assets ./public",
+    "build": "npm run prod:copy && npm run build:thebe && npm run build:pdfjs && npm run build:css && remix build",
+    "dev": "npm run dev:copy && npm run build:thebe && npm run build:pdfjs && npm run build:css && remix dev",
     "start": "node ./server.js",
     "typecheck": "tsc --noEmit --skipLibCheck",
-    "clean": "rm -rf public/build build app/styles/app.css remix.config.js"
+    "clean": "rm -rf public/build public/pdfjs build app/styles/app.css remix.config.js"
   },
   "dependencies": {
     "@astra-spec/theme-astra": "*",

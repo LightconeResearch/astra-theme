@@ -1,9 +1,17 @@
 import * as React from 'react';
 import { ArtifactPreview, RecordDialog, type ArtifactRenderer } from '@astra-spec/ui/components';
-import { useDetailStack, type DetailEntry, type OpenRecordHandler } from '@astra-spec/ui/lib';
+import {
+  useDetailStack,
+  type DetailEntry,
+  type OpenRecordHandler,
+  type PdfJsLoader,
+} from '@astra-spec/ui/lib';
 import { recordTitle } from '@astra-spec/ui/model';
-import type { GenericNode } from 'myst-common';
+import type { GenericNode, GenericParent, References } from 'myst-common';
 
+import { doiCiteTitles } from '../cite';
+import { citedPaperMetadata, type PaperTitles } from '../papers';
+import { usePdfJsLoader } from '../pdf';
 import { AstraThemeScope, useAstraColorScheme } from '../themeScope';
 import {
   findAstraPublication,
@@ -27,6 +35,10 @@ export interface AstraPublicationProviderProps {
   mdast?: GenericNode | GenericNode[] | undefined;
   /** A decoded publication supplied by tests or a host-owned cache. */
   publication?: AstraPublication | undefined;
+  /** The page's resolved references; cited papers are named as the page cites them. */
+  references?: References | undefined;
+  /** A pdf.js runtime supplied by tests or a host; the site's own static copy otherwise. */
+  loadPdfJs?: PdfJsLoader | undefined;
 }
 
 /** Render only transport-verified figure URLs supplied by the publication. */
@@ -70,9 +82,13 @@ function detailTitle(
 function AstraPublicationBoundary({
   children,
   publication,
+  paperTitles,
+  loadPdfJs: explicitLoader,
 }: {
   children: React.ReactNode;
   publication: AstraPublication | undefined;
+  paperTitles: PaperTitles;
+  loadPdfJs: PdfJsLoader | undefined;
 }) {
   const scheme = useAstraColorScheme();
   const details = useDetailStack();
@@ -93,6 +109,14 @@ function AstraPublicationBoundary({
     () => publication ? createAstraArtifactRenderer(publication) : undefined,
     [publication],
   );
+  // Papers are read straight from arXiv when a DOI names one; every other
+  // paper keeps astra-ui's DOI-link state. See ../papers.ts.
+  const paperMetadata = React.useMemo(
+    () => (publication?.document ? citedPaperMetadata(publication.document, paperTitles) : undefined),
+    [publication, paperTitles],
+  );
+  const siteLoader = usePdfJsLoader();
+  const loadPdfJs = explicitLoader ?? siteLoader;
   const activeDetail = publicationChanged ? undefined : details.active;
 
   return (
@@ -111,6 +135,8 @@ function AstraPublicationBoundary({
               document={publication.document}
               index={publication.index}
               renderArtifact={renderArtifact}
+              paperMetadata={paperMetadata}
+              loadPdfJs={loadPdfJs}
               onOpenRecord={details.pushRecord}
               onOpenPaper={details.pushPaper}
               onBack={details.previous ? details.back : undefined}
@@ -129,15 +155,28 @@ export function AstraPublicationProvider({
   children,
   mdast,
   publication: explicitPublication,
+  references,
+  loadPdfJs,
 }: AstraPublicationProviderProps) {
   const publication = React.useMemo(
     () => explicitPublication ?? findAstraPublication(mdast),
     [explicitPublication, mdast],
   );
+  // The page names its papers through the cite nodes MyST resolved; the page
+  // AST carries them when the references do not.
+  const paperTitles = React.useMemo(() => {
+    const article =
+      references?.article ?? (Array.isArray(mdast) ? { type: 'root', children: mdast } : mdast);
+    return doiCiteTitles(article ? { ...references, article: article as GenericParent } : references);
+  }, [references, mdast]);
 
   return (
     <AstraThemeScope>
-      <AstraPublicationBoundary publication={publication}>
+      <AstraPublicationBoundary
+        publication={publication}
+        paperTitles={paperTitles}
+        loadPdfJs={loadPdfJs}
+      >
         {children}
       </AstraPublicationBoundary>
     </AstraThemeScope>

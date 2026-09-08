@@ -34,6 +34,11 @@ The built themes include Alegreya, Newsreader, and Quattrocento font software
 from @lightcone-research/brand under the SIL Open Font License 1.1. See
 FONT-LICENSES for copyright notices and the complete license.
 
+The built themes include the pdf.js runtime (public/pdfjs/pdf.min.mjs and
+pdf.worker.min.mjs) from the pdfjs-dist package, Copyright (c) Mozilla
+Foundation, licensed under the Apache License, Version 2.0
+(https://www.apache.org/licenses/LICENSE-2.0).
+
 The ASTRA-specific code — packages/astra/** (the ASTRA overlay, including
 styles/astra.css), and this repository's configuration and documentation — is
 original work under the BSD 3-Clause License.
