@@ -74,6 +74,27 @@ export function buildDoiCiteIndex(
   return index;
 }
 
+/** The text of a resolved cite node as the page renders it, e.g. "Asgari et al. (2021)". */
+function citeText(node: GenericNode): string {
+  if (typeof node.value === 'string') return node.value;
+  return ((node.children ?? []) as GenericNode[]).map(citeText).join('');
+}
+
+/**
+ * How the page names each cited paper: the narrative citation MyST resolved
+ * for its DOI ("Asgari et al. (2021)"), else the parenthetical one, keyed by
+ * normalized DOI. Empty when the page has no resolved citations.
+ */
+export function doiCiteTitles(references: References | undefined): Map<string, string> {
+  const titles = new Map<string, string>();
+  for (const [doi, entry] of buildDoiCiteIndex(references)) {
+    const node = entry.narrative ?? entry.parenthetical;
+    const text = node ? citeText(node).replace(/\s+/g, ' ').trim() : '';
+    if (text) titles.set(doi, text);
+  }
+  return titles;
+}
+
 /**
  * The page's resolved `cite` node for a raw DOI, preferring the requested
  * kind and falling back to the other; `undefined` on any miss.

@@ -131,6 +131,8 @@ export const ArticlePage = React.memo(function ({
     </ArticleProvider>
   );
   return (
-    <AstraPublicationProvider mdast={article.mdast}>{content}</AstraPublicationProvider>
+    <AstraPublicationProvider mdast={article.mdast} references={article.references}>
+      {content}
+    </AstraPublicationProvider>
   );
 });

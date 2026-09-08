@@ -27,8 +27,15 @@ At render time, the shared overlay:
    binding;
 3. enriches ASTRA nodes with the published
    [`@astra-spec/ui`](https://www.npmjs.com/package/@astra-spec/ui) previews and
-   popovers; and
-4. applies the scoped
+   popovers;
+4. reads cited arXiv papers in place: an evidence DOI of the form
+   `10.48550/arXiv.<id>` names a PDF that `arxiv.org` serves with a permissive
+   CORS policy, so the record dialog streams it through pdf.js and locates the
+   quoted passage, naming the paper by the citation MyST resolved for its DOI.
+   Any other DOI, or a PDF that fails to load, falls back to the DOI link. The
+   pdf.js runtime is copied into each theme's `public/pdfjs/` at build time and
+   imported by URL, never bundled; and
+5. applies the scoped
    [`@lightcone-research/brand`](https://www.npmjs.com/package/@lightcone-research/brand)
    tokens through its ASTRA adapter.
 
