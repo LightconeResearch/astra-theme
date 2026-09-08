@@ -1,3 +1,4 @@
+import { AstraPublicationProvider, useAstraPublication } from '@astra-spec/theme-astra';
 import {
   json,
   redirect,
@@ -105,18 +106,27 @@ function ArticlePageAndNavigationInternal({
   const top = useThemeTop();
   const { container, toc } = useSidebarHeight(top, inset);
   const siteManifest = useSiteManifest() as any;
+  const publication = useAstraPublication();
   const projectParts = { ...siteManifest?.projects?.[0]?.parts, ...siteManifest?.parts };
+  // MyST renders this part in the desktop navbar and the mobile drawer.
+  const navbarEnd = publication ? {
+    type: 'root',
+    children: [
+      { type: 'div', class: 'astra-inventory-button', children: [] },
+      ...(projectParts?.navbar_end?.mdast?.children ?? []),
+    ],
+  } : projectParts?.navbar_end?.mdast;
   return (
     <>
       <TabStateProvider>
         {projectParts?.banner && <Banner content={projectParts.banner.mdast} />}
       </TabStateProvider>
-      <TopNav hideToc={hide_toc} hideSearch={hideSearch} navbarEnd={projectParts?.navbar_end?.mdast} />
+      <TopNav hideToc={hide_toc} hideSearch={hideSearch} navbarEnd={navbarEnd} />
       <PrimaryNavigation
         sidebarRef={toc as React.RefObject<HTMLDivElement>}
         hide_toc={hide_toc}
         footer={<SidebarFooter content={projectParts?.primary_sidebar_footer?.mdast} />}
-        navbarEnd={projectParts?.navbar_end?.mdast}
+        navbarEnd={navbarEnd}
         projectSlug={projectSlug}
       />
       <TabStateProvider>
@@ -177,27 +187,29 @@ export default function Page() {
     ...pageDesign,
   };
   return (
-    <ArticlePageAndNavigation
-      hide_toc={hide_toc}
-      hideSearch={hide_search}
-      projectSlug={data.page.project}
-    >
-      {/* <ProjectProvider project={project}> */}
-      <ProjectProvider>
-        <ComputeOptionsProvider
-          features={{ notebookCompute: true, figureCompute: true, launchBinder: false }}
-        >
-          <ThebeLoaderAndServer baseurl={baseurl}>
-            <article
-              ref={container}
-              className="article-grid subgrid-gap col-screen article content"
-            >
-              <ArticlePage article={data.page} hide_all_footer_links={hide_footer_links} />
-            </article>
-          </ThebeLoaderAndServer>
-        </ComputeOptionsProvider>
-      </ProjectProvider>
-    </ArticlePageAndNavigation>
+    <AstraPublicationProvider mdast={data.page.mdast} references={data.page.references}>
+      <ArticlePageAndNavigation
+        hide_toc={hide_toc}
+        hideSearch={hide_search}
+        projectSlug={data.page.project}
+      >
+        {/* <ProjectProvider project={project}> */}
+        <ProjectProvider>
+          <ComputeOptionsProvider
+            features={{ notebookCompute: true, figureCompute: true, launchBinder: false }}
+          >
+            <ThebeLoaderAndServer baseurl={baseurl}>
+              <article
+                ref={container}
+                className="article-grid subgrid-gap col-screen article content"
+              >
+                <ArticlePage article={data.page} hide_all_footer_links={hide_footer_links} />
+              </article>
+            </ThebeLoaderAndServer>
+          </ComputeOptionsProvider>
+        </ProjectProvider>
+      </ArticlePageAndNavigation>
+    </AstraPublicationProvider>
   );
 }
 

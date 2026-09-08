@@ -10,6 +10,7 @@ import { recordTitle } from '@astra-spec/ui/model';
 import type { GenericNode, GenericParent, References } from 'myst-common';
 
 import { doiCiteTitles } from '../cite';
+import { AstraInventory } from '../inventory';
 import { citedPaperMetadata, type PaperTitles } from '../papers';
 import { usePdfJsLoader } from '../pdf';
 import { AstraThemeScope, useAstraColorScheme } from '../themeScope';
@@ -123,6 +124,14 @@ function AstraPublicationBoundary({
     <AstraPublicationContext.Provider value={publication}>
       <AstraPublicationDetailsContext.Provider value={detailContext}>
         {children}
+        {publication && (
+          <AstraInventory
+            publication={publication}
+            renderArtifact={renderArtifact}
+            paperMetadata={paperMetadata}
+            loadPdfJs={loadPdfJs}
+          />
+        )}
         {publication && activeDetail ? (
           <div
             className="lightcone-brand astra-ui"
@@ -200,3 +209,26 @@ export {
   findAstraPublication,
 } from './contract';
 export type { AstraPublication } from './contract';
+
+/** A fragment link works in both running themes and static HTML exports. */
+export function AstraInventoryButton() {
+  const publication = useAstraPublication();
+  if (!publication) return null;
+  return (
+    <a
+      className="astra-inventory-button"
+      href="#astra-inventory"
+      aria-haspopup="dialog"
+      onClick={(event) => {
+        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        // Keep native link behaviour for new tabs, but avoid the router's
+        // scroll reset when opening a view over the current reading page.
+        event.preventDefault();
+        window.history.pushState(window.history.state, '', '#astra-inventory');
+        window.dispatchEvent(new HashChangeEvent('hashchange'));
+      }}
+    >
+      Inventory
+    </a>
+  );
+}

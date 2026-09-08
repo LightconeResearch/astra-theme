@@ -25,6 +25,7 @@
  */
 import type { NodeRenderers } from '@myst-theme/providers';
 
+import { AstraInventoryButton } from './publication/AstraPublicationProvider';
 import { AstraInlineRef } from './renderers/AstraInlineRef';
 import { AstraValue } from './renderers/AstraValue';
 import { AstraDecision } from './renderers/AstraDecision';
@@ -85,6 +86,7 @@ export const ASTRA_RENDERERS: NodeRenderers = {
   // (An option heading (`astra-option`) intentionally has no override: a
   // single placed option reads fine as the stock heading + prose.)
   div: {
+    [classTokenSelector('div', 'astra-inventory-button')]: AstraInventoryButton,
     [DIV_DECISION]: AstraDecision,
     [DIV_FINDING]: AstraFinding,
     // Metric, data and unproduced output embeds use a `div` carrier.

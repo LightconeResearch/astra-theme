@@ -30,7 +30,6 @@ import {
 import { MyST } from 'myst-to-react';
 import { FrontmatterBlock } from '@myst-theme/frontmatter';
 import type { SiteAction } from 'myst-config';
-import { AstraPublicationProvider } from '@astra-spec/theme-astra';
 import type { TemplateOptions } from '../types.js';
 
 /**
@@ -130,9 +129,5 @@ export const ArticlePage = React.memo(function ({
       </BusyScopeProvider>
     </ArticleProvider>
   );
-  return (
-    <AstraPublicationProvider mdast={article.mdast} references={article.references}>
-      {content}
-    </AstraPublicationProvider>
-  );
+  return content;
 });

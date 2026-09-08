@@ -43,9 +43,19 @@ Invalid, unsupported, or incomplete transport data fails locally: the neutral
 MyST content remains visible. The browser never reads `astra.yaml`, resolves a
 project, guesses an artifact path, or maintains a second ASTRA data model.
 
-The article and book app shells deliberately stay close to upstream. Each has
-only two ASTRA-aware source seams: renderer/style registration in `app/root.tsx`
-and an `AstraPublicationProvider` around the rendered article surface.
+The article and book app shells deliberately stay close to upstream. Each
+registers the shared renderers and styles in `app/root.tsx`, wraps its page and
+navigation in `AstraPublicationProvider`, and places an inventory entry in its
+existing controls.
+
+Pages containing an ASTRA publication include an **Inventory** entry: beside the
+article theme's appearance toggle, or in the book theme's desktop navigation and
+mobile drawer. It opens the current analysis in astra-ui's inventory, including
+figure previews, record details, and cited papers. Closing it returns to the
+reading page without remounting its content. Links ending in `#astra-inventory`
+(or a section such as `#astra-inventory-decisions`) open the same view directly;
+browser Back and Forward also switch between reading and inventory. Pages
+without a publication keep their usual navigation.
 
 ## Local development
 
