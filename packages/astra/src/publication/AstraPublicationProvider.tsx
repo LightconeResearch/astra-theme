@@ -1,12 +1,6 @@
 import * as React from 'react';
-import {
-  ArtifactPreview,
-  RecordDialog,
-  useDetailStack,
-  type ArtifactRenderer,
-  type DetailEntry,
-  type OpenRecordHandler,
-} from '@astra-spec/ui/components';
+import { ArtifactPreview, RecordDialog, type ArtifactRenderer } from '@astra-spec/ui/components';
+import { useDetailStack, type DetailEntry, type OpenRecordHandler } from '@astra-spec/ui/lib';
 import { recordTitle } from '@astra-spec/ui/model';
 import type { GenericNode } from 'myst-common';
 

@@ -4,13 +4,9 @@ import {
   type RecordPreviewEntry,
   type RecordPreviewReferenceRenderer,
 } from '@astra-spec/ui/components';
-import { analysisTitle, recordTitle } from '@astra-spec/ui/model';
-import {
-  LabelsProvider,
-  PreviewPopover,
-  type AstraLabelOverrides,
-  type SurfaceKind,
-} from '@astra-spec/ui/primitives';
+import { LabelsProvider, type AstraLabelOverrides } from '@astra-spec/ui/lib';
+import { analysisTitle, recordTitle, type SurfaceKind } from '@astra-spec/ui/model';
+import { PreviewPopover } from '@astra-spec/ui/primitives';
 
 import { AstraPreviewCite } from './cite';
 import {
