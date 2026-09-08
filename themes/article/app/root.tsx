@@ -47,12 +47,6 @@ export const links: LinksFunction = () => {
     // ASTRA design system (Lightcone Research branding) — layered over
     // article-theme's styles. Brand typefaces: Quattrocento (headings),
     // Alegreya (subheadings/labels), Newsreader (body).
-    { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-    { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
-    {
-      rel: 'stylesheet',
-      href: 'https://fonts.googleapis.com/css2?family=Quattrocento:wght@400;700&family=Alegreya:ital,wght@0,400..700;1,400..700&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=JetBrains+Mono:wght@400;500&display=swap',
-    },
     { rel: 'stylesheet', href: astraStyles },
     {
       rel: 'stylesheet',
@@ -85,6 +79,8 @@ export default function AppWithReload() {
   const { theme, config, CONTENT_CDN_PORT, MODE, BASE_URL } = useLoaderData<SiteLoader>();
   return (
     <Document
+      htmlClassName="lightcone-brand"
+      themeAttributes={['data-lightcone-color-scheme', 'data-astra-color-scheme']}
       theme={theme}
       config={config}
       scripts={MODE === 'static' ? undefined : <ContentReload port={CONTENT_CDN_PORT} />}

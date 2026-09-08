@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { InlineReference, type InlineReferenceProps } from '@astra-spec/ui/primitives';
 import type { ResolvedRecord } from '@astra-spec/sdk';
 import { primaryLiteratureEvidence } from '@astra-spec/ui/model';
 import type { GenericNode } from 'myst-common';
@@ -24,10 +25,12 @@ const PREVIEWABLE_RECORD_KINDS = new Set<ResolvedRecord['kind']>([
 
 /** Preserve the neutral inline token; shared UI only enriches it. */
 function tokenSpan(node: GenericNode): React.ReactElement {
+  const kind = stringMetadata(astraMetadata(node), 'kind');
+  const supported = ['analysis', 'input', 'output', 'decision', 'finding', 'prior_insight', 'paper', 'value', 'option'].includes(kind ?? '');
   return (
-    <span className={nodeClassName(node, 'astra-ref')}>
+    <InlineReference kind={supported ? kind as InlineReferenceProps['kind'] : undefined} className={nodeClassName(node, 'astra-ref')}>
       <MyST ast={node.children} />
-    </span>
+    </InlineReference>
   );
 }
 

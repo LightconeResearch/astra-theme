@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { InlineReference } from '@astra-spec/ui/primitives';
 import type { GenericNode } from 'myst-common';
 import { MyST } from 'myst-to-react';
 
@@ -20,9 +21,9 @@ export const AstraValue: React.FC<AstraValueProps> = ({ node }) => {
   const metadata = astraMetadata(node);
   const number = <MyST ast={node.children} />;
   const valueSpan = (
-    <span className={nodeClassName(node, 'astra-ref astra-ref--value')}>
+    <InlineReference kind="value" className={nodeClassName(node, 'astra-ref astra-ref--value')}>
       {number}
-    </span>
+    </InlineReference>
   );
 
   if (!publication || metadata?.kind !== 'value') return valueSpan;

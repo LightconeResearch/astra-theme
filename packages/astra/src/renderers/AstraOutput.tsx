@@ -1,3 +1,4 @@
+import { InlineReference } from '@astra-spec/ui/primitives';
 import * as React from 'react';
 import type {
   ResolvedAnalysisNode,
@@ -185,12 +186,14 @@ function ProvenanceDecisionRef({
   publication: AstraPublication;
 }) {
   const trigger = (
+    <InlineReference kind="decision" asChild>
     <a
       className="astra-ref astra-ref--decision"
       href={decisionHref(item)}
     >
       {item.decision.label ?? item.decision.id}
     </a>
+    </InlineReference>
   );
   // Released inherited decisions were navigable but not joined to the local
   // preview store. Preserve that behavior and its natural row geometry.

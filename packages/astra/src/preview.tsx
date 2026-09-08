@@ -39,7 +39,8 @@ const PREVIEW_LABELS = {
   },
 } satisfies AstraLabelOverrides;
 
-function entryKind(entry: RecordPreviewEntry): SurfaceKind {
+function entryKind(entry: RecordPreviewEntry): SurfaceKind | 'value' {
+  if (entry.kind === 'value') return 'value';
   if (entry.kind === 'analysis') return 'analysis';
   return entry.record.kind;
 }
@@ -171,9 +172,9 @@ export function AstraPreviewPopover({
     <PreviewPopover
       trigger={detailTrigger}
       kind={kind}
-      label={`${entryTitle(entry)} ${kind.replace('_', ' ')} preview`}
+      label={`${entryTitle(entry)} ${(kind === 'value' ? 'output' : kind).replace('_', ' ')} preview`}
       portalProps={{
-        className: 'lightcone-brand',
+        className: 'lightcone-brand astra-isolate',
         'data-entry-kind': entry.kind,
         'data-value-product':
           entry.kind === 'value' && entry.product ? '' : undefined,
