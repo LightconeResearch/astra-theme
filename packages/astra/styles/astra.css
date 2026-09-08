@@ -1956,7 +1956,7 @@ html.dark .astra-output__thumb img {
   padding: 0;
   border: 0;
   background: none;
-  color: var(--astra-muted);
+  color: var(--astra-ink);
   text-decoration: none;
 }
 .astra-inventory-button:hover { color: var(--astra-ink); }
@@ -1995,3 +1995,17 @@ html:has(.astra-inventory-dialog[open]) { overflow: hidden; }
   border: 0;
   border-radius: 0;
 }
+
+/* Page tools compose with MyST's headers without changing their components. */
+.astra-page-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.astra-page-actions:empty { display: none; }
+.astra-frontmatter { display: flow-root; }
+.astra-frontmatter > .astra-page-actions {
+  float: right;
+  margin: 0 0 1.25rem 1rem;
+}
+.astra-frontmatter .myst-fm-block > :not(.myst-fm-block-header) { clear: both; }

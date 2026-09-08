@@ -1,7 +1,2 @@
 /* Keep MyST's global reset below ASTRA's component styles. */
 @import '@myst-theme/styles' layer(myst);
-
-/* Leave room for the fixed appearance toggle on narrow screens. */
-@media (max-width: 639px) {
-  .myst-article-header .astra-inventory-button { margin-right: 4rem; }
-}

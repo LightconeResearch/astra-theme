@@ -1,5 +1,5 @@
 import React from 'react';
-import { AstraInventoryButton, useAstraPublication } from '@astra-spec/theme-astra';
+import { AstraInventoryButton } from '@astra-spec/theme-astra';
 import {
   ArticleProvider,
   useProjectManifest,
@@ -29,7 +29,7 @@ import {
   useComputeOptions,
 } from '@myst-theme/jupyter';
 import { MyST } from 'myst-to-react';
-import { FrontmatterBlock } from '@myst-theme/frontmatter';
+import { DownloadsDropdown, FrontmatterBlock } from '@myst-theme/frontmatter';
 import type { SiteAction } from 'myst-config';
 import type { TemplateOptions } from '../types.js';
 
@@ -61,7 +61,6 @@ export const ArticlePage = React.memo(function ({
   hide_all_footer_links?: boolean;
   hideKeywords?: boolean;
 }) {
-  const publication = useAstraPublication();
   const manifest = useProjectManifest();
   const compute = useComputeOptions();
   const top = useThemeTop();
@@ -90,15 +89,22 @@ export const ArticlePage = React.memo(function ({
       <BusyScopeProvider>
         <ExecuteScopeProvider enable={compute?.enabled ?? false} contents={article}>
           {!hide_title_block && (
-            <FrontmatterBlock
-              kind={article.kind}
-              frontmatter={{ ...article.frontmatter, downloads }}
-              className="mb-8 pt-9"
-              thebe={thebe}
-              location={location}
-              hideAuthors={hide_authors}
-              actions={publication ? <AstraInventoryButton /> : undefined}
-            />
+            <div className="astra-frontmatter mb-8 pt-9">
+              <div className="astra-page-actions">
+                <AstraInventoryButton />
+                <DownloadsDropdown
+                  exports={downloads as React.ComponentProps<typeof DownloadsDropdown>['exports']}
+                />
+              </div>
+              <FrontmatterBlock
+                kind={article.kind}
+                frontmatter={{ ...article.frontmatter, downloads }}
+                thebe={thebe}
+                location={location}
+                hideAuthors={hide_authors}
+                hideExports
+              />
+            </div>
           )}
           {!hide_outline && (
             <div

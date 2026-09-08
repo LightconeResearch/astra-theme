@@ -6,7 +6,7 @@ export function ArticlePageAndNavigation({ children }: { children: React.ReactNo
     <UiStateProvider>
       <TabStateProvider>
         <GridSystemProvider gridSystem="article-left-grid">
-          <div className="fixed top-8 right-4 z-50 sm:top-4">
+          <div className="fixed top-4 right-4 z-50">
             <ThemeButton />
           </div>
           <main

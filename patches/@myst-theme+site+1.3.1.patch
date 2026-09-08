@@ -9,29 +9,3 @@ index be02915..34cd4e2 100644
    callback: MutationCallback,
    options: Record<string, any>,
  ) {
-diff --git a/node_modules/@myst-theme/site/src/components/Headers.tsx b/node_modules/@myst-theme/site/src/components/Headers.tsx
---- a/node_modules/@myst-theme/site/src/components/Headers.tsx
-+++ b/node_modules/@myst-theme/site/src/components/Headers.tsx
-@@ -16,12 +16,14 @@
-   toggleTheme,
-   className,
-   hideAuthors,
-+  actions,
- }: {
-   frontmatter: PageFrontmatterWithDownloads;
-   children?: React.ReactNode;
-   toggleTheme?: boolean;
-   className?: string;
-   hideAuthors?: boolean;
-+  actions?: React.ReactNode;
- }) {
-   const grid = useGridSystemProvider();
-   const { subject, venue, volume, issue, ...rest } = frontmatter ?? {};
-@@ -85,6 +87,7 @@
-               <OpenAccessBadge open_access={frontmatter?.open_access} />
-               <GitHubLink github={frontmatter?.github} />
-             </div>
-+            {actions}
-             {toggleTheme && (
-               <ThemeButton className="myst-article-header-theme-button inline-block w-5 h-5 mt-0.5 ml-1" />
-             )}
