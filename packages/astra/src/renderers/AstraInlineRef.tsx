@@ -1,6 +1,6 @@
 import * as React from 'react';
 import type { ResolvedRecord } from '@astra-spec/sdk';
-import { primaryLiteratureEvidence } from '@astra-spec/ui/components';
+import { primaryLiteratureEvidence } from '@astra-spec/ui/model';
 import type { GenericNode } from 'myst-common';
 import { MyST } from 'myst-to-react';
 

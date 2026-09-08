@@ -480,7 +480,8 @@ describe('canonical SDK-backed ASTRA renderers', () => {
     );
 
     fireEvent.click(
-      within(insightDialog).getByRole('button', { name: new RegExp(TEST_DOI) }),
+      // The insight's source control names the action, not the DOI; it opens the paper dialog.
+      within(insightDialog).getByRole('button', { name: /Locate passage in paper|Open source paper/ }),
     );
     const paperDialog = await screen.findByRole('dialog', { name: TEST_DOI });
     expect(paperDialog).toBe(decisionDialog);

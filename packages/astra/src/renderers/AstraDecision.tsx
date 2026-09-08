@@ -1,6 +1,6 @@
 import * as React from 'react';
 import type { ResolvedAnalysisNode, ResolvedInsight } from '@astra-spec/sdk';
-import { primaryLiteratureEvidence } from '@astra-spec/ui/components';
+import { primaryLiteratureEvidence } from '@astra-spec/ui/model';
 import { decisionInsights } from '@astra-spec/ui/model';
 import { Prose } from '@astra-spec/ui/primitives';
 import type { GenericNode } from 'myst-common';
