@@ -1,4 +1,3 @@
-import { AstraInventoryButton } from '@astra-spec/theme-astra';
 import { GridSystemProvider, TabStateProvider, UiStateProvider } from '@myst-theme/providers';
 import { ThemeButton } from '@myst-theme/site';
 
@@ -7,8 +6,7 @@ export function ArticlePageAndNavigation({ children }: { children: React.ReactNo
     <UiStateProvider>
       <TabStateProvider>
         <GridSystemProvider gridSystem="article-left-grid">
-          <div className="fixed top-4 right-4 z-50 flex items-center gap-3">
-            <AstraInventoryButton />
+          <div className="fixed top-8 right-4 z-50 sm:top-4">
             <ThemeButton />
           </div>
           <main

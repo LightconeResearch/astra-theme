@@ -1996,3 +1996,14 @@ html:has(.astra-inventory-dialog[open]) { overflow: hidden; }
   border: 0;
   border-radius: 0;
 }
+
+.astra-inventory-button--icon {
+  justify-content: center;
+  width: 1.5rem;
+  min-height: 1.5rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--astra-muted);
+}
+.astra-inventory-button--icon:hover { color: var(--astra-ink); }

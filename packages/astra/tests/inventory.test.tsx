@@ -5,11 +5,11 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { AstraInventoryButton, AstraPublicationProvider, type AstraPublication } from '../src/publication/AstraPublicationProvider';
 import { makePublication } from './helpers/publication';
 
-function Host({ publication }: { publication?: AstraPublication }) {
+function Host({ publication, iconOnly }: { publication?: AstraPublication; iconOnly?: boolean }) {
   return (
     <ThemeProvider theme={null} setTheme={() => undefined}>
       <AstraPublicationProvider publication={publication}>
-        <AstraInventoryButton />
+        <AstraInventoryButton iconOnly={iconOnly} />
         <input aria-label="Reading notes" defaultValue="Keep my place" />
       </AstraPublicationProvider>
     </ThemeProvider>
@@ -36,9 +36,9 @@ describe('publication inventory', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
-  it('opens the shared inventory and preserves the reading page and URL on close', async () => {
+  it.each([false, true])('opens the inventory and restores reading with iconOnly=%s', async (iconOnly) => {
     navigate('/reports/demo?lang=en#methods');
-    render(<Host publication={makePublication()} />);
+    render(<Host publication={makePublication()} iconOnly={iconOnly} />);
     const notes = screen.getByRole('textbox');
     fireEvent.change(notes, { target: { value: 'Still reading' } });
     const opener = screen.getByRole('link', { name: 'Inventory' });

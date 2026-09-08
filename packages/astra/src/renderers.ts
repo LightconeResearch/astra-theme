@@ -24,6 +24,7 @@
  * node (which carries BOTH classes) is matched by the value renderer.
  */
 import type { NodeRenderers } from '@myst-theme/providers';
+import { createElement } from 'react';
 
 import { AstraInventoryButton } from './publication/AstraPublicationProvider';
 import { AstraInlineRef } from './renderers/AstraInlineRef';
@@ -86,7 +87,7 @@ export const ASTRA_RENDERERS: NodeRenderers = {
   // (An option heading (`astra-option`) intentionally has no override: a
   // single placed option reads fine as the stock heading + prose.)
   div: {
-    [classTokenSelector('div', 'astra-inventory-button')]: AstraInventoryButton,
+    [classTokenSelector('div', 'astra-inventory-button')]: () => createElement(AstraInventoryButton),
     [DIV_DECISION]: AstraDecision,
     [DIV_FINDING]: AstraFinding,
     // Metric, data and unproduced output embeds use a `div` carrier.
