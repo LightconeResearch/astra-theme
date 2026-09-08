@@ -2,6 +2,11 @@
 @import '@myst-theme/styles' layer(myst);
 @import './grid-system.css';
 
+/* Match the article header's compact badge row on narrow screens. */
+@media (max-width: 639px) {
+  .myst-fm-block-badges { display: none; }
+}
+
 #myst-no-css {
   --has-styling: 1;
 }

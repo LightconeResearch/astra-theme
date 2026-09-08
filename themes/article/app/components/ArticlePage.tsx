@@ -49,7 +49,7 @@ export function ArticlePage({ article }: { article: PageLoader }) {
           <ArticleHeader
             frontmatter={project}
             hideAuthors={hide_authors}
-            actions={<AstraInventoryButton iconOnly />}
+            actions={<AstraInventoryButton />}
           >
             <div className="pt-5 md:self-center h-fit lg:pt-0 col-body lg:col-margin-right-inset">
               <DownloadLinksArea />

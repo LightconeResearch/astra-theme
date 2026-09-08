@@ -59,11 +59,6 @@ export function AstraInventory({
         kindLabel="Inventory"
         onClose={close}
         closeLabel="Close inventory"
-        actions={(
-          <button type="button" className="astra-dialog__action" onClick={close}>
-            Back to reading
-          </button>
-        )}
       >
         <Inventory
           {...props}

@@ -48,11 +48,11 @@ registers the shared renderers and styles in `app/root.tsx`, wraps its page and
 navigation in `AstraPublicationProvider`, and places an inventory entry in its
 existing controls.
 
-Pages containing an ASTRA publication include an **Inventory** entry: a sparkle
-icon beside the article header's GitHub icon, or a button in the book theme's
-desktop navigation and mobile drawer. It opens the current analysis in astra-ui's
-inventory, including figure previews, record details, and cited papers. Closing it
-returns to the reading page without remounting its content. Links ending in `#astra-inventory`
+Pages containing an ASTRA publication include a sparkle **Inventory** icon beside
+GitHub in the article header's badge row, in both themes. It opens the current
+analysis in astra-ui's inventory, including figure previews, record details, and
+cited papers. The close icon returns to the reading page without remounting its
+content. Links ending in `#astra-inventory`
 (or a section such as `#astra-inventory-decisions`) open the same view directly;
 browser Back and Forward also switch between reading and inventory. Pages
 without a publication keep their usual navigation.

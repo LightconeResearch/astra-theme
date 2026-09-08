@@ -1,4 +1,5 @@
 import React from 'react';
+import { AstraInventoryButton, useAstraPublication } from '@astra-spec/theme-astra';
 import {
   ArticleProvider,
   useProjectManifest,
@@ -60,6 +61,7 @@ export const ArticlePage = React.memo(function ({
   hide_all_footer_links?: boolean;
   hideKeywords?: boolean;
 }) {
+  const publication = useAstraPublication();
   const manifest = useProjectManifest();
   const compute = useComputeOptions();
   const top = useThemeTop();
@@ -95,6 +97,7 @@ export const ArticlePage = React.memo(function ({
               thebe={thebe}
               location={location}
               hideAuthors={hide_authors}
+              actions={publication ? <AstraInventoryButton /> : undefined}
             />
           )}
           {!hide_outline && (

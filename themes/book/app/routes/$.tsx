@@ -1,4 +1,4 @@
-import { AstraPublicationProvider, useAstraPublication } from '@astra-spec/theme-astra';
+import { AstraPublicationProvider } from '@astra-spec/theme-astra';
 import {
   json,
   redirect,
@@ -106,27 +106,18 @@ function ArticlePageAndNavigationInternal({
   const top = useThemeTop();
   const { container, toc } = useSidebarHeight(top, inset);
   const siteManifest = useSiteManifest() as any;
-  const publication = useAstraPublication();
   const projectParts = { ...siteManifest?.projects?.[0]?.parts, ...siteManifest?.parts };
-  // MyST renders this part in the desktop navbar and the mobile drawer.
-  const navbarEnd = publication ? {
-    type: 'root',
-    children: [
-      { type: 'div', class: 'astra-inventory-button', children: [] },
-      ...(projectParts?.navbar_end?.mdast?.children ?? []),
-    ],
-  } : projectParts?.navbar_end?.mdast;
   return (
     <>
       <TabStateProvider>
         {projectParts?.banner && <Banner content={projectParts.banner.mdast} />}
       </TabStateProvider>
-      <TopNav hideToc={hide_toc} hideSearch={hideSearch} navbarEnd={navbarEnd} />
+      <TopNav hideToc={hide_toc} hideSearch={hideSearch} navbarEnd={projectParts?.navbar_end?.mdast} />
       <PrimaryNavigation
         sidebarRef={toc as React.RefObject<HTMLDivElement>}
         hide_toc={hide_toc}
         footer={<SidebarFooter content={projectParts?.primary_sidebar_footer?.mdast} />}
-        navbarEnd={navbarEnd}
+        navbarEnd={projectParts?.navbar_end?.mdast}
         projectSlug={projectSlug}
       />
       <TabStateProvider>

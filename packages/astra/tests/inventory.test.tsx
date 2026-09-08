@@ -5,11 +5,11 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { AstraInventoryButton, AstraPublicationProvider, type AstraPublication } from '../src/publication/AstraPublicationProvider';
 import { makePublication } from './helpers/publication';
 
-function Host({ publication, iconOnly }: { publication?: AstraPublication; iconOnly?: boolean }) {
+function Host({ publication }: { publication?: AstraPublication }) {
   return (
     <ThemeProvider theme={null} setTheme={() => undefined}>
       <AstraPublicationProvider publication={publication}>
-        <AstraInventoryButton iconOnly={iconOnly} />
+        <AstraInventoryButton />
         <input aria-label="Reading notes" defaultValue="Keep my place" />
       </AstraPublicationProvider>
     </ThemeProvider>
@@ -36,9 +36,9 @@ describe('publication inventory', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
   });
 
-  it.each([false, true])('opens the inventory and restores reading with iconOnly=%s', async (iconOnly) => {
+  it('opens the inventory and restores reading from the header icon', async () => {
     navigate('/reports/demo?lang=en#methods');
-    render(<Host publication={makePublication()} iconOnly={iconOnly} />);
+    render(<Host publication={makePublication()} />);
     const notes = screen.getByRole('textbox');
     fireEvent.change(notes, { target: { value: 'Still reading' } });
     const opener = screen.getByRole('link', { name: 'Inventory' });
@@ -49,7 +49,7 @@ describe('publication inventory', () => {
     expect(within(inventory).getByRole('img', { name: 'Shear correlation plot' })).toHaveAttribute(
       'src', '/myst-assets/shear_plot.png',
     );
-    fireEvent.click(within(inventory).getAllByRole('button', { name: 'Back to reading' })[0]!);
+    fireEvent.click(within(inventory).getByRole('button', { name: 'Close inventory' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(window.location.pathname + window.location.search + window.location.hash)
       .toBe('/reports/demo?lang=en#methods');
