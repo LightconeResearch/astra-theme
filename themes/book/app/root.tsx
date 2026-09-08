@@ -5,6 +5,8 @@ import { getConfig } from '~/utils/loaders.server';
 import type { SiteLoader } from '@myst-theme/common';
 import {
   Document,
+  Error404,
+  ErrorUnhandled,
   responseNoSite,
   getMetaTagsForSite,
   getThemeSession,
@@ -12,10 +14,9 @@ import {
   SkipTo,
   renderers as defaultRenderers,
 } from '@myst-theme/site';
-export { AppErrorBoundary as ErrorBoundary } from '@myst-theme/site';
 import { createSearch as createMiniSearch } from '@myst-theme/search-minisearch';
-import { Outlet, useLoaderData } from '@remix-run/react';
-import { SearchFactoryProvider, mergeRenderers } from '@myst-theme/providers';
+import { isRouteErrorResponse, Outlet, useLoaderData, useRouteError } from '@remix-run/react';
+import { SearchFactoryProvider, mergeRenderers, Theme } from '@myst-theme/providers';
 import type { NodeRenderers } from '@myst-theme/providers';
 import type { ISearch, MystSearchIndex } from '@myst-theme/search';
 import { SEARCH_ATTRIBUTES_ORDERED } from '@myst-theme/search';
@@ -28,7 +29,11 @@ import { useCallback } from 'react';
 // ── ASTRA renderer overlay ─────────────────────────────────────────────────
 // Merged LAST so its class-selector renderers win for `astra-*` nodes; every
 // other node falls back to the stock book-theme renderer. See packages/astra.
-import { ASTRA_RENDERERS } from '@astra-spec/theme-astra';
+import {
+  ASTRA_RENDERERS,
+  ASTRA_THEME_ATTRIBUTES,
+  LIGHTCONE_BRAND_CLASS,
+} from '@astra-spec/theme-astra';
 import astraStyles from '@astra-spec/theme-astra/styles/astra.css';
 
 const RENDERERS: NodeRenderers = mergeRenderers([
@@ -38,6 +43,35 @@ const RENDERERS: NodeRenderers = mergeRenderers([
   ANY_RENDERERS,
   ASTRA_RENDERERS,
 ]);
+
+/**
+ * MyST's error pages render outside the publication provider, and the stock
+ * boundary hands Document no brand props, so every --astra-* token would be
+ * undefined there and the page would lose the palette and the serif faces.
+ * Brand the document root exactly as the app does; the body is upstream's.
+ */
+export function ErrorBoundary() {
+  const error = useRouteError();
+  return (
+    <Document
+      theme={Theme.light}
+      htmlClassName={LIGHTCONE_BRAND_CLASS}
+      themeAttributes={[...ASTRA_THEME_ATTRIBUTES]}
+    >
+      <main className="article-grid subgrid-gap col-screen">
+        <article className="article">
+          {isRouteErrorResponse(error) ? (
+            <Error404 />
+          ) : (
+            <ErrorUnhandled
+              error={error as Parameters<typeof ErrorUnhandled>[0]['error']}
+            />
+          )}
+        </article>
+      </main>
+    </Document>
+  );
+}
 
 export const meta: V2_MetaFunction<typeof loader> = ({ data }) => {
   return getMetaTagsForSite({
@@ -152,8 +186,8 @@ export default function AppWithReload() {
   return (
     <SearchFactoryProvider factory={searchFactory}>
       <Document
-        htmlClassName="lightcone-brand"
-        themeAttributes={['data-lightcone-color-scheme', 'data-astra-color-scheme']}
+        htmlClassName={LIGHTCONE_BRAND_CLASS}
+        themeAttributes={[...ASTRA_THEME_ATTRIBUTES]}
         theme={theme}
         config={config}
         scripts={MODE === 'static' ? undefined : <ContentReload port={CONTENT_CDN_PORT} />}

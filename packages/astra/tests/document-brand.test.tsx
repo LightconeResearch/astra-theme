@@ -1,3 +1,9 @@
+/**
+ * These exercise @myst-theme/site's BlockingThemeLoader, not theme code: the
+ * `themeAttributes` prop it takes here comes from patches/@myst-theme+site,
+ * and this file is the regression guard for that patch. It fails loudly if a
+ * MyST upgrade drops the patch or changes the loader's pre-hydration script.
+ */
 import { renderToStaticMarkup } from 'react-dom/server';
 import { BlockingThemeLoader } from '@myst-theme/site';
 import { afterEach, describe, expect, it, vi } from 'vitest';

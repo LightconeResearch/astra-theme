@@ -21,7 +21,10 @@
    - Restrained, print-like. Hairline rules over heavy borders, no loud colour.
    ========================================================================== */
 
-/* Brand fonts are bundled locally, including italics and monospace. */
+/* @lightcone-research/brand bundles the three editorial faces locally —
+   Quattrocento, Alegreya and Newsreader, the last with a real italic. It ships
+   no monospace, so --astra-mono resolves to the brand's stack and renders in
+   the platform mono until a face is bundled upstream. */
 
 /* -----------------------------------------------------------------------------
    1. Tokens
@@ -64,7 +67,7 @@
   --astra-c-input: var(--astra-color-kind-input);        /* ▤ */
   --astra-c-value: var(--astra-color-kind-value);
 
-  /* Editorial layout uses the same bundled families as shared UI. */
+  /* Editorial layout uses the same brand families as shared UI. */
   --astra-measure: 40rem;      /* the 640px editorial column */
   --astra-heading: var(--lc-font-heading);
   --astra-serif: var(--lc-font-body);
@@ -156,6 +159,22 @@
   .astra-preview-popover__arrow path {
   transform: scaleY(2);
   transform-origin: center top;
+}
+
+/* The parenthetical citation trailing an inline reference stays on the token's
+   line; the shared primitive only styles the token itself. */
+.astra-ref-citation {
+  white-space: nowrap;
+}
+
+/* A navigable ref token (sub-analysis → its page): the shared inline
+   reference inside already carries the full token treatment, so the host's
+   anchor around it stays invisible instead of stacking a second prose-link
+   colour and underline on top of it. */
+.astra-ref-anchor,
+.astra-ref-anchor:hover {
+  text-decoration: none;
+  color: inherit;
 }
 
 /* -----------------------------------------------------------------------------
@@ -435,6 +454,19 @@ hr.astra-rule {
   display: flex;
   align-items: baseline;
   gap: 0.5em;
+}
+/* The row is a flex label that happens to be a preview trigger, so the shared
+   inline-reference affordance would underline and inset the "prior insight"
+   tag along with the name. Keep the shared glyph and hand the underline back
+   to the name alone (below); the flex gap already owns the glyph's spacing. */
+.astra-evidence__title,
+.astra-evidence__title:hover {
+  padding: 0;
+  background: transparent;
+  text-decoration: none;
+}
+.astra-evidence__title > .astra-kind-glyph {
+  margin-right: 0;
 }
 .astra-evidence__tag {
   font-family: var(--astra-label);

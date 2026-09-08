@@ -124,7 +124,6 @@ export const AstraDecision: React.FC<{ node: GenericNode }> = ({ node }) => {
                 }`}
                 aria-current={selected ? 'true' : undefined}
               >
-                <span className="astra-option__dot" aria-hidden="true" />
                 <span className="astra-option__label">{option.label}</span>
               </li>
             );

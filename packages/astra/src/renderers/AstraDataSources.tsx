@@ -141,13 +141,13 @@ export const AstraDataSources: React.FC<{ node: GenericNode }> = ({ node }) => {
                     <span className="astra-id">{row.id}</span>
                   )}
                   {row.label ? (
-                    <span className="astra-ds__label"> {row.label}</span>
+                    <span> {row.label}</span>
                   ) : null}
                 </td>
                 <td>{row.type ?? '—'}</td>
                 <td>
                   {row.description ? (
-                    <span className="astra-ds__desc">
+                    <span>
                       <Prose text={row.description} field="description" />
                     </span>
                   ) : null}

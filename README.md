@@ -106,5 +106,7 @@ article prose, with an explicit branded `astra-isolate` boundary. Serif fonts, i
 Newsreader italic, are bundled by the brand package; identifiers use its existing
 monospace stack.
 
-The shared rendering contract uses published `@astra-spec/ui` 0.0.5 and
-`@lightcone-research/brand` 0.0.3, installed from npm.
+`@astra-spec/ui` and `@lightcone-research/brand` are installed from npm at exact
+versions rather than caret ranges: the rendering contract is shared with the
+JupyterLab and VS Code hosts, so the three move together on a deliberate bump.
+See `packages/astra/package.json` for the versions in force.
