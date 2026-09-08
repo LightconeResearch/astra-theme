@@ -28,7 +28,7 @@ import { useCallback } from 'react';
 // ── ASTRA renderer overlay ─────────────────────────────────────────────────
 // Merged LAST so its class-selector renderers win for `astra-*` nodes; every
 // other node falls back to the stock book-theme renderer. See packages/astra.
-import { ASTRA_RENDERERS } from '@astra-spec/theme-astra';
+import { PreviewReload, ASTRA_RENDERERS } from '@astra-spec/theme-astra';
 import astraStyles from '@astra-spec/theme-astra/styles/astra.css';
 
 const RENDERERS: NodeRenderers = mergeRenderers([
@@ -49,8 +49,6 @@ export const meta: V2_MetaFunction<typeof loader> = ({ data }) => {
 
 export const links: LinksFunction = () => {
   return [
-    { rel: 'stylesheet', href: tailwind },
-    { rel: 'stylesheet', href: thebeCoreCss },
     // ASTRA design system (Lightcone Research branding) — layered over
     // book-theme's styles. Brand typefaces: Quattrocento (headings),
     // Alegreya (subheadings/labels), Newsreader (body).
@@ -60,7 +58,6 @@ export const links: LinksFunction = () => {
       rel: 'stylesheet',
       href: 'https://fonts.googleapis.com/css2?family=Quattrocento:wght@400;700&family=Alegreya:ital,wght@0,400..700;1,400..700&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=JetBrains+Mono:wght@400;500&display=swap',
     },
-    { rel: 'stylesheet', href: astraStyles },
     {
       rel: 'stylesheet',
       href: 'https://cdn.jsdelivr.net/npm/jupyter-matplotlib@0.11.3/css/mpl_widget.css',
@@ -72,8 +69,10 @@ export const links: LinksFunction = () => {
   ];
 };
 
-export const loader: LoaderFunction = async ({ request }): Promise<SiteLoader> => {
-  const baseURL = process.env.BASE_URL || undefined;
+export const loader: LoaderFunction = async ({
+  request,
+}): Promise<SiteLoader & { RELOAD_URL?: string }> => {
+  const baseURL = process.env.MYSTRA_BASE_URL || process.env.BASE_URL || undefined;
   const [config, themeSession] = await Promise.all([
     getConfig().catch(() => null),
     getThemeSession(request),
@@ -85,6 +84,7 @@ export const loader: LoaderFunction = async ({ request }): Promise<SiteLoader> =
     CONTENT_CDN_PORT: process.env.CONTENT_CDN_PORT ?? 3100,
     MODE: (process.env.MODE ?? 'app') as 'app' | 'static',
     BASE_URL: baseURL,
+    RELOAD_URL: process.env.MYSTRA_RELOAD_URL || undefined,
   };
   return data;
 };
@@ -151,7 +151,9 @@ function NoCSSWarning() {
 }
 
 export default function AppWithReload() {
-  const { theme, config, CONTENT_CDN_PORT, MODE, BASE_URL } = useLoaderData<SiteLoader>();
+  const { theme, config, CONTENT_CDN_PORT, MODE, BASE_URL, RELOAD_URL } = useLoaderData<
+    SiteLoader & { RELOAD_URL?: string }
+  >();
 
   const searchFactory = useCallback((index: MystSearchIndex) => createSearch(index), []);
 
@@ -160,12 +162,36 @@ export default function AppWithReload() {
       <Document
         theme={theme}
         config={config}
-        scripts={MODE === 'static' ? undefined : <ContentReload port={CONTENT_CDN_PORT} />}
+        scripts={
+          MODE === 'static' ? undefined : RELOAD_URL ? (
+            <PreviewReload url={RELOAD_URL} />
+          ) : (
+            <ContentReload port={CONTENT_CDN_PORT} />
+          )
+        }
         staticBuild={MODE === 'static'}
+        useLocalStorage={MODE === 'static' || !!RELOAD_URL}
         baseurl={BASE_URL}
         renderers={RENDERERS}
         head={
           <>
+            {RELOAD_URL && BASE_URL && (
+              <script
+                type="importmap"
+                dangerouslySetInnerHTML={{
+                  __html: JSON.stringify({
+                    imports: { '/myst_assets_folder/': `${BASE_URL}/myst_assets_folder/` },
+                  }).replace(/</g, '\\u003c'),
+                }}
+              />
+            )}
+            {[tailwind, thebeCoreCss, astraStyles].map((href) => (
+              <link
+                key={href}
+                rel="stylesheet"
+                href={`${MODE === 'app' ? BASE_URL || '' : ''}${href}`}
+              />
+            ))}
             <link rel="icon" href={`${BASE_URL || ''}/favicon.ico`} />
             <link rel="stylesheet" href={`${BASE_URL || ''}/myst-theme.css`} />
           </>

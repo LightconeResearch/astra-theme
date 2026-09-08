@@ -1,3 +1,5 @@
+import { useBaseurl } from '@myst-theme/providers';
+import { previewHref } from '../viewerTransport';
 import * as React from 'react';
 import type { ResolvedRecord } from '@astra-spec/sdk';
 import { primaryLiteratureEvidence } from '@astra-spec/ui/model';
@@ -34,6 +36,7 @@ function tokenSpan(node: GenericNode): React.ReactElement {
 /** Rich inline ASTRA references resolved solely through canonical SDK identity. */
 export const AstraInlineRef: React.FC<{ node: GenericNode }> = ({ node }) => {
   const publication = useAstraPublication();
+  const baseurl = useBaseurl();
   const metadata = astraMetadata(node);
   const kind = stringMetadata(metadata, 'kind');
   const token = tokenSpan(node);
@@ -47,7 +50,7 @@ export const AstraInlineRef: React.FC<{ node: GenericNode }> = ({ node }) => {
       : undefined;
     if (!analysis) return token;
 
-    const href = safeNavigationHref(stringMetadata(metadata, 'href'));
+    const href = previewHref(safeNavigationHref(stringMetadata(metadata, 'href')), baseurl);
     const trigger = href ? (
       <a className="astra-ref-anchor" href={href}>
         {token}

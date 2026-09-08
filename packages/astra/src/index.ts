@@ -13,3 +13,5 @@ export {
 export type { AstraPublication } from './publication/AstraPublicationProvider';
 export { AstraThemeScope, useAstraColorScheme } from './themeScope';
 export type { AstraColorScheme, AstraThemeScopeProps } from './themeScope';
+
+export { PreviewReload } from './viewerTransport';

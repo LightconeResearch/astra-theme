@@ -1,3 +1,5 @@
+import { useBaseurl } from '@myst-theme/providers';
+import { previewHref } from './viewerTransport';
 import * as React from 'react';
 import type {
   ResolvedAnalysisNode,
@@ -164,6 +166,7 @@ export interface LocatedAnalysis {
 /** Canonical SDK lookup for an analysis reference/card. */
 export function useAstraAnalysis(node: GenericNode): LocatedAnalysis | undefined {
   const publication = useAstraPublication();
+  const baseurl = useBaseurl();
   const metadata = astraMetadata(node);
   if (!publication || metadata?.kind !== 'analysis') return undefined;
   const analysisPath = stringMetadata(metadata, 'analysisPath');
@@ -171,7 +174,7 @@ export function useAstraAnalysis(node: GenericNode): LocatedAnalysis | undefined
     ? publication.index.analysisByPath.get(analysisPath)
     : undefined;
   if (!analysis) return undefined;
-  const href = safeNavigationHref(stringMetadata(metadata, 'href'));
+  const href = previewHref(safeNavigationHref(stringMetadata(metadata, 'href')), baseurl);
   return { publication, analysis, ...(href ? { href } : {}) };
 }
 

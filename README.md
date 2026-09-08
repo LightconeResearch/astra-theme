@@ -86,3 +86,39 @@ site:
 The ASTRA overlay and repository configuration are available under the BSD
 3-Clause License. The vendored MyST article and book app shells remain under
 the upstream MIT License; see [NOTICE](./NOTICE).
+
+## Embedding in MySTRA Viewer
+
+The article and book production servers support the optional
+`mystra-viewer.v1` transport contract. A host starts the normal `myst start`
+command with these environment variables:
+
+```text
+MYSTRA_BASE_URL=/user/alice/jupyterlab_lightcone/mystra/SESSION/site
+MYSTRA_CONTENT_URL=/user/alice/jupyterlab_lightcone/mystra/SESSION/content
+MYSTRA_RELOAD_URL=/user/alice/jupyterlab_lightcone/mystra/SESSION/socket
+```
+
+These are public URL paths, without trailing slashes. They deliberately use
+separate names because current MyST CLI startup replaces `BASE_URL`. Server-side
+content requests keep using the internal `CONTENT_CDN`/`CONTENT_CDN_PORT`.
+
+Forward site requests **with their full public path**, content requests with
+the public content prefix removed, and the public WebSocket URL to the content
+server's `/socket`. `GET MYSTRA_BASE_URL/mystra-capabilities` returns
+`{"protocol":"mystra-viewer.v1","baseUrl":"..."}` for host readiness checks.
+The host supplies authentication, resource authorization and an appropriate
+iframe policy; the Node servers should listen on loopback.
+
+The production server mounts the same literal prefix in the server and browser
+Remix route manifests. A standard browser import map redirects compiled module
+imports to that prefix; application JavaScript is served unchanged. Theme CSS,
+content resources, ASTRA navigation and reload connections use the public URLs.
+Embedded appearance preferences use local storage, avoiding the stock theme's
+root-only cookie API. The existing `@myst-theme/site` patch exposes that small
+Document option; no framework upgrade is required.
+
+Without these variables, standalone `myst start` and static export retain their
+normal startup behavior. This feature targets live embedding, not a general
+repair of upstream static-export routing. Browser support for import maps is
+required (current Chromium, Firefox and Safari).

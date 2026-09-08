@@ -17,7 +17,7 @@ import { migrate } from 'myst-migrate';
 const CONTENT_CDN_PORT = process.env.CONTENT_CDN_PORT ?? '3100';
 const CONTENT_CDN = process.env.CONTENT_CDN ?? `http://localhost:${CONTENT_CDN_PORT}`;
 
-type LinkRewriteOptions = { rewriteStaticFolder?: boolean };
+type LinkRewriteOptions = { rewriteStaticFolder?: boolean; internal?: boolean };
 
 export async function getConfig(opts?: LinkRewriteOptions): Promise<SiteManifest> {
   const url = `${CONTENT_CDN}/config.json`;
@@ -31,7 +31,7 @@ export async function getConfig(opts?: LinkRewriteOptions): Promise<SiteManifest
 
 function updateLink(
   url: string,
-  { rewriteStaticFolder = process.env.MODE === 'static' }: LinkRewriteOptions = {},
+  { rewriteStaticFolder = process.env.MODE === 'static', internal = false }: LinkRewriteOptions = {},
 ) {
   if (!url) return url;
   try {
@@ -43,7 +43,7 @@ function updateLink(
   if (rewriteStaticFolder) {
     return `/myst_assets_folder${url}`;
   }
-  return `${CONTENT_CDN}${url}`;
+  return `${(!internal && process.env.MYSTRA_CONTENT_URL) || CONTENT_CDN}${url}`;
 }
 
 async function getStaticContent(project?: string, slug?: string): Promise<PageLoader | null> {
@@ -104,18 +104,18 @@ export async function getStaticFileUrl(pathname: string): Promise<string | null>
   const url = `${CONTENT_CDN}${pathname}`;
   const response = await fetch(url, { method: 'HEAD' }).catch(() => null);
   if (!response || !response.ok) return null;
-  return url;
+  return `${process.env.MYSTRA_CONTENT_URL || CONTENT_CDN}${pathname}`;
 }
 
 export async function getObjectsInv(): Promise<ArrayBuffer | null> {
-  const url = updateLink('/objects.inv');
+  const url = `${CONTENT_CDN}/objects.inv`;
   const response = await fetch(url).catch(() => null);
   if (!response || response.status === 404) return null;
   return response.arrayBuffer();
 }
 
 export async function getMystXrefJson(): Promise<Record<string, any> | null> {
-  const url = updateLink('/myst.xref.json');
+  const url = `${CONTENT_CDN}/myst.xref.json`;
   const response = await fetch(url).catch(() => null);
   if (!response || response.status === 404) return null;
   const xrefs = await response.json();
@@ -126,7 +126,7 @@ export async function getMystXrefJson(): Promise<Record<string, any> | null> {
 }
 
 export async function getMystSearchJson(): Promise<MystSearchIndex | null> {
-  const url = updateLink('/myst.search.json');
+  const url = `${CONTENT_CDN}/myst.search.json`;
   const response = await fetch(url).catch(() => null);
   if (!response || response.status === 404) return null;
   return await response.json();
@@ -137,7 +137,7 @@ export async function getFavicon(): Promise<{
   buffer: ArrayBuffer;
 } | null> {
   // We are always fetching this at run time, so we don't want the rewritten links
-  const config = await getConfig({ rewriteStaticFolder: false });
+  const config = await getConfig({ rewriteStaticFolder: false, internal: true });
   const url = config.options?.favicon || 'https://mystmd.org/favicon.ico';
   const response = await fetch(url).catch(() => null);
   if (!response || response.status === 404) return null;
@@ -149,7 +149,7 @@ export async function getFavicon(): Promise<{
 
 export async function getCustomStyleSheet(): Promise<string | undefined> {
   // We are always fetching this at run time, so we don't want the rewritten links
-  const config = await getConfig({ rewriteStaticFolder: false });
+  const config = await getConfig({ rewriteStaticFolder: false, internal: true });
   const url = config.options?.style;
   if (!url) {
     return;

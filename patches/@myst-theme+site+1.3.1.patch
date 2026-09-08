@@ -9,3 +9,32 @@ index be02915..34cd4e2 100644
    callback: MutationCallback,
    options: Record<string, any>,
  ) {
+diff --git a/node_modules/@myst-theme/site/src/pages/Root.tsx b/node_modules/@myst-theme/site/src/pages/Root.tsx
+--- a/node_modules/@myst-theme/site/src/pages/Root.tsx
++++ b/node_modules/@myst-theme/site/src/pages/Root.tsx
+@@ -41,4 +41,5 @@
+   title,
+   staticBuild,
++  useLocalStorage = staticBuild,
+   baseurl,
+   top = DEFAULT_NAV_HEIGHT,
+@@ -52,4 +53,5 @@
+   title?: string;
+   staticBuild?: boolean;
++  useLocalStorage?: boolean;
+   baseurl?: string;
+   top?: number;
+@@ -70,5 +72,5 @@
+
+   // (Local) theme state driven by SSR and cookie/localStorage
+-  const [theme, setTheme] = useTheme({ ssrTheme: ssrTheme, useLocalStorage: staticBuild });
++  const [theme, setTheme] = useTheme({ ssrTheme: ssrTheme, useLocalStorage });
+
+   // Inject blocking element to set proper pre-hydration state
+@@ -76,5 +78,5 @@
+     <>
+       {head}
+-      {ssrTheme ? undefined : <BlockingThemeLoader useLocalStorage={!!staticBuild} />}
++      {ssrTheme ? undefined : <BlockingThemeLoader useLocalStorage={!!useLocalStorage} />}
+     </>
+   );

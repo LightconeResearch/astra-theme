@@ -1,3 +1,5 @@
+import { useBaseurl } from '@myst-theme/providers';
+import { previewHref } from '../viewerTransport';
 import * as React from 'react';
 import type {
   ResolvedAnalysisNode,
@@ -184,10 +186,11 @@ function ProvenanceDecisionRef({
   item: ProvenanceDecision;
   publication: AstraPublication;
 }) {
+  const baseurl = useBaseurl();
   const trigger = (
     <a
       className="astra-ref astra-ref--decision"
-      href={decisionHref(item)}
+      href={previewHref(decisionHref(item), baseurl)}
     >
       {item.decision.label ?? item.decision.id}
     </a>
