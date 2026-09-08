@@ -1978,3 +1978,21 @@ html:has(.astra-inventory-dialog[open]) { overflow: hidden; }
   max-height: none;
   overflow-y: auto;
 }
+
+/* An unavailable compact preview should be a labelled card, not an empty canvas. */
+.astra-inventory .astra-output-card__preview:not(:has(> :not(.astra-output-card__open))) {
+  display: none;
+}
+
+.astra-inventory-dialog > .astra-dialog__panel > .astra-dialog__header .astra-surface-header__title {
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
+  white-space: normal;
+}
+
+/* Size the figure against the thumbnail frame, rather than its intrinsic height. */
+.astra-inventory .astra-output-card__preview > .astra-output__thumb {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  border-radius: 0;
+}
