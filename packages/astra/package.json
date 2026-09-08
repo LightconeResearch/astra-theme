@@ -1,6 +1,6 @@
 {
   "name": "@astra-spec/theme-astra",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "The shared ASTRA overlay for MyST themes: publication rehydration, ASTRA renderers, shared UI integration, and Lightcone branding.",
   "license": "BSD-3-Clause",
   "type": "module",
