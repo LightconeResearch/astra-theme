@@ -1,4 +1,3 @@
-import { AstraPublicationProvider } from '@astra-spec/theme-astra';
 import {
   json,
   redirect,
@@ -178,29 +177,27 @@ export default function Page() {
     ...pageDesign,
   };
   return (
-    <AstraPublicationProvider mdast={data.page.mdast} references={data.page.references}>
-      <ArticlePageAndNavigation
-        hide_toc={hide_toc}
-        hideSearch={hide_search}
-        projectSlug={data.page.project}
-      >
-        {/* <ProjectProvider project={project}> */}
-        <ProjectProvider>
-          <ComputeOptionsProvider
-            features={{ notebookCompute: true, figureCompute: true, launchBinder: false }}
-          >
-            <ThebeLoaderAndServer baseurl={baseurl}>
-              <article
-                ref={container}
-                className="article-grid subgrid-gap col-screen article content"
-              >
-                <ArticlePage article={data.page} hide_all_footer_links={hide_footer_links} />
-              </article>
-            </ThebeLoaderAndServer>
-          </ComputeOptionsProvider>
-        </ProjectProvider>
-      </ArticlePageAndNavigation>
-    </AstraPublicationProvider>
+    <ArticlePageAndNavigation
+      hide_toc={hide_toc}
+      hideSearch={hide_search}
+      projectSlug={data.page.project}
+    >
+      {/* <ProjectProvider project={project}> */}
+      <ProjectProvider>
+        <ComputeOptionsProvider
+          features={{ notebookCompute: true, figureCompute: true, launchBinder: false }}
+        >
+          <ThebeLoaderAndServer baseurl={baseurl}>
+            <article
+              ref={container}
+              className="article-grid subgrid-gap col-screen article content"
+            >
+              <ArticlePage article={data.page} hide_all_footer_links={hide_footer_links} />
+            </article>
+          </ThebeLoaderAndServer>
+        </ComputeOptionsProvider>
+      </ProjectProvider>
+    </ArticlePageAndNavigation>
   );
 }
 

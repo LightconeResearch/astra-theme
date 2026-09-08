@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { Inventory, type InventoryProps } from '@astra-spec/ui/views';
 import { DetailDialog } from '@astra-spec/ui/primitives';
 import type { AstraPublication } from './publication/contract';
@@ -47,7 +48,8 @@ export function AstraInventory({
     );
     window.dispatchEvent(new HashChangeEvent('hashchange'));
   };
-  return (
+  // Keep publication prose styles from leaking into this page-level dialog.
+  return createPortal(
     <div
       className="lightcone-brand astra-ui"
       data-lightcone-color-scheme={scheme}
@@ -69,6 +71,7 @@ export function AstraInventory({
           idPrefix="astra-inventory-"
         />
       </DetailDialog>
-    </div>
+    </div>,
+    document.body,
   );
 }

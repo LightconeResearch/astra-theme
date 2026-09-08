@@ -1,4 +1,3 @@
-import { AstraPublicationProvider } from '@astra-spec/theme-astra';
 import { getProject, isFlatSite, parsePathname, type PageLoader } from '@myst-theme/common';
 import {
   json,
@@ -82,19 +81,17 @@ export default function Page() {
   const { page: article } = useLoaderData() as { page: PageLoader };
 
   return (
-    <AstraPublicationProvider mdast={article.mdast} references={article.references}>
-      <ArticlePageAndNavigation>
-        <ProjectProvider>
-          <ComputeOptionsProvider
-            features={{ notebookCompute: false, figureCompute: true, launchBinder: true }}
-          >
-            <ThebeLoaderAndServer baseurl={baseurl ?? ''}>
-              <ArticlePage article={article} />
-            </ThebeLoaderAndServer>
-          </ComputeOptionsProvider>
-        </ProjectProvider>
-      </ArticlePageAndNavigation>
-    </AstraPublicationProvider>
+    <ArticlePageAndNavigation>
+      <ProjectProvider>
+        <ComputeOptionsProvider
+          features={{ notebookCompute: false, figureCompute: true, launchBinder: true }}
+        >
+          <ThebeLoaderAndServer baseurl={baseurl ?? ''}>
+            <ArticlePage article={article} />
+          </ThebeLoaderAndServer>
+        </ComputeOptionsProvider>
+      </ProjectProvider>
+    </ArticlePageAndNavigation>
   );
 }
 

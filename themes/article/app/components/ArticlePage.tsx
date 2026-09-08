@@ -45,10 +45,7 @@ export function ArticlePage({ article }: { article: PageLoader }) {
     >
       <BusyScopeProvider>
         <ExecuteScopeProvider enable={compute?.enabled ?? false} contents={article}>
-          <ArticleHeader
-            frontmatter={project}
-            hideAuthors={hide_authors}
-          >
+          <ArticleHeader frontmatter={project} hideAuthors={hide_authors}>
             <div className="pt-5 md:self-center h-fit lg:pt-0 col-body lg:col-margin-right-inset">
               <DownloadLinksArea />
               {compute?.enabled && compute.features.launchBinder && (

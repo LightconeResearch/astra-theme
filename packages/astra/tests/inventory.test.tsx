@@ -12,12 +12,14 @@ function Host({ publication, mdast, labelled }: {
   labelled?: boolean;
 }) {
   return (
-    <ThemeProvider theme={null} setTheme={() => undefined}>
-      <AstraPublicationProvider publication={publication} mdast={mdast}>
-        <AstraInventoryButton>{labelled ? '✨ ASTRA Inventory' : undefined}</AstraInventoryButton>
-        <input aria-label="Reading notes" defaultValue="Keep my place" />
-      </AstraPublicationProvider>
-    </ThemeProvider>
+    <article>
+      <ThemeProvider theme={null} setTheme={() => undefined}>
+        <AstraPublicationProvider publication={publication} mdast={mdast}>
+          <AstraInventoryButton>{labelled ? '✨ ASTRA Inventory' : undefined}</AstraInventoryButton>
+          <input aria-label="Reading notes" defaultValue="Keep my place" />
+        </AstraPublicationProvider>
+      </ThemeProvider>
+    </article>
   );
 }
 
@@ -50,6 +52,7 @@ describe('publication inventory', () => {
     opener.focus();
     fireEvent.click(opener);
     const inventory = await screen.findByRole('dialog', { name: 'Demo' });
+    expect(inventory.closest('article')).toBeNull();
     expect(within(inventory).getByRole('heading', { name: 'Outputs' })).toBeVisible();
     expect(within(inventory).getByRole('img', { name: 'Shear correlation plot' })).toHaveAttribute(
       'src', '/myst-assets/shear_plot.png',

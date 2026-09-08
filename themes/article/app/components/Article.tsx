@@ -27,6 +27,7 @@ import type { GenericParent } from 'myst-common';
 import { copyNode } from 'myst-common';
 import { SourceFileKind } from 'myst-spec-ext';
 import { MyST } from 'myst-to-react';
+import { AstraPublicationProvider } from '@astra-spec/theme-astra';
 import { SupportingDocuments } from './SupportingDocuments';
 
 const TOP_OFFSET = 24;
@@ -105,5 +106,9 @@ export function Article({
       </BusyScopeProvider>
     </ArticleProvider>
   );
-  return content;
+  return (
+    <AstraPublicationProvider mdast={article.mdast} references={article.references}>
+      {content}
+    </AstraPublicationProvider>
+  );
 }

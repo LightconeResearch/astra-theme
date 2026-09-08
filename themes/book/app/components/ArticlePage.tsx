@@ -1,5 +1,4 @@
 import React from 'react';
-import { AstraInventoryButton } from '@astra-spec/theme-astra';
 import {
   ArticleProvider,
   useProjectManifest,
@@ -31,6 +30,7 @@ import {
 import { MyST } from 'myst-to-react';
 import { DownloadsDropdown, FrontmatterBlock } from '@myst-theme/frontmatter';
 import type { SiteAction } from 'myst-config';
+import { AstraInventoryButton, AstraPublicationProvider } from '@astra-spec/theme-astra';
 import type { TemplateOptions } from '../types.js';
 
 /**
@@ -89,8 +89,8 @@ export const ArticlePage = React.memo(function ({
       <BusyScopeProvider>
         <ExecuteScopeProvider enable={compute?.enabled ?? false} contents={article}>
           {!hide_title_block && (
-            <div className="astra-frontmatter mb-8 pt-9">
-              <div className="astra-page-actions">
+            <div className="astra-frontmatter flow-root mb-8 pt-9">
+              <div className="float-right flex items-center gap-1 mb-5 ml-4 empty:hidden">
                 <AstraInventoryButton />
                 <DownloadsDropdown
                   exports={downloads as React.ComponentProps<typeof DownloadsDropdown>['exports']}
@@ -138,5 +138,9 @@ export const ArticlePage = React.memo(function ({
       </BusyScopeProvider>
     </ArticleProvider>
   );
-  return content;
+  return (
+    <AstraPublicationProvider mdast={article.mdast} references={article.references}>
+      {content}
+    </AstraPublicationProvider>
+  );
 });

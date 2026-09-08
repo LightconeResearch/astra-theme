@@ -44,8 +44,8 @@ MyST content remains visible. The browser never reads `astra.yaml`, resolves a
 project, guesses an artifact path, or maintains a second ASTRA data model.
 
 The article and book app shells deliberately stay close to upstream. Each
-registers the shared renderers and styles in `app/root.tsx`, wraps its page and
-navigation in `AstraPublicationProvider`, and places an inventory entry in its
+registers the shared renderers and styles in `app/root.tsx`, wraps its article
+surface in `AstraPublicationProvider`, and places an inventory entry in its
 existing controls.
 
 Pages containing an ASTRA publication include an inventory entry. The article
