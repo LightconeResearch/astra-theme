@@ -107,7 +107,6 @@ Newsreader italic, are bundled by the brand package; identifiers use its existin
 monospace stack.
 
 This rendering migration is coordinated with [Astra UI #20](https://github.com/LightconeResearch/astra-ui/pull/20)
-and [brand #3](https://github.com/LightconeResearch/brand/pull/3). The review branch
-pins immutable preview dependencies; installing the private brand commit requires
-repository access. Publish UI and brand, then replace both preview pins with the
-released package versions and regenerate the lockfile before merging this branch.
+and [brand #3](https://github.com/LightconeResearch/brand/pull/3). Dependencies use the published npm packages. This migration needs new UI and brand
+releases; update both dependency versions and regenerate the lockfile after those
+releases are available, before publishing the host application.
