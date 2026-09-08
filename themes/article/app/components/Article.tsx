@@ -2,7 +2,6 @@ import { type PageLoader } from '@myst-theme/common';
 import {
   Bibliography,
   DocumentOutline,
-  SupportingDocuments,
   FrontmatterParts,
   BackmatterParts,
   extractKnownParts,
@@ -29,6 +28,7 @@ import { copyNode } from 'myst-common';
 import { SourceFileKind } from 'myst-spec-ext';
 import { MyST } from 'myst-to-react';
 import { AstraPublicationProvider } from '@astra-spec/theme-astra';
+import { SupportingDocuments } from './SupportingDocuments';
 
 const TOP_OFFSET = 24;
 

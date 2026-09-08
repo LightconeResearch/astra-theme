@@ -1,5 +1,5 @@
 @import "@lightcone-research/brand/adapters/astra.css";
-@import "@astra-spec/ui/components.css";
+@import "@astra-spec/ui/views.css";
 
 /* =============================================================================
    ASTRA — the Lightcone Research design system
@@ -1944,4 +1944,47 @@ html.dark .astra-output__thumb img {
   .myst-top-nav-bar > div:first-child {
     min-width: 0;
   }
+}
+
+/* The inventory uses the shared dialog lifecycle and keeps the reading page mounted. */
+.astra-inventory-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  min-height: 1.5rem;
+  color: var(--astra-accent);
+  text-decoration: none;
+}
+.astra-inventory-button:focus-visible {
+  outline: 2px solid var(--astra-accent);
+  outline-offset: 2px;
+}
+html:has(.astra-inventory-dialog[open]) { overflow: hidden; }
+.astra-inventory-dialog > .astra-dialog__panel {
+  width: min(86rem, 100%);
+  height: 100%;
+}
+.astra-inventory-dialog > .astra-dialog__panel > .astra-dialog__body {
+  display: block;
+  padding: clamp(1rem, 3vw, 2rem);
+  overflow-y: auto;
+}
+
+/* An unavailable compact preview should be a labelled card, not an empty canvas. */
+.astra-inventory .astra-output-card__preview:not(:has(> :not(.astra-output-card__open))) {
+  display: none;
+}
+
+.astra-inventory-dialog > .astra-dialog__panel > .astra-dialog__header .astra-surface-header__title {
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
+  white-space: normal;
+}
+
+/* Size the figure against the thumbnail frame, rather than its intrinsic height. */
+.astra-inventory .astra-output-card__preview > .astra-output__thumb {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  border-radius: 0;
 }

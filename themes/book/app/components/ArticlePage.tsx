@@ -28,9 +28,9 @@ import {
   useComputeOptions,
 } from '@myst-theme/jupyter';
 import { MyST } from 'myst-to-react';
-import { FrontmatterBlock } from '@myst-theme/frontmatter';
+import { DownloadsDropdown, FrontmatterBlock } from '@myst-theme/frontmatter';
 import type { SiteAction } from 'myst-config';
-import { AstraPublicationProvider } from '@astra-spec/theme-astra';
+import { AstraInventoryButton, AstraPublicationProvider } from '@astra-spec/theme-astra';
 import type { TemplateOptions } from '../types.js';
 
 /**
@@ -89,14 +89,22 @@ export const ArticlePage = React.memo(function ({
       <BusyScopeProvider>
         <ExecuteScopeProvider enable={compute?.enabled ?? false} contents={article}>
           {!hide_title_block && (
-            <FrontmatterBlock
-              kind={article.kind}
-              frontmatter={{ ...article.frontmatter, downloads }}
-              className="mb-8 pt-9"
-              thebe={thebe}
-              location={location}
-              hideAuthors={hide_authors}
-            />
+            <div className="astra-frontmatter flow-root mb-8 pt-9">
+              <div className="float-right flex items-center gap-1 mb-5 ml-4 empty:hidden">
+                <AstraInventoryButton />
+                <DownloadsDropdown
+                  exports={downloads as React.ComponentProps<typeof DownloadsDropdown>['exports']}
+                />
+              </div>
+              <FrontmatterBlock
+                kind={article.kind}
+                frontmatter={{ ...article.frontmatter, downloads }}
+                thebe={thebe}
+                location={location}
+                hideAuthors={hide_authors}
+                hideExports
+              />
+            </div>
           )}
           {!hide_outline && (
             <div

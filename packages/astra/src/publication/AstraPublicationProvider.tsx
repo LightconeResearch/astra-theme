@@ -10,6 +10,7 @@ import { recordTitle } from '@astra-spec/ui/model';
 import type { GenericNode, GenericParent, References } from 'myst-common';
 
 import { doiCiteTitles } from '../cite';
+import { AstraInventory } from '../inventory';
 import { citedPaperMetadata, type PaperTitles } from '../papers';
 import { usePdfJsLoader } from '../pdf';
 import { AstraThemeScope, useAstraColorScheme } from '../themeScope';
@@ -123,6 +124,14 @@ function AstraPublicationBoundary({
     <AstraPublicationContext.Provider value={publication}>
       <AstraPublicationDetailsContext.Provider value={detailContext}>
         {children}
+        {publication && (
+          <AstraInventory
+            publication={publication}
+            renderArtifact={renderArtifact}
+            paperMetadata={paperMetadata}
+            loadPdfJs={loadPdfJs}
+          />
+        )}
         {publication && activeDetail ? (
           <div
             className="lightcone-brand astra-ui"
@@ -200,3 +209,38 @@ export {
   findAstraPublication,
 } from './contract';
 export type { AstraPublication } from './contract';
+
+/** A fragment link works in both running themes and static HTML exports. */
+export function AstraInventoryButton({
+  children,
+  className = 'astra-inventory-button',
+}: { children?: React.ReactNode; className?: string } = {}) {
+  const publication = useAstraPublication();
+  if (!publication) return null;
+  return (
+    <a
+      className={className}
+      aria-label={children ? undefined : 'Inventory'}
+      title="Open inventory"
+      href="#astra-inventory"
+      aria-haspopup="dialog"
+      onClick={(event) => {
+        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        // Keep native link behaviour for new tabs, but avoid the router's
+        // scroll reset when opening a view over the current reading page.
+        event.preventDefault();
+        window.history.pushState(window.history.state, '', '#astra-inventory');
+        window.dispatchEvent(new HashChangeEvent('hashchange'));
+      }}
+    >
+      {/* Default icon: Lucide Sparkles, matching astra-spec. ISC license: see NOTICE. */}
+      {children ?? (
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594zM20 2v4M22 4h-4" />
+          <circle cx="4" cy="20" r="2" />
+        </svg>
+      )}
+    </a>
+  );
+}

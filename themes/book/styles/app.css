@@ -1,6 +1,15 @@
-@import '@myst-theme/styles';
+/* Keep MyST's global reset below ASTRA's component styles. */
+@import '@myst-theme/styles' layer(myst);
 @import './grid-system.css';
+
+/* Keep the page tools on one row on narrow screens. */
+@media (max-width: 639px) {
+  .myst-fm-block-badges { display: none; }
+}
 
 #myst-no-css {
   --has-styling: 1;
 }
+
+/* The download group occupies the header row; the title stays full width. */
+.astra-frontmatter .myst-fm-block > :not(.myst-fm-block-header) { clear: both; }

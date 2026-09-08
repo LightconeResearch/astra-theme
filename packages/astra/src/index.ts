@@ -8,6 +8,7 @@
 export { ASTRA_RENDERERS } from './renderers';
 export {
   AstraPublicationProvider,
+  AstraInventoryButton,
   useAstraPublication,
 } from './publication/AstraPublicationProvider';
 export type { AstraPublication } from './publication/AstraPublicationProvider';

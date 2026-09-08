@@ -8,10 +8,10 @@ const css = readFileSync(
 );
 
 describe('shared ASTRA stylesheet contract', () => {
-  it('loads the published brand adapter before astra-ui components', () => {
+  it('loads the published brand adapter before astra-ui views', () => {
     const brandImport =
       '@import "@lightcone-research/brand/adapters/astra.css";';
-    const uiImport = '@import "@astra-spec/ui/components.css";';
+    const uiImport = '@import "@astra-spec/ui/views.css";';
 
     expect(css.indexOf(brandImport)).toBe(0);
     expect(css.indexOf(uiImport)).toBeGreaterThan(css.indexOf(brandImport));

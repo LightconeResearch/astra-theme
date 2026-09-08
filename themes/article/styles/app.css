@@ -1,1 +1,2 @@
-@import '@myst-theme/styles';
+/* Keep MyST's global reset below ASTRA's component styles. */
+@import '@myst-theme/styles' layer(myst);
