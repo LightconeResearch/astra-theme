@@ -29,40 +29,40 @@
 :root,
 :where(.lightcone-brand) {
   /* surfaces — the brand's Background Neutrals ramp */
-  --astra-paper: var(--lc-astra-color-canvas); /* page background — white;
+  --astra-paper: var(--astra-color-canvas); /* page background — white;
                                  parchment is reserved for raised chrome */
-  --astra-surface: var(--lc-astra-color-surface-muted);
+  --astra-surface: var(--astra-color-surface-muted);
                               /* cards, rail, header band — Darker Parchment */
-  --astra-surface-2: var(--lc-astra-color-surface-inset); /* recessed insets: figure frames, diagram wells
+  --astra-surface-2: var(--astra-color-surface-inset); /* recessed insets: figure frames, diagram wells
                                  (Darker Parchment, deepened one step) */
 
   /* ink */
-  --astra-ink: var(--lc-astra-color-text);
-  --astra-ink-soft: var(--lc-astra-color-text-muted);
+  --astra-ink: var(--astra-color-text);
+  --astra-ink-soft: var(--astra-color-text-muted);
                               /* Blue Ink — secondary text */
-  --astra-muted: var(--lc-astra-color-text-subtle);
-  --astra-faint: var(--lc-astra-color-text-faint);     /* Mushroom Cap, lightened */
+  --astra-muted: var(--astra-color-text-subtle);
+  --astra-faint: var(--astra-color-text-faint);     /* Mushroom Cap, lightened */
 
   /* rules — cool parchment hairlines */
-  --astra-rule: var(--lc-astra-color-border);
-  --astra-rule-strong: var(--lc-astra-color-border-strong);
+  --astra-rule: var(--astra-color-border);
+  --astra-rule-strong: var(--astra-color-border-strong);
 
   /* brand accent — Antique Gold (rail mark + inline links + headings) */
-  --astra-accent: var(--lc-astra-color-accent);
-  --astra-link: var(--lc-astra-color-link);
-  --astra-accent-soft: var(--lc-astra-color-accent-soft); /* the warm hover hotspot */
+  --astra-accent: var(--astra-color-accent);
+  --astra-link: var(--astra-color-link);
+  --astra-accent-soft: var(--astra-color-accent-soft); /* the warm hover hotspot */
 
   /* kickers / uppercase labels — Slate Blue, as in the brand's type-style page */
-  --astra-kicker: var(--lc-astra-color-eyebrow);
+  --astra-kicker: var(--astra-color-eyebrow);
 
   /* per-kind accents — mapped onto the brand palette */
-  --astra-c-decision: var(--lc-astra-color-kind-decision); /* ◇ */
-  --astra-c-finding: var(--lc-astra-color-kind-finding);  /* ● */
-  --astra-c-insight: var(--lc-astra-color-kind-insight);       /* ◈ */
-  --astra-c-analysis: var(--lc-astra-color-kind-analysis);   /* ◐ */
-  --astra-c-output: var(--lc-astra-color-kind-output);       /* ◆ */
-  --astra-c-input: var(--lc-astra-color-kind-input);        /* ▤ */
-  --astra-c-value: var(--lc-astra-color-kind-value);
+  --astra-c-decision: var(--astra-color-kind-decision); /* ◇ */
+  --astra-c-finding: var(--astra-color-kind-finding);  /* ● */
+  --astra-c-insight: var(--astra-color-kind-insight);       /* ◈ */
+  --astra-c-analysis: var(--astra-color-kind-analysis);   /* ◐ */
+  --astra-c-output: var(--astra-color-kind-output);       /* ◆ */
+  --astra-c-input: var(--astra-color-kind-input);        /* ▤ */
+  --astra-c-value: var(--astra-color-kind-value);
 
   /* Editorial layout uses the same bundled families as shared UI. */
   --astra-measure: 40rem;      /* the 640px editorial column */
@@ -74,7 +74,7 @@
   /* card — sharp editorial corners, soft warm shadow (exact mock values) */
   --astra-card-w: 27.5rem;     /* 440px overlay width */
   --astra-radius: 3px;
-  --astra-shadow: var(--lc-shadow-editorial);
+  --astra-shadow: var(--astra-shadow-preview);
 
   /* the kind accent in scope — overridden by placed blocks / [data-kind] */
   --astra-kind: var(--astra-accent);

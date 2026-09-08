@@ -102,8 +102,9 @@ Shared ASTRA rendering follows the article inline/popover reference through
 `@astra-spec/ui` and `@lightcone-research/brand`. The theme owns MyST rendering,
 article layout and artifact/citation adapters; shared typography, colours, glyphs
 and preview geometry live upstream. Inventory and record dialogs mount outside
-article prose, with an explicit branded `astra-isolate` boundary. Fonts, including
-italics and monospace, are bundled by the brand package.
+article prose, with an explicit branded `astra-isolate` boundary. Serif fonts, including
+Newsreader italic, are bundled by the brand package; identifiers use its existing
+monospace stack.
 
 This rendering migration is coordinated with [Astra UI #20](https://github.com/LightconeResearch/astra-ui/pull/20)
 and [brand #3](https://github.com/LightconeResearch/brand/pull/3). The review branch

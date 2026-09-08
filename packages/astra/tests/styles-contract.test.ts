@@ -25,7 +25,7 @@ describe('shared ASTRA stylesheet contract', () => {
     expect(css).not.toContain('.astra-ref::before');
     expect(css).toContain('--astra-serif: var(--lc-font-body);');
     expect(css).toContain('--astra-mono: var(--lc-font-mono);');
-    expect(css).toContain('--astra-c-finding: var(--lc-astra-color-kind-finding);');
+    expect(css).toContain('--astra-c-finding: var(--astra-color-kind-finding);');
   });
 
   it('keeps registry identifiers visually identical when no anchor is available', () => {
