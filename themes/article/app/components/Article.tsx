@@ -2,7 +2,6 @@ import { type PageLoader } from '@myst-theme/common';
 import {
   Bibliography,
   DocumentOutline,
-  SupportingDocuments,
   FrontmatterParts,
   BackmatterParts,
   extractKnownParts,
@@ -28,6 +27,7 @@ import type { GenericParent } from 'myst-common';
 import { copyNode } from 'myst-common';
 import { SourceFileKind } from 'myst-spec-ext';
 import { MyST } from 'myst-to-react';
+import { SupportingDocuments } from './SupportingDocuments';
 
 const TOP_OFFSET = 24;
 

@@ -4,12 +4,17 @@ import { ThemeProvider } from '@myst-theme/providers';
 import { afterEach, describe, expect, it } from 'vitest';
 import { AstraInventoryButton, AstraPublicationProvider, type AstraPublication } from '../src/publication/AstraPublicationProvider';
 import { makePublication } from './helpers/publication';
+import type { GenericNode } from 'myst-common';
 
-function Host({ publication }: { publication?: AstraPublication }) {
+function Host({ publication, mdast, labelled }: {
+  publication?: AstraPublication;
+  mdast?: GenericNode;
+  labelled?: boolean;
+}) {
   return (
     <ThemeProvider theme={null} setTheme={() => undefined}>
-      <AstraPublicationProvider publication={publication}>
-        <AstraInventoryButton />
+      <AstraPublicationProvider publication={publication} mdast={mdast}>
+        <AstraInventoryButton>{labelled ? '✨ ASTRA Inventory' : undefined}</AstraInventoryButton>
         <input aria-label="Reading notes" defaultValue="Keep my place" />
       </AstraPublicationProvider>
     </ThemeProvider>
@@ -66,6 +71,27 @@ describe('publication inventory', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     navigate('/#astra-inventory');
     expect(screen.getByRole('dialog', { name: 'Demo' })).toBeVisible();
+  });
+
+  it('opens the sub-analysis named by the page publication from the labelled link', async () => {
+    navigate('/calibration#main');
+    const { bundle } = makePublication();
+    render(<Host labelled mdast={{
+      type: 'div',
+      class: 'astra-publication-bundle',
+      data: { astraPublication: {
+        schemaVersion: 'astra-publication-bundle.v1',
+        bundle,
+        activeAnalysisPath: 'calibration',
+      } },
+    } as GenericNode} />);
+    fireEvent.click(screen.getByRole('link', { name: /ASTRA Inventory/ }));
+    const inventory = await screen.findByRole('dialog', { name: 'Calibration' });
+    expect(screen.queryByRole('dialog', { name: 'Demo' })).toBeNull();
+    expect(within(inventory).queryByRole('button', { name: /Covariance source/ })).toBeNull();
+    fireEvent.click(within(inventory).getByRole('button', { name: 'Close inventory' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(window.location.pathname + window.location.hash).toBe('/calibration#main');
   });
 
   it('keeps the inventory open when a record detail is dismissed', async () => {
