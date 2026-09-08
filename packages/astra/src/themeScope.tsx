@@ -3,6 +3,18 @@ import { useThemeSwitcher } from '@myst-theme/providers';
 
 export type AstraColorScheme = 'light' | 'dark';
 
+/**
+ * The brand root contract: a host adds the class and mirrors its own colour
+ * scheme onto both attributes. The themes hand these to MyST's Document so the
+ * server-rendered `<html>` already carries them; this module keeps portaled and
+ * non-MyST hosts in sync afterwards.
+ */
+export const LIGHTCONE_BRAND_CLASS = 'lightcone-brand';
+export const ASTRA_THEME_ATTRIBUTES = [
+  'data-lightcone-color-scheme',
+  'data-astra-color-scheme',
+] as const;
+
 const AstraColorSchemeContext = React.createContext<AstraColorScheme>('light');
 
 interface BrandRootState {
@@ -20,9 +32,8 @@ function activeScheme(state: BrandRootState): AstraColorScheme {
 
 function synchronizeBrandRoot(root: HTMLElement, state: BrandRootState): void {
   const scheme = activeScheme(state);
-  root.classList.add('lightcone-brand');
-  root.setAttribute('data-lightcone-color-scheme', scheme);
-  root.setAttribute('data-astra-color-scheme', scheme);
+  root.classList.add(LIGHTCONE_BRAND_CLASS);
+  for (const attribute of ASTRA_THEME_ATTRIBUTES) root.setAttribute(attribute, scheme);
 }
 
 function acquireBrandRoot(
@@ -34,7 +45,7 @@ function acquireBrandRoot(
   if (!state) {
     state = {
       owners: new Map(),
-      hadBrandClass: root.classList.contains('lightcone-brand'),
+      hadBrandClass: root.classList.contains(LIGHTCONE_BRAND_CLASS),
       lightconeScheme: root.getAttribute('data-lightcone-color-scheme'),
       astraScheme: root.getAttribute('data-astra-color-scheme'),
     };
@@ -66,7 +77,7 @@ function releaseBrandRoot(root: HTMLElement, owner: symbol): void {
     return;
   }
 
-  if (!state.hadBrandClass) root.classList.remove('lightcone-brand');
+  if (!state.hadBrandClass) root.classList.remove(LIGHTCONE_BRAND_CLASS);
   if (state.lightconeScheme === null) {
     root.removeAttribute('data-lightcone-color-scheme');
   } else {

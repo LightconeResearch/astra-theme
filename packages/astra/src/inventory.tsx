@@ -51,7 +51,7 @@ export function AstraInventory({
   // Keep publication prose styles from leaking into this page-level dialog.
   return createPortal(
     <div
-      className="lightcone-brand astra-ui"
+      className="lightcone-brand astra-ui astra-isolate"
       data-lightcone-color-scheme={scheme}
       data-astra-color-scheme={scheme}
     >

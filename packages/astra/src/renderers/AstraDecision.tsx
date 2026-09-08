@@ -2,7 +2,7 @@ import * as React from 'react';
 import type { ResolvedAnalysisNode, ResolvedInsight } from '@astra-spec/sdk';
 import { primaryLiteratureEvidence } from '@astra-spec/ui/model';
 import { decisionInsights } from '@astra-spec/ui/model';
-import { Prose } from '@astra-spec/ui/primitives';
+import { InlineReference, Prose } from '@astra-spec/ui/primitives';
 import type { GenericNode } from 'myst-common';
 
 import { AstraCite } from '../cite';
@@ -44,13 +44,10 @@ function EvidenceItem({
         publication={publication}
         entry={{ kind: 'record', record: insight, analysis }}
         trigger={
-          <span className="astra-evidence__title">
-            <span className="astra-evidence__glyph--insight" aria-hidden="true">
-              ◈
-            </span>
+          <InlineReference kind="prior_insight" className="astra-evidence__title">
             <span className="astra-evidence__name">{name}</span>
             <span className="astra-evidence__tag">prior insight</span>
-          </span>
+          </InlineReference>
         }
       />
       {insight.label ? (
@@ -127,7 +124,6 @@ export const AstraDecision: React.FC<{ node: GenericNode }> = ({ node }) => {
                 }`}
                 aria-current={selected ? 'true' : undefined}
               >
-                <span className="astra-option__dot" aria-hidden="true" />
                 <span className="astra-option__label">{option.label}</span>
               </li>
             );

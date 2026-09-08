@@ -455,7 +455,8 @@ describe('canonical SDK-backed ASTRA renderers', () => {
       name: 'Covariance source',
     });
     const dialogScope = decisionDialog.parentElement;
-    expect(dialogScope).toHaveClass('lightcone-brand', 'astra-ui');
+    expect(dialogScope).toHaveClass('lightcone-brand', 'astra-ui', 'astra-isolate');
+    expect(dialogScope?.closest('article')).toBeNull();
     expect(dialogScope).toHaveStyle({ display: 'contents' });
     expect(dialogScope).toHaveAttribute(
       'data-lightcone-color-scheme',
@@ -882,7 +883,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
       [...provenance.querySelectorAll('.astra-output__prov-decisions li')].map(
         (item) => item.querySelector('.astra-ref--decision')?.textContent,
       ),
-    ).toEqual(['Covariance source', 'Nested method', 'Branch method']);
+    ).toEqual(['◇Covariance source', '◇Nested method', '◇Branch method']);
     expect(
       [...provenance.querySelectorAll('.astra-output__prov-row > code')].map(
         (item) => item.textContent,

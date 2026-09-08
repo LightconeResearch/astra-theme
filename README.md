@@ -97,3 +97,16 @@ site:
 The ASTRA overlay and repository configuration are available under the BSD
 3-Clause License. The vendored MyST article and book app shells remain under
 the upstream MIT License; see [NOTICE](./NOTICE).
+
+Shared ASTRA rendering follows the article inline/popover reference through
+`@astra-spec/ui` and `@lightcone-research/brand`. The theme owns MyST rendering,
+article layout and artifact/citation adapters; shared typography, colours, glyphs
+and preview geometry live upstream. Inventory and record dialogs mount outside
+article prose, with an explicit branded `astra-isolate` boundary. Serif fonts, including
+Newsreader italic, are bundled by the brand package; identifiers use its existing
+monospace stack.
+
+`@astra-spec/ui` and `@lightcone-research/brand` are installed from npm at exact
+versions rather than caret ranges: the rendering contract is shared with the
+JupyterLab and VS Code hosts, so the three move together on a deliberate bump.
+See `packages/astra/package.json` for the versions in force.

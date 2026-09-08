@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { ArtifactPreview, RecordDialog, type ArtifactRenderer } from '@astra-spec/ui/components';
 import {
   useDetailStack,
@@ -132,9 +133,9 @@ function AstraPublicationBoundary({
             loadPdfJs={loadPdfJs}
           />
         )}
-        {publication && activeDetail ? (
+        {publication && activeDetail ? createPortal(
           <div
-            className="lightcone-brand astra-ui"
+            className="lightcone-brand astra-ui astra-isolate"
             data-lightcone-color-scheme={scheme}
             data-astra-color-scheme={scheme}
             style={{ display: 'contents' }}
@@ -152,7 +153,8 @@ function AstraPublicationBoundary({
               backText={detailTitle(publication, details.previous)}
               onClose={details.close}
             />
-          </div>
+          </div>,
+          document.body,
         ) : null}
       </AstraPublicationDetailsContext.Provider>
     </AstraPublicationContext.Provider>

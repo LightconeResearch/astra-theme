@@ -1,11 +1,72 @@
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { readdirSync, readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { dirname, join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-const css = readFileSync(
-  resolve(process.cwd(), 'packages/astra/styles/astra.css'),
-  'utf8',
-);
+const entry = resolve(process.cwd(), 'packages/astra/styles/astra.css');
+const css = readFileSync(entry, 'utf8');
+
+const require_ = createRequire(entry);
+
+/** Every rule the browser ends up with: this sheet plus what it @imports. */
+function loadCascade(file: string, seen = new Set<string>()): string {
+  if (seen.has(file)) return '';
+  seen.add(file);
+  const source = readFileSync(file, 'utf8');
+  let cascade = source;
+  for (const [, specifier] of source.matchAll(/@import\s+"([^"]+)"/g)) {
+    const target = specifier.startsWith('.')
+      ? resolve(dirname(file), specifier)
+      : require_.resolve(specifier);
+    cascade += `\n${loadCascade(target, seen)}`;
+  }
+  return cascade;
+}
+
+function sourceFiles(dir: string): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((item) =>
+    item.isDirectory()
+      ? sourceFiles(join(dir, item.name))
+      : /\.tsx?$/.test(item.name)
+        ? [join(dir, item.name)]
+        : [],
+  );
+}
+
+/**
+ * Class tokens the renderers write into the DOM. Interpolated names
+ * (`astra-type-glyph--${…}`) carry no literal to check, so they are skipped.
+ */
+function emittedClasses(): Map<string, string> {
+  const patterns = [
+    /className=\{?["'`]([^"'`]+)["'`]/g,
+    /className:\s*["'`]([^"'`]+)["'`]/g,
+    /nodeClassName\([^,]+,\s*["'`]([^"'`]+)["'`]\)/g,
+    /triggerClassName\s*=\s*["'`]([^"'`]+)["'`]/g,
+  ];
+  const emitted = new Map<string, string>();
+  for (const file of sourceFiles(resolve(process.cwd(), 'packages/astra/src'))) {
+    const source = readFileSync(file, 'utf8');
+    for (const pattern of patterns) {
+      for (const [, value] of source.matchAll(pattern)) {
+        for (const token of value.split(/\s+/)) {
+          if (!token.startsWith('astra-') || token.includes('${')) continue;
+          if (!emitted.has(token)) emitted.set(token, file);
+        }
+      }
+    }
+  }
+  return emitted;
+}
+
+/**
+ * Classes that are vocabulary rather than presentation, so they are expected
+ * to have no rule of their own:
+ *  - `astra-ref--value` is a MyST dispatch selector (see src/renderers.ts);
+ *  - `astra-ref--decision` echoes the AST class MySTRA emits for decision
+ *    refs, keeping the provenance anchor's markup identical to inline ones.
+ */
+const UNSTYLED_BY_DESIGN = new Set(['astra-ref--value', 'astra-ref--decision']);
 
 describe('shared ASTRA stylesheet contract', () => {
   it('loads the published brand adapter before astra-ui views', () => {
@@ -18,78 +79,27 @@ describe('shared ASTRA stylesheet contract', () => {
     expect(css.indexOf(uiImport)).toBeLessThan(css.indexOf(':root'));
   });
 
-  it('keeps the preview compatibility layer branded and scheme-aware', () => {
-    expect(css).toContain(
-      ':where(.lightcone-brand.astra-ui, .lightcone-brand .astra-ui)',
-    );
-    expect(css).toContain('data-lightcone-color-scheme="dark"');
-    expect(css).toContain('data-astra-color-scheme="dark"');
-    expect(css).toContain(
-      '--astra-color-kind-output: var(--lc-palette-blue-ink);',
-    );
-    expect(css).toContain(
-      '--astra-color-kind-finding: var(--lc-palette-vert-de-gris);',
-    );
-    expect(css).toContain(
-      '--astra-color-kind-insight: var(--lc-palette-wax-red);',
-    );
-    expect(css).toContain(
-      '--astra-color-canvas: var(--lc-palette-charcoal);',
-    );
-    expect(css).toContain(
-      '--astra-color-text: var(--lc-palette-darker-parchment);',
-    );
-    expect(css).toContain('--astra-radius-preview: 3px;');
-    expect(css).toContain('--astra-shadow-preview: var(--astra-shadow);');
-    expect(css).toContain('--astra-z-preview: 60;');
-    expect(css).toContain(
-      '.lightcone-brand.astra-ui[data-entry-kind="value"]',
-    );
-    expect(css).toContain(
-      '--astra-color-kind-output: var(--astra-c-value);',
-    );
-    expect(css).toContain('max-width: calc(100vw - 2rem);');
-    expect(css).toContain(
-      'border: 1px solid color-mix(in srgb, var(--astra-kind) 55%, transparent);',
-    );
-    expect(css).toContain('.astra-preview-popover__arrow path');
-    expect(css).toContain('fill: #000;');
-    expect(css).toMatch(
-      /\.lightcone-brand\.astra-ui\.astra-preview-popover-portal\[data-astra-color-scheme="dark"\][^{}]*\.astra-preview-popover__arrow path \{\s*fill: #fff;/,
-    );
-    expect(css).toContain('font: 600 20px/1.25 var(--astra-label);');
-    expect(css).toContain('font: 500 10px/1.5 var(--astra-label);');
-    expect(css).toContain('border-left: 2px solid var(--astra-rule-strong);');
-    expect(css).toContain('font: 400 11px/1.5 var(--astra-mono);');
-    expect(css).toContain('data-value-product');
-    expect(css).toContain('color: #60a5fa;');
-    expect(css).toContain('color: #3b82f6;');
-    expect(css).toContain('color: #93c5fd;');
-    expect(css).toContain('.astra-citation-preview-portal');
-    expect(css).toContain('.astra-citation-preview');
-    expect(css).toContain('z-index: 70;');
-    expect(css).toContain(
-      '.astra-record-preview__artifact > .astra-output__thumb > img',
-    );
-    expect(css).toContain(
-      '.astra-record-preview[data-kind="input"]',
-    );
-    expect(css).toContain('content: "\\25A4";');
+  it('delegates UI appearance to the shared packages', () => {
+    expect(css).toContain('@import "@astra-spec/ui/isolate.css";');
+    expect(css).not.toMatch(/--astra-font-size(?:-|:)/);
+    expect(css).not.toContain('.astra-record-preview__header');
+    expect(css).not.toContain('.astra-ref::before');
+    expect(css).toContain('--astra-serif: var(--lc-font-body);');
+    expect(css).toContain('--astra-mono: var(--lc-font-mono);');
+    expect(css).toContain('--astra-c-finding: var(--astra-color-kind-finding);');
   });
 
-  it('preserves the externally loaded italic and mono families first', () => {
-    expect(css).toContain(
-      '--astra-serif: "Newsreader", var(--lc-font-body,',
+  it('styles every class the renderers emit', () => {
+    const cascade = loadCascade(entry);
+    const styled = new Set(
+      [...cascade.matchAll(/\.(astra-[A-Za-z0-9_-]+)/g)].map(([, name]) => name),
     );
-    expect(css).toContain(
-      '--astra-font-body: "Newsreader", var(--lc-font-body);',
-    );
-    expect(css).toContain(
-      '--astra-mono: "JetBrains Mono", var(--lc-font-mono,',
-    );
-    expect(css).toContain(
-      '--astra-font-mono: "JetBrains Mono", var(--lc-font-mono);',
-    );
+
+    const orphans = [...emittedClasses()]
+      .filter(([token]) => !styled.has(token) && !UNSTYLED_BY_DESIGN.has(token))
+      .map(([token, file]) => `${token} (${file})`);
+
+    expect(orphans).toEqual([]);
   });
 
   it('keeps registry identifiers visually identical when no anchor is available', () => {
