@@ -436,7 +436,6 @@ hr.astra-rule {
   align-items: baseline;
   gap: 0.5em;
 }
-.astra-evidence__glyph--insight { color: var(--astra-c-insight); font-size: 0.85em; }
 .astra-evidence__tag {
   font-family: var(--astra-label);
   font-size: 11px;
