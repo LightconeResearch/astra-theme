@@ -19,8 +19,9 @@ permissions:
 
 jobs:
   preview:
-    uses: LightconeResearch/astra-ui/.github/workflows/preview.yml@main
+    uses: LightconeResearch/astra-ui/.github/workflows/preview.yml@b9c05636b0b6680cf50a08796d796e4b4aedaef3
     with:
+      ui: b9c05636b0b6680cf50a08796d796e4b4aedaef3
       theme: ${{ github.event.pull_request.head.sha }}
     secrets:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
