@@ -1956,10 +1956,9 @@ html.dark .astra-output__thumb img {
   padding: 0;
   border: 0;
   background: none;
-  color: var(--astra-ink);
+  color: var(--astra-accent);
   text-decoration: none;
 }
-.astra-inventory-button:hover { color: var(--astra-ink); }
 .astra-inventory-button:focus-visible {
   outline: 2px solid var(--astra-accent);
   outline-offset: 2px;
