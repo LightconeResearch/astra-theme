@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@astra-spec/sdk": "^0.1.2",
-    "@astra-spec/ui": "https://pkg.pr.new/@astra-spec/ui@07d48bb",
+    "@astra-spec/ui": "^0.0.4",
     "@lightcone-research/brand": "^0.0.2",
     "@myst-theme/providers": "^1.3.1",
     "myst-common": "^1.8.1",
