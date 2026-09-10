@@ -12,7 +12,10 @@ index be02915..34cd4e2 100644
 diff --git a/node_modules/@myst-theme/site/src/pages/Root.tsx b/node_modules/@myst-theme/site/src/pages/Root.tsx
 --- a/node_modules/@myst-theme/site/src/pages/Root.tsx
 +++ b/node_modules/@myst-theme/site/src/pages/Root.tsx
-@@ -44,6 +44,8 @@
+@@ -42,8 +42,11 @@
+   staticBuild,
++  useLocalStorage = staticBuild,
+   baseurl,
    top = DEFAULT_NAV_HEIGHT,
    renderers = defaultRenderers,
    head,
@@ -21,7 +24,10 @@ diff --git a/node_modules/@myst-theme/site/src/pages/Root.tsx b/node_modules/@my
  }: {
    children: React.ReactNode;
    scripts?: React.ReactNode;
-@@ -55,6 +57,8 @@
+@@ -53,8 +56,11 @@
+   staticBuild?: boolean;
++  useLocalStorage?: boolean;
+   baseurl?: string;
    top?: number;
    renderers?: NodeRenderers;
    head?: React.ReactNode;
@@ -30,16 +36,20 @@ diff --git a/node_modules/@myst-theme/site/src/pages/Root.tsx b/node_modules/@my
  }) {
    const navigate = useNavigate();
    const links = staticBuild
-@@ -75,7 +79,7 @@
+@@ -72,10 +78,10 @@
+-  const [theme, setTheme] = useTheme({ ssrTheme: ssrTheme, useLocalStorage: staticBuild });
++  const [theme, setTheme] = useTheme({ ssrTheme: ssrTheme, useLocalStorage });
+ 
+   // Inject blocking element to set proper pre-hydration state
    const headAndLoader = (
      <>
        {head}
 -      {ssrTheme ? undefined : <BlockingThemeLoader useLocalStorage={!!staticBuild} />}
-+      {ssrTheme ? undefined : <BlockingThemeLoader useLocalStorage={!!staticBuild} themeAttributes={themeAttributes} />}
++      {ssrTheme ? undefined : <BlockingThemeLoader useLocalStorage={!!useLocalStorage} themeAttributes={themeAttributes} />}
      </>
    );
 
-@@ -83,6 +87,8 @@
+@@ -83,6 +89,8 @@
      <ThemeProvider theme={theme} setTheme={setTheme} renderers={renderers} {...links} top={top}>
        <DocumentWithoutProviders
          children={children}
@@ -48,7 +58,7 @@ diff --git a/node_modules/@myst-theme/site/src/pages/Root.tsx b/node_modules/@my
          scripts={scripts}
          head={headAndLoader}
          config={config}
-@@ -104,10 +110,14 @@
+@@ -104,10 +112,14 @@
    baseurl,
    top = DEFAULT_NAV_HEIGHT,
    liveReloadListener,
@@ -63,7 +73,7 @@ diff --git a/node_modules/@myst-theme/site/src/pages/Root.tsx b/node_modules/@my
    config?: SiteManifest;
    title?: string;
    baseurl?: string;
-@@ -129,7 +139,9 @@
+@@ -129,7 +141,9 @@
    const { theme } = useThemeSwitcher();
    return (
      // Set the theme during SSR if possible, otherwise leave it up to the BlockingThemeLoader

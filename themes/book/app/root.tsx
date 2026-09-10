@@ -33,6 +33,7 @@ import {
   ASTRA_RENDERERS,
   ASTRA_THEME_ATTRIBUTES,
   LIGHTCONE_BRAND_CLASS,
+  PreviewReload,
 } from '@astra-spec/theme-astra';
 import astraStyles from '@astra-spec/theme-astra/styles/astra.css';
 
@@ -100,8 +101,10 @@ export const links: LinksFunction = () => {
   ];
 };
 
-export const loader: LoaderFunction = async ({ request }): Promise<SiteLoader> => {
-  const baseURL = process.env.BASE_URL || undefined;
+export const loader: LoaderFunction = async ({
+  request,
+}): Promise<SiteLoader & { RELOAD_URL?: string }> => {
+  const baseURL = process.env.MYSTRA_BASE_URL || process.env.BASE_URL || undefined;
   const [config, themeSession] = await Promise.all([
     getConfig().catch(() => null),
     getThemeSession(request),
@@ -113,6 +116,7 @@ export const loader: LoaderFunction = async ({ request }): Promise<SiteLoader> =
     CONTENT_CDN_PORT: process.env.CONTENT_CDN_PORT ?? 3100,
     MODE: (process.env.MODE ?? 'app') as 'app' | 'static',
     BASE_URL: baseURL,
+    RELOAD_URL: process.env.MYSTRA_RELOAD_URL || undefined,
   };
   return data;
 };
@@ -179,7 +183,9 @@ function NoCSSWarning() {
 }
 
 export default function AppWithReload() {
-  const { theme, config, CONTENT_CDN_PORT, MODE, BASE_URL } = useLoaderData<SiteLoader>();
+  const { theme, config, CONTENT_CDN_PORT, MODE, BASE_URL, RELOAD_URL } = useLoaderData<
+    SiteLoader & { RELOAD_URL?: string }
+  >();
 
   const searchFactory = useCallback((index: MystSearchIndex) => createSearch(index), []);
 
@@ -190,12 +196,29 @@ export default function AppWithReload() {
         themeAttributes={[...ASTRA_THEME_ATTRIBUTES]}
         theme={theme}
         config={config}
-        scripts={MODE === 'static' ? undefined : <ContentReload port={CONTENT_CDN_PORT} />}
+        scripts={
+          MODE === 'static' ? undefined : RELOAD_URL ? (
+            <PreviewReload url={RELOAD_URL} />
+          ) : (
+            <ContentReload port={CONTENT_CDN_PORT} />
+          )
+        }
         staticBuild={MODE === 'static'}
+        useLocalStorage={MODE === 'static' || !!RELOAD_URL}
         baseurl={BASE_URL}
         renderers={RENDERERS}
         head={
           <>
+            {RELOAD_URL && (
+              <script
+                type="importmap"
+                dangerouslySetInnerHTML={{
+                  __html: JSON.stringify({
+                    imports: { '/myst_assets_folder/': `${BASE_URL}/myst_assets_folder/` },
+                  }),
+                }}
+              />
+            )}
             <link rel="icon" href={`${BASE_URL || ''}/favicon.ico`} />
             <link rel="stylesheet" href={`${BASE_URL || ''}/myst-theme.css`} />
           </>
