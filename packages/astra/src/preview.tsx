@@ -39,7 +39,8 @@ const PREVIEW_LABELS = {
   },
 } satisfies AstraLabelOverrides;
 
-function entryKind(entry: RecordPreviewEntry): SurfaceKind {
+function entryKind(entry: RecordPreviewEntry): SurfaceKind | 'value' {
+  if (entry.kind === 'value') return 'value';
   if (entry.kind === 'analysis') return 'analysis';
   return entry.record.kind;
 }
@@ -154,6 +155,9 @@ export function AstraPreviewPopover({
     [publication],
   );
   const kind = entryKind(entry);
+  // A value token previews the output record behind it, so that is what the
+  // accessible name announces.
+  const spokenKind = (kind === 'value' ? 'output' : kind).replace('_', ' ');
   const previewEntry = entryForPreview(publication, entry);
   const wrappedTrigger = triggerClassName ? (
     <span className={triggerClassName}>{trigger}</span>
@@ -171,9 +175,9 @@ export function AstraPreviewPopover({
     <PreviewPopover
       trigger={detailTrigger}
       kind={kind}
-      label={`${entryTitle(entry)} ${kind.replace('_', ' ')} preview`}
+      label={`${entryTitle(entry)} ${spokenKind} preview`}
       portalProps={{
-        className: 'lightcone-brand',
+        className: 'lightcone-brand astra-isolate',
         'data-entry-kind': entry.kind,
         'data-value-product':
           entry.kind === 'value' && entry.product ? '' : undefined,

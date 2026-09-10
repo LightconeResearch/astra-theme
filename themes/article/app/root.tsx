@@ -5,6 +5,8 @@ import { getConfig } from '~/utils/loaders.server';
 import { type SiteLoader } from '@myst-theme/common';
 import {
   Document,
+  Error404,
+  ErrorUnhandled,
   responseNoSite,
   getMetaTagsForSite,
   getThemeSession,
@@ -12,17 +14,21 @@ import {
   SkipTo,
   renderers as defaultRenderers,
 } from '@myst-theme/site';
-export { AppErrorBoundary as ErrorBoundary } from '@myst-theme/site';
-import { Outlet, useLoaderData } from '@remix-run/react';
+import { isRouteErrorResponse, Outlet, useLoaderData, useRouteError } from '@remix-run/react';
 import type { NodeRenderers } from '@myst-theme/providers';
-import { mergeRenderers } from '@myst-theme/providers';
+import { mergeRenderers, Theme } from '@myst-theme/providers';
 import { JUPYTER_RENDERERS } from '@myst-theme/jupyter';
 import { ANY_RENDERERS } from '@myst-theme/anywidget';
 
 // ── ASTRA renderer overlay ─────────────────────────────────────────────────
 // Merged LAST so its class-selector renderers win for `astra-*` nodes; every
 // other node falls back to the stock article-theme renderer. See packages/astra.
-import { PreviewReload, ASTRA_RENDERERS } from '@astra-spec/theme-astra';
+import {
+  ASTRA_RENDERERS,
+  ASTRA_THEME_ATTRIBUTES,
+  LIGHTCONE_BRAND_CLASS,
+  PreviewReload,
+} from '@astra-spec/theme-astra';
 import astraStyles from '@astra-spec/theme-astra/styles/astra.css';
 
 const RENDERERS: NodeRenderers = mergeRenderers([
@@ -31,6 +37,35 @@ const RENDERERS: NodeRenderers = mergeRenderers([
   ANY_RENDERERS,
   ASTRA_RENDERERS,
 ]);
+
+/**
+ * MyST's error pages render outside the publication provider, and the stock
+ * boundary hands Document no brand props, so every --astra-* token would be
+ * undefined there and the page would lose the palette and the serif faces.
+ * Brand the document root exactly as the app does; the body is upstream's.
+ */
+export function ErrorBoundary() {
+  const error = useRouteError();
+  return (
+    <Document
+      theme={Theme.light}
+      htmlClassName={LIGHTCONE_BRAND_CLASS}
+      themeAttributes={[...ASTRA_THEME_ATTRIBUTES]}
+    >
+      <main className="article-grid subgrid-gap col-screen">
+        <article className="article">
+          {isRouteErrorResponse(error) ? (
+            <Error404 />
+          ) : (
+            <ErrorUnhandled
+              error={error as Parameters<typeof ErrorUnhandled>[0]['error']}
+            />
+          )}
+        </article>
+      </main>
+    </Document>
+  );
+}
 
 export const meta: V2_MetaFunction<typeof loader> = ({ data }) => {
   return getMetaTagsForSite({
@@ -42,15 +77,6 @@ export const meta: V2_MetaFunction<typeof loader> = ({ data }) => {
 
 export const links: LinksFunction = () => {
   return [
-    // ASTRA design system (Lightcone Research branding) — layered over
-    // article-theme's styles. Brand typefaces: Quattrocento (headings),
-    // Alegreya (subheadings/labels), Newsreader (body).
-    { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-    { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
-    {
-      rel: 'stylesheet',
-      href: 'https://fonts.googleapis.com/css2?family=Quattrocento:wght@400;700&family=Alegreya:ital,wght@0,400..700;1,400..700&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=JetBrains+Mono:wght@400;500&display=swap',
-    },
     {
       rel: 'stylesheet',
       href: 'https://cdn.jsdelivr.net/npm/jupyter-matplotlib@0.11.3/css/mpl_widget.css',
@@ -87,6 +113,8 @@ export default function AppWithReload() {
   >();
   return (
     <Document
+      htmlClassName={LIGHTCONE_BRAND_CLASS}
+      themeAttributes={[...ASTRA_THEME_ATTRIBUTES]}
       theme={theme}
       config={config}
       scripts={
@@ -113,6 +141,9 @@ export default function AppWithReload() {
               }}
             />
           )}
+          {/* Bundled stylesheets, including the ASTRA design system (Lightcone
+              Research branding) layered over article-theme's styles. Emitted here
+              rather than in links() so embedded sessions can prefix them. */}
           {[tailwind, thebeCoreCss, astraStyles].map((href) => (
             <link
               key={href}

@@ -1,7 +1,7 @@
 {
   "name": "@astra-spec/astra-theme-article",
-  "version": "0.0.9",
-  "description": "ASTRA article theme \u2014 @myst-theme/article plus the ASTRA overlay (single-article sites with supporting notebooks).",
+  "version": "0.0.11",
+  "description": "ASTRA article theme — @myst-theme/article plus the ASTRA overlay (single-article sites with supporting notebooks).",
   "license": "BSD-3-Clause",
   "private": true,
   "sideEffects": false,

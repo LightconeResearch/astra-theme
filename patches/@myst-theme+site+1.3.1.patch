@@ -2,39 +2,118 @@ diff --git a/node_modules/@myst-theme/site/src/components/DocumentOutline.tsx b/
 index be02915..34cd4e2 100644
 --- a/node_modules/@myst-theme/site/src/components/DocumentOutline.tsx
 +++ b/node_modules/@myst-theme/site/src/components/DocumentOutline.tsx
-@@ -127,5 +127,5 @@
+@@ -125,7 +125,7 @@ function getHeaders(selector: string): HTMLHeadingElement[] {
+ type MutationCallback = (mutations: MutationRecord[], observer: MutationObserver) => void;
+ 
  function useMutationObserver(
 -  targetRef: RefObject<Element>,
 +  targetRef: RefObject<Element | null>,
    callback: MutationCallback,
    options: Record<string, any>,
  ) {
+diff --git a/node_modules/@myst-theme/site/src/components/theme.tsx b/node_modules/@myst-theme/site/src/components/theme.tsx
+index 7d9b881..7644940 100644
+--- a/node_modules/@myst-theme/site/src/components/theme.tsx
++++ b/node_modules/@myst-theme/site/src/components/theme.tsx
+@@ -5,7 +5,7 @@ import { THEME_LOCALSTORAGE_KEY, PREFERS_LIGHT_MQ } from '../hooks/theme.js';
+  * This ensures that the hydrated state matches the non-hydrated state (by updating the DOM on the
+  * client between SSR on the server and hydration on the client)
+  */
+-export function BlockingThemeLoader({ useLocalStorage }: { useLocalStorage: boolean }) {
++export function BlockingThemeLoader({ useLocalStorage, themeAttributes = [] }: { useLocalStorage: boolean; themeAttributes?: string[] }) {
+   const LOCAL_STORAGE_SOURCE = `localStorage.getItem(${JSON.stringify(THEME_LOCALSTORAGE_KEY)})`;
+   const CLIENT_THEME_SOURCE = `
+   const savedTheme = ${useLocalStorage ? LOCAL_STORAGE_SOURCE : 'null'};
+@@ -13,6 +13,9 @@ export function BlockingThemeLoader({ useLocalStorage }: { useLocalStorage: bool
+   const classes = document.documentElement.classList;
+   const hasAnyTheme = classes.contains('light') || classes.contains('dark');
+   if (!hasAnyTheme) classes.add(savedTheme ?? theme);
++  for (const attribute of ${JSON.stringify(themeAttributes)}) {
++    document.documentElement.setAttribute(attribute, classes.contains('dark') ? 'dark' : 'light');
++  }
+ `;
+ 
+   return <script dangerouslySetInnerHTML={{ __html: CLIENT_THEME_SOURCE }} />;
 diff --git a/node_modules/@myst-theme/site/src/pages/Root.tsx b/node_modules/@myst-theme/site/src/pages/Root.tsx
+index d8a3e8c..0e2728a 100644
 --- a/node_modules/@myst-theme/site/src/pages/Root.tsx
 +++ b/node_modules/@myst-theme/site/src/pages/Root.tsx
-@@ -41,4 +41,5 @@
+@@ -40,10 +40,13 @@ export function Document({
+   config,
    title,
    staticBuild,
 +  useLocalStorage = staticBuild,
    baseurl,
    top = DEFAULT_NAV_HEIGHT,
-@@ -52,4 +53,5 @@
+   renderers = defaultRenderers,
+   head,
++  htmlClassName,
++  themeAttributes = [],
+ }: {
+   children: React.ReactNode;
+   scripts?: React.ReactNode;
+@@ -51,10 +54,13 @@ export function Document({
+   config?: SiteManifest;
    title?: string;
    staticBuild?: boolean;
 +  useLocalStorage?: boolean;
    baseurl?: string;
    top?: number;
-@@ -70,5 +72,5 @@
-
+   renderers?: NodeRenderers;
+   head?: React.ReactNode;
++  htmlClassName?: string;
++  themeAttributes?: string[];
+ }) {
+   const navigate = useNavigate();
+   const links = staticBuild
+@@ -69,13 +75,13 @@ export function Document({
+       };
+ 
    // (Local) theme state driven by SSR and cookie/localStorage
 -  const [theme, setTheme] = useTheme({ ssrTheme: ssrTheme, useLocalStorage: staticBuild });
 +  const [theme, setTheme] = useTheme({ ssrTheme: ssrTheme, useLocalStorage });
-
+ 
    // Inject blocking element to set proper pre-hydration state
-@@ -76,5 +78,5 @@
+   const headAndLoader = (
      <>
        {head}
 -      {ssrTheme ? undefined : <BlockingThemeLoader useLocalStorage={!!staticBuild} />}
-+      {ssrTheme ? undefined : <BlockingThemeLoader useLocalStorage={!!useLocalStorage} />}
++      {ssrTheme ? undefined : <BlockingThemeLoader useLocalStorage={!!useLocalStorage} themeAttributes={themeAttributes} />}
      </>
    );
+ 
+@@ -83,6 +89,8 @@ export function Document({
+     <ThemeProvider theme={theme} setTheme={setTheme} renderers={renderers} {...links} top={top}>
+       <DocumentWithoutProviders
+         children={children}
++        htmlClassName={htmlClassName}
++        themeAttributes={themeAttributes}
+         scripts={scripts}
+         head={headAndLoader}
+         config={config}
+@@ -104,10 +112,14 @@ export function DocumentWithoutProviders({
+   baseurl,
+   top = DEFAULT_NAV_HEIGHT,
+   liveReloadListener,
++  htmlClassName,
++  themeAttributes = [],
+ }: {
+   children: React.ReactNode;
+   scripts?: React.ReactNode;
+   head?: React.ReactNode;
++  htmlClassName?: string;
++  themeAttributes?: string[];
+   config?: SiteManifest;
+   title?: string;
+   baseurl?: string;
+@@ -129,7 +141,9 @@ export function DocumentWithoutProviders({
+   const { theme } = useThemeSwitcher();
+   return (
+     // Set the theme during SSR if possible, otherwise leave it up to the BlockingThemeLoader
+-    <html lang="en" className={classNames(theme)} style={{ scrollPadding: top }}>
++    <html lang="en" className={classNames(theme, htmlClassName)}
++      {...Object.fromEntries(themeAttributes.map(attribute => [attribute, theme ?? undefined]))}
++      style={{ scrollPadding: top }}>
+       <head>
+         <meta charSet="utf-8" />
+         <meta name="viewport" content="width=device-width,initial-scale=1" />

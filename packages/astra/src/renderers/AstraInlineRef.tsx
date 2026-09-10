@@ -1,6 +1,7 @@
 import { useBaseurl } from '@myst-theme/providers';
 import { previewHref } from '../viewerTransport';
 import * as React from 'react';
+import { InlineReference, type InlineReferenceProps } from '@astra-spec/ui/primitives';
 import type { ResolvedRecord } from '@astra-spec/sdk';
 import { primaryLiteratureEvidence } from '@astra-spec/ui/model';
 import type { GenericNode } from 'myst-common';
@@ -24,12 +25,35 @@ const PREVIEWABLE_RECORD_KINDS = new Set<ResolvedRecord['kind']>([
   'input',
 ]);
 
+type InlineKind = NonNullable<InlineReferenceProps['kind']>;
+
+/**
+ * The kinds the shared primitive colours. `satisfies` keeps this list honest
+ * against the primitive's own union, and `find` narrows without a cast; any
+ * other authored kind renders as a neutral token.
+ */
+const INLINE_REFERENCE_KINDS = [
+  'analysis',
+  'input',
+  'output',
+  'decision',
+  'finding',
+  'prior_insight',
+  'paper',
+  'value',
+  'option',
+] as const satisfies readonly InlineKind[];
+
 /** Preserve the neutral inline token; shared UI only enriches it. */
 function tokenSpan(node: GenericNode): React.ReactElement {
+  const kind = stringMetadata(astraMetadata(node), 'kind');
   return (
-    <span className={nodeClassName(node, 'astra-ref')}>
+    <InlineReference
+      kind={INLINE_REFERENCE_KINDS.find((candidate) => candidate === kind)}
+      className={nodeClassName(node, 'astra-ref')}
+    >
       <MyST ast={node.children} />
-    </span>
+    </InlineReference>
   );
 }
 

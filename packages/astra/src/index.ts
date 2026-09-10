@@ -8,10 +8,16 @@
 export { ASTRA_RENDERERS } from './renderers';
 export {
   AstraPublicationProvider,
+  AstraInventoryButton,
   useAstraPublication,
 } from './publication/AstraPublicationProvider';
 export type { AstraPublication } from './publication/AstraPublicationProvider';
-export { AstraThemeScope, useAstraColorScheme } from './themeScope';
+export {
+  ASTRA_THEME_ATTRIBUTES,
+  AstraThemeScope,
+  LIGHTCONE_BRAND_CLASS,
+  useAstraColorScheme,
+} from './themeScope';
 export type { AstraColorScheme, AstraThemeScopeProps } from './themeScope';
 
 export { PreviewReload } from './viewerTransport';

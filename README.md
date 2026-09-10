@@ -43,9 +43,20 @@ Invalid, unsupported, or incomplete transport data fails locally: the neutral
 MyST content remains visible. The browser never reads `astra.yaml`, resolves a
 project, guesses an artifact path, or maintains a second ASTRA data model.
 
-The article and book app shells deliberately stay close to upstream. Each has
-only two ASTRA-aware source seams: renderer/style registration in `app/root.tsx`
-and an `AstraPublicationProvider` around the rendered article surface.
+The article and book app shells deliberately stay close to upstream. Each
+registers the shared renderers and styles in `app/root.tsx`, wraps its article
+surface in `AstraPublicationProvider`, and places an inventory entry in its
+existing controls.
+
+Pages containing an ASTRA publication include an inventory entry. The article
+lists **✨ ASTRA Inventory** below other **Supporting Documents**; the book uses
+a gold sparkle icon beside its download control. Both open the current page's
+analysis, including the matching sub-analysis on supporting pages, with figure
+previews, record details, and cited papers. The close icon returns to the reading
+page without remounting its content. Links ending in `#astra-inventory`
+(or a section such as `#astra-inventory-decisions`) open the same view directly;
+browser Back and Forward also switch between reading and inventory. Pages
+without a publication keep their usual navigation.
 
 ## Local development
 
@@ -123,3 +134,16 @@ Without these variables, standalone `myst start` and static export retain their
 normal startup behavior. This feature targets live embedding, not a general
 repair of upstream static-export routing. Browser support for import maps is
 required (current Chromium, Firefox and Safari).
+
+Shared ASTRA rendering follows the article inline/popover reference through
+`@astra-spec/ui` and `@lightcone-research/brand`. The theme owns MyST rendering,
+article layout and artifact/citation adapters; shared typography, colours, glyphs
+and preview geometry live upstream. Inventory and record dialogs mount outside
+article prose, with an explicit branded `astra-isolate` boundary. Serif fonts, including
+Newsreader italic, are bundled by the brand package; identifiers use its existing
+monospace stack.
+
+`@astra-spec/ui` and `@lightcone-research/brand` are installed from npm at exact
+versions rather than caret ranges: the rendering contract is shared with the
+JupyterLab and VS Code hosts, so the three move together on a deliberate bump.
+See `packages/astra/package.json` for the versions in force.

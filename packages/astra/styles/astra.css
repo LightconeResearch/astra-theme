@@ -1,10 +1,11 @@
 @import "@lightcone-research/brand/adapters/astra.css";
-@import "@astra-spec/ui/components.css";
+@import "@astra-spec/ui/views.css";
+@import "@astra-spec/ui/isolate.css";
 
 /* =============================================================================
    ASTRA — the Lightcone Research design system
    Editorial, narrative-first, parchment presentation layer for the
-   @astra-spec/mystra plugin. All appearance lives here; the AST stays neutral.
+   @astra-spec/mystra plugin. Shared UI appearance lives in the brand and UI packages; the AST stays neutral.
 
    Palette + typography follow the Lightcone Research brand guidelines:
    Antique Gold / Blue Ink / Charcoal / Slate Blue primaries,
@@ -20,8 +21,10 @@
    - Restrained, print-like. Hairline rules over heavy borders, no loud colour.
    ========================================================================== */
 
-/* The adapter bundles Lightcone's upright fallback faces. The Google families
-   (including true italics) plus JetBrains Mono remain linked by app/root.tsx. */
+/* @lightcone-research/brand bundles the three editorial faces locally —
+   Quattrocento, Alegreya and Newsreader, the last with a real italic. It ships
+   no monospace, so --astra-mono resolves to the brand's stack and renders in
+   the platform mono until a face is bundled upstream. */
 
 /* -----------------------------------------------------------------------------
    1. Tokens
@@ -29,434 +32,58 @@
 :root,
 :where(.lightcone-brand) {
   /* surfaces — the brand's Background Neutrals ramp */
-  --astra-paper: var(--lc-palette-white, #FFFFFF); /* page background — white;
+  --astra-paper: var(--astra-color-canvas); /* page background — white;
                                  parchment is reserved for raised chrome */
-  --astra-surface: var(--lc-palette-darker-parchment, #F1EFE9);
+  --astra-surface: var(--astra-color-surface-muted);
                               /* cards, rail, header band — Darker Parchment */
-  --astra-surface-2: #E9E6DD; /* recessed insets: figure frames, diagram wells
+  --astra-surface-2: var(--astra-color-surface-inset); /* recessed insets: figure frames, diagram wells
                                  (Darker Parchment, deepened one step) */
 
   /* ink */
-  --astra-ink: var(--lc-palette-charcoal, #221F20);
-  --astra-ink-soft: var(--lc-palette-blue-ink, #4E5A70);
+  --astra-ink: var(--astra-color-text);
+  --astra-ink-soft: var(--astra-color-text-muted);
                               /* Blue Ink — secondary text */
-  --astra-muted: var(--lc-palette-mushroom-cap, #8B7D70);
-  --astra-faint: #BCB2A6;     /* Mushroom Cap, lightened */
+  --astra-muted: var(--astra-color-text-subtle);
+  --astra-faint: var(--astra-color-text-faint);     /* Mushroom Cap, lightened */
 
   /* rules — cool parchment hairlines */
-  --astra-rule: #E4E1D7;
-  --astra-rule-strong: #D2CCBF;
+  --astra-rule: var(--astra-color-border);
+  --astra-rule-strong: var(--astra-color-border-strong);
 
   /* brand accent — Antique Gold (rail mark + inline links + headings) */
-  --astra-accent: var(--lc-palette-antique-gold, #A67C3C);
-  --astra-link: var(--lc-palette-antique-gold, #A67C3C);
-  --astra-accent-soft: rgba(166, 124, 60, 0.12); /* the warm hover hotspot */
+  --astra-accent: var(--astra-color-accent);
+  --astra-link: var(--astra-color-link);
+  --astra-accent-soft: var(--astra-color-accent-soft); /* the warm hover hotspot */
 
   /* kickers / uppercase labels — Slate Blue, as in the brand's type-style page */
-  --astra-kicker: var(--lc-palette-slate-blue, #3F7280);
+  --astra-kicker: var(--astra-color-eyebrow);
 
   /* per-kind accents — mapped onto the brand palette */
-  --astra-c-decision: var(--lc-palette-antique-gold, #A67C3C); /* ◇ */
-  --astra-c-finding: var(--lc-palette-vert-de-gris, #3B7A73);  /* ● */
-  --astra-c-insight: var(--lc-palette-wax-red, #A45A43);       /* ◈ */
-  --astra-c-analysis: var(--lc-palette-slate-blue, #3F7280);   /* ◐ */
-  --astra-c-output: var(--lc-palette-blue-ink, #4E5A70);       /* ◆ */
-  --astra-c-input: var(--lc-palette-blue-ink, #4E5A70);        /* ▤ */
-  --astra-c-value: var(--lc-palette-slate-blue, #3F7280);
+  --astra-c-decision: var(--astra-color-kind-decision); /* ◇ */
+  --astra-c-finding: var(--astra-color-kind-finding);  /* ● */
+  --astra-c-insight: var(--astra-color-kind-insight);       /* ◈ */
+  --astra-c-analysis: var(--astra-color-kind-analysis);   /* ◐ */
+  --astra-c-output: var(--astra-color-kind-output);       /* ◆ */
+  --astra-c-input: var(--astra-color-kind-input);        /* ▤ */
+  --astra-c-value: var(--astra-color-kind-value);
 
-  /* Keep the Google families first: the brand package currently bundles only
-     the upright variable cuts, while editorial copy requires true italics.
-     The packaged Lightcone faces remain the offline-safe fallback. */
+  /* Editorial layout uses the same brand families as shared UI. */
   --astra-measure: 40rem;      /* the 640px editorial column */
-  --astra-heading: "Quattrocento", var(--lc-font-heading, Georgia, "Times New Roman", serif);
-  --astra-serif: "Newsreader", var(--lc-font-body, Georgia, "Times New Roman", serif);
-  --astra-label: "Alegreya", var(--lc-font-ui, Georgia, serif);
-  --astra-mono: "JetBrains Mono", var(--lc-font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  --astra-heading: var(--lc-font-heading);
+  --astra-serif: var(--lc-font-body);
+  --astra-label: var(--lc-font-ui);
+  --astra-mono: var(--lc-font-mono);
 
   /* card — sharp editorial corners, soft warm shadow (exact mock values) */
   --astra-card-w: 27.5rem;     /* 440px overlay width */
   --astra-radius: 3px;
-  --astra-shadow: 0 6px 18px rgba(38, 28, 15, 0.10);
+  --astra-shadow: var(--astra-shadow-preview);
 
   /* the kind accent in scope — overridden by placed blocks / [data-kind] */
   --astra-kind: var(--astra-accent);
 }
 
-/* The published Lightcone adapter supplies @astra-spec/ui's host-neutral
-   contract. These few overrides preserve the legacy ASTRA theme assignment:
-   parchment cards, gold interactions, and ASTRA's original record-kind hues.
-   Keeping them on the shared branded UI boundary prevents leakage into either
-   upstream MyST theme or another unbranded ASTRA interface. */
-:where(.lightcone-brand.astra-ui, .lightcone-brand .astra-ui) {
-  --astra-color-canvas: var(--lc-palette-white);
-  --astra-color-surface: var(--lc-palette-darker-parchment);
-  --astra-color-surface-raised: var(--lc-palette-darker-parchment);
-  --astra-color-surface-muted: var(--lc-palette-darker-parchment);
-  --astra-color-header: var(--lc-palette-darker-parchment);
-  --astra-color-artifact-paper: var(--lc-palette-white);
-  --astra-color-artifact-ink: var(--lc-palette-charcoal);
-
-  --astra-color-text: var(--lc-palette-charcoal);
-  --astra-color-text-muted: var(--lc-palette-blue-ink);
-  --astra-color-text-subtle: var(--lc-palette-mushroom-cap);
-  --astra-color-text-faint: #BCB2A6;
-  --astra-color-eyebrow: var(--lc-palette-slate-blue);
-  --astra-color-border-subtle: #E4E1D7;
-  --astra-color-border: #E4E1D7;
-  --astra-color-border-strong: #D2CCBF;
-
-  --astra-color-accent: var(--lc-palette-antique-gold);
-  --astra-color-accent-contrast: var(--lc-palette-white);
-  --astra-color-link: var(--lc-palette-antique-gold);
-  --astra-color-focus: var(--lc-palette-slate-blue);
-  --astra-color-danger: var(--lc-palette-wax-red);
-  --astra-color-danger-soft: rgb(164 90 67 / 0.1);
-
-  --astra-color-kind-input: var(--lc-palette-blue-ink);
-  --astra-color-kind-analysis: var(--lc-palette-slate-blue);
-  --astra-color-kind-output: var(--lc-palette-blue-ink);
-  --astra-color-kind-decision: var(--lc-palette-antique-gold);
-  --astra-color-kind-decision-ink: var(--lc-palette-antique-gold);
-  --astra-color-kind-finding: var(--lc-palette-vert-de-gris);
-  --astra-color-kind-insight: var(--lc-palette-wax-red);
-  --astra-color-kind-insight-ink: var(--lc-palette-wax-red);
-  --astra-color-kind-input-soft: rgb(78 90 112 / 0.1);
-  --astra-color-kind-analysis-soft: rgb(63 114 128 / 0.1);
-  --astra-color-kind-output-soft: rgb(78 90 112 / 0.1);
-  --astra-color-kind-decision-soft: rgb(166 124 60 / 0.12);
-  --astra-color-kind-finding-soft: rgb(59 122 115 / 0.1);
-  --astra-color-kind-insight-soft: rgb(164 90 67 / 0.1);
-
-  --astra-font-ui: "Alegreya", var(--lc-font-ui);
-  --astra-font-body: "Newsreader", var(--lc-font-body);
-  --astra-font-heading: "Quattrocento", var(--lc-font-heading);
-  --astra-font-mono: "JetBrains Mono", var(--lc-font-mono);
-  --astra-radius-control: 3px;
-  --astra-radius-preview: 3px;
-  --astra-shadow-raised: var(--astra-shadow);
-  --astra-shadow-preview: var(--astra-shadow);
-  --astra-width-preview: var(--astra-card-w);
-  --astra-z-preview: 60;
-}
-
-/* A value is still an output record semantically, but the publication theme's
-   inline-value preview has always used Slate Blue rather than the output hue. */
-.lightcone-brand.astra-ui[data-entry-kind="value"],
-.lightcone-brand .astra-ui[data-entry-kind="value"] {
-  --astra-color-kind-output: var(--astra-c-value);
-  --astra-color-kind-output-soft: color-mix(
-    in srgb,
-    var(--astra-c-value) 10%,
-    transparent
-  );
-}
-
-/* MyST's prose rules are deliberately unlayered, while astra-ui ships its
-   portable component styles in cascade layers. Reassert the released ASTRA
-   card contract only at the branded portal boundary so those page rules
-   cannot leak into RecordPreview. The shared component still owns structure,
-   content, positioning, interaction and accessibility. */
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-preview-popover {
-  max-width: calc(100vw - 2rem);
-  color: var(--astra-ink);
-  font: 400 15px/1.5 var(--astra-serif);
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-preview-popover__surface {
-  box-sizing: border-box;
-  padding: 19px 20px;
-  border: 1px solid color-mix(in srgb, var(--astra-kind) 55%, transparent);
-  border-radius: var(--astra-radius);
-  background: var(--astra-surface);
-  box-shadow: var(--astra-shadow);
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-preview-popover__scroll {
-  scrollbar-color: var(--astra-faint) transparent;
-}
-
-/* Keep the preview pointer high-contrast against the page behind the card. */
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-preview-popover__arrow,
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-preview-popover__arrow path {
-  fill: #000;
-  stroke: none;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal[data-astra-color-scheme="dark"]
-  .astra-preview-popover__arrow,
-.lightcone-brand.astra-ui.astra-preview-popover-portal[data-astra-color-scheme="dark"]
-  .astra-preview-popover__arrow path {
-  fill: #fff;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview {
-  overflow: hidden;
-  background: var(--astra-surface);
-  color: var(--astra-ink);
-  font: 400 15px/1.5 var(--astra-serif);
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__header.astra-surface-header {
-  min-height: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__header .astra-surface-header__content {
-  gap: 8px;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__header .astra-surface-header__eyebrow {
-  color: var(--astra-kind);
-  font: 500 10px/1.5 var(--astra-label);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__kind {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55em;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__header .astra-surface-header__title {
-  margin: 0;
-  color: var(--astra-ink);
-  font: 600 20px/1.25 var(--astra-label);
-  letter-spacing: -0.01em;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__body {
-  padding: 0.4rem 0 0;
-}
-
-/* An untitled prior-insight card flowed directly from its kind row. */
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__header:not(:has(.astra-surface-header__title))
-  + .astra-record-preview__body {
-  padding-top: 0.5rem;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__description {
-  margin: 0 0 0.75rem;
-  color: var(--astra-ink-soft);
-  font: 400 15px/1.5 var(--astra-serif);
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__claim {
-  margin: 0 0 0.6rem;
-  color: var(--astra-ink);
-  font: 500 19px/1.35 var(--astra-label);
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__section > h4 {
-  margin: 0.9rem 0 0.4rem;
-  color: var(--astra-muted);
-  font: 500 10px/1.5 var(--astra-label);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  :is(
-    .astra-record-preview__options,
-    .astra-record-preview__relations,
-    .astra-record-preview__evidence,
-    .astra-record-preview__flow
-  ) {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  :is(
-    .astra-record-preview__options,
-    .astra-record-preview__relations,
-    .astra-record-preview__evidence
-  ) {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* Decision options retain the released seven-pixel wells and custom dots. */
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__options {
-  gap: 0.55rem;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__options > li {
-  position: relative;
-  display: block;
-  padding: 0.5rem 0.5rem 0.5rem 1.4rem;
-  border: 1px solid var(--astra-rule);
-  border-radius: 7px;
-  background: var(--astra-surface-2);
-  color: var(--astra-muted);
-  font: 400 15px/1.5 var(--astra-serif);
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__options > li > [aria-hidden="true"] {
-  position: absolute;
-  top: 0.85rem;
-  left: 0.55rem;
-  width: 9px;
-  height: 9px;
-  border: 1.5px solid var(--astra-faint);
-  border-radius: 50%;
-  background: var(--astra-surface);
-  color: transparent;
-  font-size: 0;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__options > li strong {
-  color: var(--astra-muted);
-  font: 500 16px/1.5 var(--astra-label);
-  text-decoration: none;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__options > li[data-unselected] {
-  opacity: 0.72;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__options > li[data-selected] {
-  border-color: var(--astra-kind);
-  background: color-mix(in srgb, var(--astra-kind) 10%, var(--astra-surface));
-  color: var(--astra-kind);
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__options > li[data-selected]
-  > [aria-hidden="true"] {
-  border-color: var(--astra-kind);
-  background: var(--astra-kind);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--astra-kind) 16%, transparent);
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__options > li[data-selected] strong {
-  color: var(--astra-ink);
-}
-
-/* Compact related-record rows are the old SUPPORTED BY presentation. */
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__relations > li {
-  padding: 5px 10px;
-  border: 0;
-  border-radius: var(--astra-radius);
-  background: var(--astra-surface-2);
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__relation-trigger {
-  display: flex;
-  width: 100%;
-  min-width: 0;
-  align-items: baseline;
-  gap: 0.5em;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--astra-ink);
-  font: 500 14px/1.5 var(--astra-label);
-  text-align: start;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__relations .astra-record-preview__relation-trigger {
-  font-size: 13px;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  button.astra-record-preview__relation-trigger {
-  cursor: pointer;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__relation-glyph {
-  flex: none;
-  color: var(--astra-kind);
-  font-size: 0.85em;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__relation-label {
-  color: inherit;
-  text-decoration: none;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  button.astra-record-preview__relation-trigger
-  .astra-record-preview__relation-label {
-  color: var(--astra-link);
-  text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--astra-link) 45%, transparent);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 2px;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  button.astra-record-preview__relation-trigger:hover
-  .astra-record-preview__relation-label {
-  background: var(--astra-accent-soft);
-  text-decoration-color: var(--astra-link);
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__relation-detail {
-  margin-inline-start: 0;
-  color: var(--astra-muted);
-  font: 400 11px/1.5 var(--astra-label);
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__remaining {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--astra-muted);
-  font: 400 11px/1.4 var(--astra-label);
-}
-
-/* Finding evidence wells and thumbnails keep their old border geometry. */
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__evidence > li {
-  padding: 8px 12px;
-  border: 0;
-  border-radius: var(--astra-radius);
-  background: var(--astra-surface-2);
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__artifact {
-  margin: 2px 0 6px;
-  overflow: visible;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-}
+/* Host-owned artifact renderer geometry. Shared UI styling comes from the brand adapter. */
 
 .lightcone-brand.astra-ui.astra-preview-popover-portal
   .astra-record-preview__artifact > .astra-output__thumb {
@@ -478,252 +105,6 @@
   .astra-record-preview__artifact > .astra-output__thumb > img {
   border-radius: 3px;
   background: #fbf9f4;
-}
-
-/* Evidence quotes were small; literature-card quotes were full body size and
-   carried the distinctive left rule. */
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__quote {
-  margin: 0.6rem 0;
-  padding-left: 0.85rem;
-  border: 0;
-  border-left: 2px solid var(--astra-rule-strong);
-  color: var(--astra-ink-soft);
-  font: italic 15px/1.5 var(--astra-serif);
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__evidence .astra-record-preview__quote {
-  margin: 2px 0 0;
-  padding: 0;
-  border: 0;
-  color: var(--astra-muted);
-  font-size: 12.5px;
-  line-height: 1.45;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__quote::before {
-  content: "\201C";
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__quote::after {
-  content: "\201D";
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__citation {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4em 0.8em;
-  margin-top: 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--astra-rule);
-  color: var(--astra-muted);
-  font: 400 12px/1.5 var(--astra-label);
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__citation a {
-  color: var(--astra-kind);
-  font: 400 11px/1.5 var(--astra-mono);
-  text-decoration: none;
-}
-
-/* The released MyST dark citation utility resolves to Tailwind blue-400. */
-.lightcone-brand.astra-ui.astra-preview-popover-portal[data-astra-color-scheme="dark"]
-  .astra-record-preview__citation a {
-  color: #60a5fa;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__citation a:hover {
-  color: #3b82f6;
-  text-decoration: underline;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal[data-astra-color-scheme="dark"]
-  .astra-record-preview__citation a:hover {
-  color: #93c5fd;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__scope {
-  display: inline-flex;
-  margin: 0;
-  padding: 0.1em 0.6em;
-  border: 1px solid color-mix(in srgb, var(--astra-kind) 30%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--astra-kind) 10%, var(--astra-surface));
-  color: var(--astra-kind);
-  font: 400 11px/1.5 var(--astra-label);
-  letter-spacing: 0.04em;
-  vertical-align: 0.05em;
-}
-
-/* Output provenance retains the compact mono boxes and triangular separators. */
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__flow {
-  display: flex;
-  flex-flow: row wrap;
-  align-items: stretch;
-  gap: 0;
-  margin: 0.4rem 0 0.2rem;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__flow > li {
-  display: flex;
-  align-items: stretch;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__flow > li:not(:last-child)::after {
-  content: "\25B8";
-  display: inline-flex;
-  align-items: center;
-  margin: 0;
-  padding: 0 0.45em;
-  color: var(--astra-faint);
-  font-size: 12px;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  :is(
-    .astra-record-preview__flow code,
-    .astra-record-preview__source,
-    .astra-record-preview__selection code
-  ) {
-  color: var(--astra-ink-soft);
-  font-family: var(--astra-mono);
-  font-size: 11px;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__flow code {
-  max-width: 11em;
-  overflow: hidden;
-  padding: 0.3em 0.55em;
-  border: 1px solid var(--astra-rule-strong);
-  border-radius: 6px;
-  background: var(--astra-surface-2);
-  font-size: 12px;
-  line-height: 1.3;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__source {
-  display: block;
-  max-width: 60ch;
-  margin-top: 0.35rem;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--astra-muted);
-  word-break: break-all;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__analysis-link {
-  color: inherit;
-  text-decoration: none;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__analysis-link:hover {
-  text-decoration: underline;
-  text-decoration-color: var(--astra-kind);
-  text-underline-offset: 2px;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__counts {
-  margin: 0;
-  color: var(--astra-muted);
-  font: 400 12px/1.5 var(--astra-label);
-}
-
-/* A value remains an output semantically, but its card title is the original
-   dotted, tabular inline value and has no output diamond. */
-.lightcone-brand.astra-ui.astra-preview-popover-portal[data-entry-kind="value"]
-  .astra-record-preview__kind > [aria-hidden="true"] {
-  display: none;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__value {
-  padding: 0.05em 0.1em;
-  border-radius: 3px;
-  color: var(--astra-ink);
-  font: inherit;
-  font-feature-settings: "tnum" 1;
-  font-variant-numeric: tabular-nums;
-  text-decoration: underline dotted
-    color-mix(in srgb, var(--astra-c-value) 60%, transparent);
-  text-underline-offset: 2px;
-  white-space: nowrap;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__unit {
-  margin-inline-start: 0.25em;
-  color: var(--astra-muted);
-  font-family: var(--astra-label);
-  font-size: 0.7em;
-  font-weight: 400;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__selection {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.5em;
-  margin: -0.35rem 0 0.6rem;
-  color: var(--astra-muted);
-  font: 400 12px/1.5 var(--astra-label);
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__selection code {
-  padding: 0.1em 0.4em;
-  border: 0;
-  border-radius: 3px;
-  background: var(--astra-surface-2);
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview__selection > span {
-  color: var(--astra-ink-soft);
-  font: 400 11px/1.5 var(--astra-mono);
-  font-style: normal;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal[data-value-product]
-  .astra-record-preview__selection > span:last-child {
-  color: var(--astra-muted);
-  font: 400 12px/1.5 var(--astra-label);
-  font-style: italic;
-}
-
-/* astra-ui's generic input glyph is a bent arrow; the publication theme has
-   always used the data-family ▤ mark. */
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview[data-kind="input"]
-  .astra-record-preview__kind > [aria-hidden="true"] {
-  font-size: 0;
-}
-
-.lightcone-brand.astra-ui.astra-preview-popover-portal
-  .astra-record-preview[data-kind="input"]
-  .astra-record-preview__kind > [aria-hidden="true"]::before {
-  content: "\25A4";
-  font-size: 10px;
-  line-height: 1;
 }
 
 /* Citation previews use the shared floating tree so pointer travel remains
@@ -780,6 +161,22 @@
   transform-origin: center top;
 }
 
+/* The parenthetical citation trailing an inline reference stays on the token's
+   line; the shared primitive only styles the token itself. */
+.astra-ref-citation {
+  white-space: nowrap;
+}
+
+/* A navigable ref token (sub-analysis → its page): the shared inline
+   reference inside already carries the full token treatment, so the host's
+   anchor around it stays invisible instead of stacking a second prose-link
+   colour and underline on top of it. */
+.astra-ref-anchor,
+.astra-ref-anchor:hover {
+  text-decoration: none;
+  color: inherit;
+}
+
 /* -----------------------------------------------------------------------------
    1b. Global page theme — applies the Lightcone palette + brand typefaces to
    the host book-theme app's DOM (this theme extends book-theme; these are
@@ -788,7 +185,7 @@
    below).
    -------------------------------------------------------------------------- */
 /* Paint the parchment + ink in BOTH modes: every colour below is an
-   --astra-* token that swaps on `html.dark` (section 13), so one set of
+   --astra-* token that inherits the shared brand scheme, so one set of
    mode-agnostic rules yields parchment in light and brand charcoal in
    dark. `!important` beats book-theme's `bg-white` / `dark:bg-stone-900` body
    utilities (specificity 0,1,0). */
@@ -819,14 +216,14 @@ body {
    `.myst-fm-block-title` stays outside it so it doesn't raise the element
    branches' specificity.) */
 article,
-article :is(p, li, dd, dt, blockquote) {
+article :is(p, li, dd, dt, blockquote):not(:where(.astra-ui *)) {
   font-family: var(--astra-serif);
 }
-article :is(p, li) {
+article :is(p, li):not(:where(.astra-ui *)) {
   font-size: 1.0625rem;
   line-height: 1.72;
 }
-article :is(h1, h2, h3, h4, h5, h6),
+article :is(h1, h2, h3, h4, h5, h6):not(:where(.astra-ui *)),
 .myst-fm-block-title {
   font-family: var(--astra-heading);
   letter-spacing: -0.01em;
@@ -838,18 +235,18 @@ article :is(h1, h2, h3, h4, h5, h6),
    `html:not(.dark)` scoping only cleared the light bar, which is why dark
    prose used to fall back to book-theme's zinc. */
 :root:root article,
-:root:root article :is(p, li, dd, dt, blockquote, h1, h2, h3, h4, h5, h6),
+:root:root article :is(p, li, dd, dt, blockquote, h1, h2, h3, h4, h5, h6):not(:where(.astra-ui *)),
 :root:root .myst-fm-block-title {
   color: var(--astra-ink);
 }
 /* Title + section headings carry Antique Gold, per the brand type-style page.
    (The doc title is an `h1.myst-fm-block-title`; the class branch keeps this
    rule's specificity above the `.myst-fm-block-title` ink rule just before.) */
-:root:root article :is(h1, h2),
+:root:root article :is(h1, h2):not(:where(.astra-ui *)),
 :root:root h1.myst-fm-block-title {
   color: var(--astra-accent);
 }
-:root:root article :is(p, li, blockquote) a { color: var(--astra-accent); }
+:root:root article :is(p, li, blockquote):not(:where(.astra-ui *)) a { color: var(--astra-accent); }
 :root:root article hr { border-color: var(--astra-rule); }
 
 /* -----------------------------------------------------------------------------
@@ -1011,79 +408,6 @@ hr.astra-rule {
 /* -----------------------------------------------------------------------------
    3. Inline reference tokens
    -------------------------------------------------------------------------- */
-.astra-ref {
-  --astra-kind: var(--astra-ink-soft);
-  font-family: inherit;
-  font-weight: 600;                 /* a semibold run inside the Newsreader prose */
-  color: var(--astra-link);         /* uniform warm-gold link */
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-decoration-color: color-mix(in srgb, var(--astra-link) 55%, transparent);
-  text-underline-offset: 2px;
-  padding: 0.05em 0.1em;
-  border-radius: 3px;
-  cursor: pointer;
-  transition: background-color 120ms ease;
-}
-
-/* the kind glyph — coloured per kind, sits before the label and is NOT underlined
-   (inline-block breaks the underline run cleanly) */
-.astra-ref::before {
-  content: var(--astra-glyph, "");
-  display: inline-block;
-  color: var(--astra-kind);
-  font-weight: 400;
-  font-size: 0.9em;
-  margin-right: 0.32em;
-  text-decoration: none;
-  line-height: 1;
-  vertical-align: 0.02em;
-}
-
-.astra-ref:hover {
-  background: var(--astra-accent-soft);
-  text-decoration-color: var(--astra-link);
-}
-
-/* the auto-appended "(Chen et al., 2024)" after inline prior-insight tokens */
-.astra-ref-citation {
-  white-space: nowrap;
-}
-
-/* per-kind glyph + colour */
-.astra-ref--decision      { --astra-kind: var(--astra-c-decision); --astra-glyph: "\25C7"; } /* ◇ */
-.astra-ref--prior_insight { --astra-kind: var(--astra-c-insight);  --astra-glyph: "\25C8"; } /* ◈ */
-.astra-ref--finding       { --astra-kind: var(--astra-c-finding);  --astra-glyph: "\25CF"; } /* ● */
-.astra-ref--analysis      { --astra-kind: var(--astra-c-analysis); --astra-glyph: "\25D0"; } /* ◐ */
-.astra-ref--output        { --astra-kind: var(--astra-c-output);   --astra-glyph: "\25C6"; } /* ◆ */
-.astra-ref--input         { --astra-kind: var(--astra-c-input);    --astra-glyph: "\25A4"; } /* ▤ */
-/* an option shares its decision's open-diamond family */
-.astra-ref--option        { --astra-kind: var(--astra-c-decision); --astra-glyph: "\25C7"; } /* ◇ */
-
-/* value token — self-describing number, no glyph, tabular figures.
-   Reads as inline prose (inherits ink), with a quiet teal dotted underline. */
-.astra-ref--value {
-  --astra-kind: var(--astra-c-value);
-  --astra-glyph: "";
-  font-weight: inherit;
-  color: var(--astra-ink);
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1;
-  text-decoration: underline dotted color-mix(in srgb, var(--astra-c-value) 60%, transparent);
-  text-underline-offset: 2px;
-  white-space: nowrap;
-}
-.astra-ref--value:hover { text-decoration-color: var(--astra-c-value); }
-.astra-ref--value::before { content: none; }
-
-/* A navigable ref token (sub-analysis → its page): the inner span already
-   carries the full ref styling, so the anchor itself stays invisible. */
-.astra-ref-anchor,
-.astra-ref-anchor:hover {
-  text-decoration: none;
-  color: inherit;
-}
-
 /* -----------------------------------------------------------------------------
    4. Shared placed-record chrome
    -------------------------------------------------------------------------- */
@@ -1131,7 +455,19 @@ hr.astra-rule {
   align-items: baseline;
   gap: 0.5em;
 }
-.astra-evidence__glyph--insight { color: var(--astra-c-insight); font-size: 0.85em; }
+/* The row is a flex label that happens to be a preview trigger, so the shared
+   inline-reference affordance would underline and inset the "prior insight"
+   tag along with the name. Keep the shared glyph and hand the underline back
+   to the name alone (below); the flex gap already owns the glyph's spacing. */
+.astra-evidence__title,
+.astra-evidence__title:hover {
+  padding: 0;
+  background: transparent;
+  text-decoration: none;
+}
+.astra-evidence__title > .astra-kind-glyph {
+  margin-right: 0;
+}
 .astra-evidence__tag {
   font-family: var(--astra-label);
   font-size: 11px;
@@ -1816,108 +1152,9 @@ hr.astra-rule {
 }
 
 /* -----------------------------------------------------------------------------
-   12. Dark mode — brand Charcoal (#221F20), as on the guidelines' dark pages:
-   parchment ink and Antique Gold accents on charcoal, kind hues lifted just
-   enough to hold contrast.
-   Keyed on `html.dark`, NOT `prefers-color-scheme`: book-theme's dark mode is
-   class-based (theme cookie, falling back to a pre-hydration script that maps
-   the OS preference onto the class — `html.dark` is the single source of
-   truth and can diverge from the media query after a toggle). `html.dark`
-   (0,1,1) outranks the `:root` (0,1,0) light defaults above.
+   12. Dark artifact support
    -------------------------------------------------------------------------- */
-html.dark,
-:where(html.dark .lightcone-brand),
-:where(.lightcone-brand[data-lightcone-color-scheme="dark"]),
-:where(.lightcone-brand[data-astra-color-scheme="dark"]) {
-  --astra-paper: var(--lc-palette-charcoal, #221F20);
-  --astra-surface: #2A2728;
-  --astra-surface-2: #312D2E;
-
-  --astra-ink: var(--lc-palette-darker-parchment, #F1EFE9);
-                              /* Darker Parchment, as ink */
-  --astra-ink-soft: #B4BDCD;  /* Blue Ink, lifted */
-  --astra-muted: #9C9085;     /* Mushroom Cap, lifted */
-  --astra-faint: #6E6660;
-
-  --astra-rule: #3B3738;
-  --astra-rule-strong: #4C4747;
-
-  --astra-accent: #C2924A;    /* Antique Gold, lifted for contrast */
-  --astra-link: #C2924A;
-  --astra-accent-soft: rgba(194, 146, 74, 0.16);
-
-  --astra-kicker: #7FA8B5;    /* Slate Blue, lifted */
-
-  --astra-c-decision: #C2924A; /* Antique Gold   */
-  --astra-c-finding: #5FA199;  /* Vert de Gris   */
-  --astra-c-insight: #C97F66;  /* Wax Red        */
-  --astra-c-analysis: #6FA0AE; /* Slate Blue     */
-  --astra-c-output: #93A1BC;   /* Blue Ink       */
-  --astra-c-value: #6FA0AE;
-
-  --astra-shadow: 0 6px 18px rgba(0, 0, 0, .45);
-}
-
-/* ASTRA UI can carry either the host-neutral attribute or Lightcone's generic
-   scheme attribute (portaled previews carry both). The html.dark branches
-   bridge the brief pre-hydration interval before those attributes synchronize. */
-:where(
-  html.dark .lightcone-brand.astra-ui,
-  html.dark .lightcone-brand .astra-ui,
-  .lightcone-brand.astra-ui[data-lightcone-color-scheme="dark"],
-  .lightcone-brand.astra-ui[data-astra-color-scheme="dark"],
-  .lightcone-brand[data-lightcone-color-scheme="dark"] .astra-ui,
-  .lightcone-brand[data-astra-color-scheme="dark"] .astra-ui,
-  .lightcone-brand .astra-ui[data-lightcone-color-scheme="dark"],
-  .lightcone-brand .astra-ui[data-astra-color-scheme="dark"]
-) {
-  --astra-color-canvas: var(--lc-palette-charcoal);
-  --astra-color-surface: #2A2728;
-  --astra-color-surface-raised: #2A2728;
-  --astra-color-surface-muted: #2A2728;
-  --astra-color-header: #2A2728;
-  --astra-color-artifact-paper: #FBF9F4;
-  --astra-color-artifact-ink: var(--lc-palette-charcoal);
-
-  --astra-color-text: var(--lc-palette-darker-parchment);
-  --astra-color-text-muted: #B4BDCD;
-  --astra-color-text-subtle: #9C9085;
-  --astra-color-text-faint: #6E6660;
-  --astra-color-eyebrow: #7FA8B5;
-  --astra-color-border-subtle: #3B3738;
-  --astra-color-border: #3B3738;
-  --astra-color-border-strong: #4C4747;
-
-  --astra-color-accent: #C2924A;
-  --astra-color-accent-contrast: var(--lc-palette-charcoal);
-  --astra-color-link: #C2924A;
-  --astra-color-focus: #7FA8B5;
-  --astra-color-danger: #C97F66;
-  --astra-color-danger-soft: rgb(201 127 102 / 0.15);
-
-  /* Keep these assignments aligned with the pre-astra-ui preview cards. */
-  --astra-color-kind-input: var(--lc-palette-blue-ink);
-  --astra-color-kind-analysis: #6FA0AE;
-  --astra-color-kind-output: #93A1BC;
-  --astra-color-kind-decision: #C2924A;
-  --astra-color-kind-decision-ink: #C2924A;
-  --astra-color-kind-finding: #5FA199;
-  --astra-color-kind-insight: #C97F66;
-  --astra-color-kind-insight-ink: #C97F66;
-  --astra-color-kind-input-soft: color-mix(
-    in srgb,
-    var(--lc-palette-blue-ink) 15%,
-    transparent
-  );
-  --astra-color-kind-analysis-soft: rgb(111 160 174 / 0.15);
-  --astra-color-kind-output-soft: rgb(147 161 188 / 0.15);
-  --astra-color-kind-decision-soft: rgb(194 146 74 / 0.16);
-  --astra-color-kind-finding-soft: rgb(95 161 153 / 0.15);
-  --astra-color-kind-insight-soft: rgb(201 127 102 / 0.15);
-
-  --astra-shadow-raised: var(--astra-shadow);
-  --astra-shadow-preview: var(--astra-shadow);
-}
+/* Shared product roles carry the active colour scheme. */
 
 /* Transparent-background figure PNGs (matplotlib default) are unreadable on
    charcoal — dark axis labels vanish. Give artifact images a paper backdrop
@@ -1944,4 +1181,46 @@ html.dark .astra-output__thumb img {
   .myst-top-nav-bar > div:first-child {
     min-width: 0;
   }
+}
+
+/* The inventory uses the shared dialog lifecycle and keeps the reading page mounted. */
+.astra-inventory-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  min-height: 1.5rem;
+  color: var(--astra-accent);
+  text-decoration: none;
+}
+.astra-inventory-button:focus-visible {
+  outline: 2px solid var(--astra-accent);
+  outline-offset: 2px;
+}
+html:has(.astra-inventory-dialog[open]) { overflow: hidden; }
+.astra-inventory-dialog > .astra-dialog__panel {
+  width: min(86rem, 100%);
+  height: 100%;
+}
+.astra-inventory-dialog > .astra-dialog__panel > .astra-dialog__body {
+  display: block;
+  padding: clamp(1rem, 3vw, 2rem);
+  overflow-y: auto;
+}
+
+/* An unavailable compact preview should be a labelled card, not an empty canvas. */
+.astra-inventory .astra-output-card__preview:not(:has(> :not(.astra-output-card__open))) {
+  display: none;
+}
+
+.astra-inventory-dialog > .astra-dialog__panel > .astra-dialog__header .astra-surface-header__title {
+  white-space: normal;
+}
+
+/* Size the figure against the thumbnail frame, rather than its intrinsic height. */
+.astra-inventory .astra-output-card__preview > .astra-output__thumb {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  border-radius: 0;
 }

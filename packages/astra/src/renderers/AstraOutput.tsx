@@ -1,5 +1,6 @@
 import { useBaseurl } from '@myst-theme/providers';
 import { previewHref } from '../viewerTransport';
+import { InlineReference } from '@astra-spec/ui/primitives';
 import * as React from 'react';
 import type {
   ResolvedAnalysisNode,
@@ -188,12 +189,14 @@ function ProvenanceDecisionRef({
 }) {
   const baseurl = useBaseurl();
   const trigger = (
-    <a
-      className="astra-ref astra-ref--decision"
-      href={previewHref(decisionHref(item), baseurl)}
-    >
-      {item.decision.label ?? item.decision.id}
-    </a>
+    <InlineReference kind="decision" asChild>
+      <a
+        className="astra-ref astra-ref--decision"
+        href={previewHref(decisionHref(item), baseurl)}
+      >
+        {item.decision.label ?? item.decision.id}
+      </a>
+    </InlineReference>
   );
   // Released inherited decisions were navigable but not joined to the local
   // preview store. Preserve that behavior and its natural row geometry.
