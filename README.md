@@ -112,7 +112,8 @@ iframe policy; the Node servers should listen on loopback.
 
 The production server mounts the same literal prefix in the server and browser
 Remix route manifests. A standard browser import map redirects compiled module
-imports to that prefix; application JavaScript is served unchanged. Theme CSS,
+imports to that prefix; application JavaScript is served unchanged. Compiled CSS
+font and image URLs receive the same prefix when served. Theme CSS,
 content resources, ASTRA navigation and reload connections use the public URLs.
 Embedded appearance preferences use local storage, avoiding the stock theme's
 root-only cookie API. The existing `@myst-theme/site` patch exposes that small

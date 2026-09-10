@@ -4,6 +4,7 @@
 // npm start → node ./server.js). Kept byte-identical in themes/article and
 // themes/book.
 const path = require('path');
+const { readFile } = require('fs/promises');
 const express = require('express');
 const getPort = require('get-port');
 const compression = require('compression');
@@ -95,6 +96,26 @@ if (prefix) {
 }
 app.use(compression());
 app.disable('x-powered-by');
+
+// Import maps cover JavaScript imports, but CSS font/image URLs need the same
+// public prefix. Keep the compiled files reusable by standalone and viewer sessions.
+if (prefix) {
+  const assetRoot = path.resolve('public/build');
+  app.get(prefix + '/myst_assets_folder/*.css', async (req, res, next) => {
+    const filename = path.resolve(assetRoot, req.params[0] + '.css');
+    if (!filename.startsWith(assetRoot + path.sep)) return res.sendStatus(404);
+    try {
+      const css = await readFile(filename, 'utf8');
+      res
+        .type('text/css')
+        .set('Cache-Control', 'no-store')
+        .send(css.replaceAll('/myst_assets_folder/', prefix + '/myst_assets_folder/'));
+    } catch (error) {
+      if (error.code === 'ENOENT' || error.code === 'ENOTDIR') return next();
+      next(error);
+    }
+  });
+}
 
 // Remix fingerprints its assets so we can cache forever.
 app.use(
