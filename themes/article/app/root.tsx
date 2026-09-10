@@ -77,6 +77,12 @@ export const meta: V2_MetaFunction<typeof loader> = ({ data }) => {
 
 export const links: LinksFunction = () => {
   return [
+    { rel: 'stylesheet', href: tailwind },
+    { rel: 'stylesheet', href: thebeCoreCss },
+    // ASTRA design system (Lightcone Research branding) — layered over
+    // article-theme's styles. Brand typefaces: Quattrocento (headings),
+    // Alegreya (subheadings/labels), Newsreader (body).
+    { rel: 'stylesheet', href: astraStyles },
     {
       rel: 'stylesheet',
       href: 'https://cdn.jsdelivr.net/npm/jupyter-matplotlib@0.11.3/css/mpl_widget.css',
@@ -131,26 +137,16 @@ export default function AppWithReload() {
       renderers={RENDERERS}
       head={
         <>
-          {RELOAD_URL && BASE_URL && (
+          {RELOAD_URL && (
             <script
               type="importmap"
               dangerouslySetInnerHTML={{
                 __html: JSON.stringify({
                   imports: { '/myst_assets_folder/': `${BASE_URL}/myst_assets_folder/` },
-                }).replace(/</g, '\\u003c'),
+                }),
               }}
             />
           )}
-          {/* Bundled stylesheets, including the ASTRA design system (Lightcone
-              Research branding) layered over article-theme's styles. Emitted here
-              rather than in links() so embedded sessions can prefix them. */}
-          {[tailwind, thebeCoreCss, astraStyles].map((href) => (
-            <link
-              key={href}
-              rel="stylesheet"
-              href={`${MODE === 'app' ? BASE_URL || '' : ''}${href}`}
-            />
-          ))}
           <link rel="icon" href={`${BASE_URL || ''}/favicon.ico`} />
           <link rel="stylesheet" href={`${BASE_URL || ''}/myst-theme.css`} />
         </>

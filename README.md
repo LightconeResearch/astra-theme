@@ -102,7 +102,7 @@ the upstream MIT License; see [NOTICE](./NOTICE).
 
 The article and book production servers support the optional
 `mystra-viewer.v1` transport contract. A host starts the normal `myst start`
-command with these environment variables:
+command with these three environment variables set together:
 
 ```text
 MYSTRA_BASE_URL=/user/alice/jupyterlab_lightcone/mystra/SESSION/site
@@ -110,22 +110,25 @@ MYSTRA_CONTENT_URL=/user/alice/jupyterlab_lightcone/mystra/SESSION/content
 MYSTRA_RELOAD_URL=/user/alice/jupyterlab_lightcone/mystra/SESSION/socket
 ```
 
-These are public URL paths, without trailing slashes. They deliberately use
+These are public URL paths without trailing slashes, percent-encoded as they
+appear in requests (JupyterHub leaves `@` and `~` literal). They deliberately use
 separate names because current MyST CLI startup replaces `BASE_URL`. Server-side
 content requests keep using the internal `CONTENT_CDN`/`CONTENT_CDN_PORT`.
 
 Forward site requests **with their full public path**, content requests with
 the public content prefix removed, and the public WebSocket URL to the content
-server's `/socket`. `GET MYSTRA_BASE_URL/mystra-capabilities` returns
+server's `/socket`. Relay `X-Remix-*` response headers: Remix's client-side
+navigation carries redirects and error status in them. `GET
+MYSTRA_BASE_URL/mystra-capabilities` returns
 `{"protocol":"mystra-viewer.v1","baseUrl":"..."}` for host readiness checks.
 The host supplies authentication, resource authorization and an appropriate
 iframe policy; the Node servers should listen on loopback.
 
 The production server mounts the same literal prefix in the server and browser
-Remix route manifests. A standard browser import map redirects compiled module
-imports to that prefix; application JavaScript is served unchanged. Compiled CSS
-font and image URLs receive the same prefix when served. Theme CSS,
-content resources, ASTRA navigation and reload connections use the public URLs.
+Remix route manifests and prefixes stylesheet links and compiled CSS asset URLs
+as it serves them. A standard browser import map redirects compiled module
+imports to that prefix; application JavaScript is served unchanged. Content
+resources, ASTRA navigation and reload connections use the public URLs.
 Embedded appearance preferences use local storage, avoiding the stock theme's
 root-only cookie API. The existing `@myst-theme/site` patch exposes that small
 Document option; no framework upgrade is required.
@@ -133,7 +136,9 @@ Document option; no framework upgrade is required.
 Without these variables, standalone `myst start` and static export retain their
 normal startup behavior. This feature targets live embedding, not a general
 repair of upstream static-export routing. Browser support for import maps is
-required (current Chromium, Firefox and Safari).
+required (current Chromium, Firefox and Safari). Client-side navigation to a
+non-page file that MyST did not mark static still redirects to the content URL,
+which Remix 1 navigates in-app; use a plain link for such files.
 
 Shared ASTRA rendering follows the article inline/popover reference through
 `@astra-spec/ui` and `@lightcone-research/brand`. The theme owns MyST rendering,

@@ -16,19 +16,29 @@ installGlobals();
 
 const BUILD_DIR = path.join(process.cwd(), 'build');
 
-// The optional viewer prefix is a literal root route shared by Remix's server
-// and browser manifests. This avoids changing or forking the Remix runtime.
-const prefix = (process.env.MYSTRA_BASE_URL || '').replace(/\/$/, '');
-if (prefix && !/^\/(?:[a-zA-Z0-9_.~%+-]+\/)*[a-zA-Z0-9_.~%+-]+$/.test(prefix)) {
-  throw new Error('MYSTRA_BASE_URL must be an absolute URL path without query or fragment');
+// MySTRA viewer embedding (README "Embedding in MySTRA Viewer"): the public
+// site prefix becomes a literal root route in Remix's server and browser
+// manifests, so the compiled build and runtime stay untouched. The prefix is
+// used verbatim in Express paths, so the character class must stay regex-safe;
+// JupyterHub percent-encodes usernames except '@' and '~'.
+const prefix = process.env.MYSTRA_BASE_URL || '';
+const content = process.env.MYSTRA_CONTENT_URL || '';
+if (
+  prefix &&
+  (!/^\/(?:[\w.~%@-]+\/)*[\w.~%@-]+$/.test(prefix) || !content || !process.env.MYSTRA_RELOAD_URL)
+) {
+  throw new Error(
+    'MYSTRA_BASE_URL must be an absolute path without a trailing slash, set together with MYSTRA_CONTENT_URL and MYSTRA_RELOAD_URL',
+  );
 }
-const original = require(BUILD_DIR);
-const build = {
-  ...original,
-  assets: structuredClone(original.assets),
-  routes: { ...original.routes },
-};
+// The compiled build exposes read-only exports; copy it so the prefixed
+// manifest and routes can replace the originals.
+const build = { ...require(BUILD_DIR) };
+const app = express();
+
 if (prefix) {
+  // Remix matches decoded pathnames against route paths; Express matches raw ones.
+  const rootPath = decodeURI(prefix).slice(1);
   const publicAsset = (value) => {
     if (typeof value === 'string')
       return value.startsWith('/myst_assets_folder/') ? prefix + value : value;
@@ -39,83 +49,75 @@ if (prefix) {
       );
     return value;
   };
-  build.assets = publicAsset(build.assets);
-  build.assets.routes.root.path = prefix.slice(1);
-  build.assets.url = prefix + '/mystra-manifest.js';
+  const assets = publicAsset(build.assets);
+  assets.routes.root.path = rootPath;
+  assets.url = prefix + '/mystra-manifest.js';
+  const routes = {};
   for (const [id, route] of Object.entries(build.routes)) {
     const module = { ...route.module };
+    if (module.links) module.links = (...args) => publicAsset(route.module.links(...args));
     for (const verb of ['loader', 'action']) {
       if (!module[verb]) continue;
-      const originalHandler = module[verb];
+      const handler = route.module[verb];
+      // Route handlers see site-relative URLs and emit site-relative redirects.
+      const relocate = (response) => {
+        const location = response instanceof Response && response.headers.get('Location');
+        if (
+          location &&
+          /^\/(?!\/)/.test(location) &&
+          !location.startsWith(prefix + '/') &&
+          !location.startsWith(content + '/')
+        )
+          response.headers.set('Location', prefix + location);
+        return response;
+      };
       module[verb] = async (args) => {
         const url = new URL(args.request.url);
-        url.pathname = url.pathname.slice(prefix.length) || '/';
-        const invoke = () => originalHandler({ ...args, request: new Request(url, args.request) });
-        const relocate = (response) => {
-          const location = response instanceof Response && response.headers.get('Location');
-          if (
-            location &&
-            location.startsWith('/') &&
-            !location.startsWith('//') &&
-            location !== prefix &&
-            !location.startsWith(prefix + '/') &&
-            !location.startsWith((process.env.MYSTRA_CONTENT_URL || prefix) + '/')
-          ) {
-            response.headers.set('Location', prefix + location);
-          }
-          return response;
-        };
+        if (url.pathname.startsWith(prefix)) url.pathname = url.pathname.slice(prefix.length) || '/';
         try {
-          return relocate(await invoke());
+          return relocate(await handler({ ...args, request: new Request(url, args.request) }));
         } catch (error) {
           throw relocate(error);
         }
       };
     }
-    build.routes[id] = {
-      ...route,
-      module,
-      ...(id === 'root' ? { path: prefix.slice(1) } : {}),
-    };
+    routes[id] = { ...route, module, ...(id === 'root' ? { path: rootPath } : {}) };
   }
-}
+  build.assets = assets;
+  build.routes = routes;
 
-const app = express();
-app.get(prefix + '/mystra-capabilities', (_req, res) => {
-  res.json({ protocol: 'mystra-viewer.v1', baseUrl: prefix });
-});
-if (prefix) {
-  app.get(build.assets.url, (_req, res) => {
+  app.get(prefix + '/mystra-capabilities', (_req, res) => {
+    res.json({ protocol: 'mystra-viewer.v1', baseUrl: prefix });
+  });
+  app.get(assets.url, (_req, res) => {
     res
       .type('application/javascript')
       .set('Cache-Control', 'no-store')
-      .send(
-        'window.__remixManifest=' + JSON.stringify(build.assets).replace(/</g, '\\u003c') + ';',
-      );
+      .send('window.__remixManifest=' + JSON.stringify(assets) + ';');
   });
-}
-app.use(compression());
-app.disable('x-powered-by');
-
-// Import maps cover JavaScript imports, but CSS font/image URLs need the same
-// public prefix. Keep the compiled files reusable by standalone and viewer sessions.
-if (prefix) {
+  // The import map covers module imports; font and image URLs inside the
+  // compiled stylesheets need the prefix too. The files on disk stay unchanged.
   const assetRoot = path.resolve('public/build');
+  const styles = new Map();
   app.get(prefix + '/myst_assets_folder/*.css', async (req, res, next) => {
     const filename = path.resolve(assetRoot, req.params[0] + '.css');
     if (!filename.startsWith(assetRoot + path.sep)) return res.sendStatus(404);
     try {
-      const css = await readFile(filename, 'utf8');
-      res
-        .type('text/css')
-        .set('Cache-Control', 'no-store')
-        .send(css.replaceAll('/myst_assets_folder/', prefix + '/myst_assets_folder/'));
+      if (!styles.has(filename)) {
+        const css = await readFile(filename, 'utf8');
+        styles.set(filename, css.replaceAll('/myst_assets_folder/', prefix + '/myst_assets_folder/'));
+      }
+      res.type('text/css').set('Cache-Control', 'public, max-age=31536000, immutable');
+      res.send(styles.get(filename));
     } catch (error) {
       if (error.code === 'ENOENT' || error.code === 'ENOTDIR') return next();
       next(error);
     }
   });
 }
+
+app.use(compression());
+app.disable('x-powered-by');
 
 // Remix fingerprints its assets so we can cache forever.
 app.use(

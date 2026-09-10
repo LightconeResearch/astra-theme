@@ -1,60 +1,37 @@
 import { useEffect } from 'react';
 
-/** Prefix only local absolute navigation; preserve anchors and external URLs. */
+/** Prefix site-absolute hrefs with the viewer base URL; leave anchors, relative and external URLs alone. */
 export function previewHref(href: string | undefined, baseurl?: string): string | undefined {
-  const base = baseurl?.replace(/\/$/, '');
-  if (
-    !href ||
-    !base ||
-    !href.startsWith('/') ||
-    href.startsWith('//') ||
-    href === base ||
-    href.startsWith(base + '/')
-  )
-    return href;
-  return base + href;
+  return href && baseurl && href.startsWith('/') && !href.startsWith('//') ? baseurl + href : href;
 }
 
-/** Follow MyST's reload protocol through an authenticated public WebSocket URL. */
+/**
+ * MyST's live-reload protocol over the host's authenticated WebSocket path
+ * (the stock ContentReload can only reach a port on the page's hostname).
+ * Reconnects with backoff so a stopped session does not hammer the host.
+ */
 export function PreviewReload({ url }: { url: string }) {
   useEffect(() => {
-    let disposed = false;
     let socket: WebSocket | undefined;
     let retry: ReturnType<typeof setTimeout> | undefined;
-    let connected = false;
-    const key = 'mystra-scroll:' + location.pathname;
-    const saved = sessionStorage.getItem(key);
-    if (saved !== null) {
-      sessionStorage.removeItem(key);
-      requestAnimationFrame(() => window.scrollTo(0, Number(saved)));
-    }
-    const reload = () => {
-      sessionStorage.setItem(key, String(window.scrollY));
-      location.reload();
-    };
+    let delay = 1000;
     const connect = () => {
-      const target = new URL(url, location.href);
-      target.protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-      socket = new WebSocket(target);
+      socket = new WebSocket(new URL(url, location.href).href.replace(/^http/, 'ws'));
       socket.onopen = () => {
-        if (connected) reload();
-        connected = true;
+        delay = 1000;
       };
       socket.onmessage = (event) => {
-        try {
-          if (JSON.parse(event.data).type === 'RELOAD') reload();
-        } catch {
-          /* Ignore messages outside MyST's JSON reload protocol. */
-        }
+        if (JSON.parse(event.data).type === 'RELOAD') location.reload();
       };
       socket.onclose = () => {
-        if (!disposed) retry = setTimeout(connect, 1000);
+        retry = setTimeout(connect, delay);
+        delay = Math.min(delay * 2, 30000);
       };
     };
     connect();
     return () => {
-      disposed = true;
       clearTimeout(retry);
+      if (socket) socket.onclose = null;
       socket?.close();
     };
   }, [url]);
