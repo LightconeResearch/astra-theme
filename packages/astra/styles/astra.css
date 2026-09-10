@@ -246,7 +246,21 @@ article :is(h1, h2, h3, h4, h5, h6):not(:where(.astra-ui *)),
 :root:root h1.myst-fm-block-title {
   color: var(--astra-accent);
 }
-:root:root article :is(p, li, blockquote):not(:where(.astra-ui *)) a { color: var(--astra-accent); }
+/* Prose links and citations. MyST renders a citation as `cite > a.hover-link`
+   when its entry resolves to a DOI or URL and as `cite > span.hover-link` when
+   it does not (an arXiv-only entry, say); Tailwind's `.hover-link` utility
+   paints both blue with a blue underline. Match the `.hover-link` token as
+   well as anchors so DOI-less citations get the same treatment, and colour
+   the underline too — overriding `color` alone leaves Tailwind's blue
+   `text-decoration-color` under Antique Gold text. */
+:root:root article :is(p, li, blockquote):not(:where(.astra-ui *)) :is(a, .hover-link) {
+  color: var(--astra-accent);
+  text-decoration-color: color-mix(in srgb, var(--astra-accent) 45%, transparent);
+}
+:root:root article :is(p, li, blockquote):not(:where(.astra-ui *)) :is(a, .hover-link):hover {
+  color: var(--astra-accent);
+  text-decoration-color: var(--astra-accent);
+}
 :root:root article hr { border-color: var(--astra-rule); }
 
 /* -----------------------------------------------------------------------------
