@@ -103,7 +103,8 @@ if (prefix) {
   const assetFiles = new Map();
   app.get(prefix + '/myst_assets_folder/*', async (req, res, next) => {
     const filename = path.resolve(assetRoot, req.params[0]);
-    const extension = path.extname(filename);
+    // Case-insensitive filesystems can hand back .CSS; match the gate to them.
+    const extension = path.extname(filename).toLowerCase();
     if (extension !== '.css' && extension !== '.js') return next();
     if (filename.includes('\0') || !filename.startsWith(assetRoot + path.sep)) return res.sendStatus(404);
     try {
@@ -140,11 +141,21 @@ app.all(
   }),
 );
 
+// Express decodes path params before any handler runs, so a malformed escape
+// like %ZZ throws out of the router itself. Without NODE_ENV set, finalhandler
+// would render that stack trace, disclosing absolute paths to the client.
+app.use((error, _req, res, _next) => {
+  console.error(error);
+  res.sendStatus(error.status || error.statusCode || 500);
+});
+
 async function start() {
   const host = process.env.HOST || 'localhost';
   const port = process.env.PORT || (await getPort({ port: getPort.makeRange(3000, 3100) }));
-  app.listen(port, host, () => {
-    console.log(`astra-theme server started at http://${host}:${port}`);
+  // Report the bound port rather than the requested one, so PORT=0 (let the OS
+  // choose) still prints a URL that works.
+  const server = app.listen(port, host, () => {
+    console.log(`astra-theme server started at http://${host}:${server.address().port}`);
   });
 }
 

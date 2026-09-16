@@ -3,11 +3,8 @@ import { spawn, type ChildProcess } from 'node:child_process';
 import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { createRequire } from 'node:module';
 import { afterEach, expect, it } from 'vitest';
 
-const require = createRequire(import.meta.url);
-const getPort = require('get-port') as () => Promise<number>;
 const processes: ChildProcess[] = [];
 const directories: string[] = [];
 
@@ -55,8 +52,9 @@ it.each(['article', 'book'])(
     await writeFile(path.join(directory, 'public/build/font.woff2'), Buffer.from([0, 1, 2, 255]));
 
     for (const prefix of ['/user/alice%40lab/viewer/site', '']) {
-      const port = await getPort();
-      const env: NodeJS.ProcessEnv = { ...process.env, HOST: '127.0.0.1', PORT: String(port) };
+      // PORT=0 lets the OS assign a free port at bind time; the server reports the one
+      // it got. Choosing a port up front and binding it later races the parallel case.
+      const env: NodeJS.ProcessEnv = { ...process.env, HOST: '127.0.0.1', PORT: '0' };
       // Keep standalone verification independent of the invoking shell's viewer configuration.
       for (const key of ['MYSTRA_BASE_URL', 'MYSTRA_CONTENT_URL', 'MYSTRA_RELOAD_URL'])
         delete env[key];
@@ -72,7 +70,7 @@ it.each(['article', 'book'])(
         stdio: ['ignore', 'pipe', 'pipe'],
       });
       processes.push(server);
-      await new Promise<void>((resolve, reject) => {
+      const port = await new Promise<number>((resolve, reject) => {
         const timer = setTimeout(() => reject(new Error('Theme server did not start')), 10000);
         let logs = '';
         server.stderr!.on('data', (chunk) => {
@@ -80,9 +78,10 @@ it.each(['article', 'book'])(
         });
         server.stdout!.on('data', (chunk) => {
           logs += chunk;
-          if (logs.includes('server started at')) {
+          const started = /server started at http:\/\/[^:\s]+:(\d+)/.exec(logs);
+          if (started) {
             clearTimeout(timer);
-            resolve();
+            resolve(Number(started[1]));
           }
         });
         server.once('error', (error) => {
