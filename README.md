@@ -125,18 +125,18 @@ The host supplies authentication, resource authorization and an appropriate
 iframe policy; the Node servers should listen on loopback.
 
 The production server mounts the same literal prefix in the server and browser
-Remix route manifests and prefixes stylesheet links and compiled CSS asset URLs
-as it serves them. A standard browser import map redirects compiled module
-imports to that prefix; application JavaScript is served unchanged. Content
-resources, ASTRA navigation and reload connections use the public URLs.
+Remix route manifests and prefixes asset URLs in compiled JavaScript and CSS
+as it serves them, including module imports and client-side stylesheet links.
+These URLs work directly on initial loads, live reloads and client navigation;
+compiled files on disk remain unchanged. Content resources, ASTRA navigation
+and reload connections use the public URLs.
 Embedded appearance preferences use local storage, avoiding the stock theme's
 root-only cookie API. The existing `@myst-theme/site` patch exposes that small
 Document option; no framework upgrade is required.
 
 Without these variables, standalone `myst start` and static export retain their
 normal startup behavior. This feature targets live embedding, not a general
-repair of upstream static-export routing. Browser support for import maps is
-required (current Chromium, Firefox and Safari). Client-side navigation to a
+repair of upstream static-export routing. Client-side navigation to a
 non-page file that MyST did not mark static still redirects to the content URL,
 which Remix 1 navigates in-app; use a plain link for such files.
 

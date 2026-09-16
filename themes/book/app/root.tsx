@@ -209,16 +209,6 @@ export default function AppWithReload() {
         renderers={RENDERERS}
         head={
           <>
-            {RELOAD_URL && (
-              <script
-                type="importmap"
-                dangerouslySetInnerHTML={{
-                  __html: JSON.stringify({
-                    imports: { '/myst_assets_folder/': `${BASE_URL}/myst_assets_folder/` },
-                  }),
-                }}
-              />
-            )}
             <link rel="icon" href={`${BASE_URL || ''}/favicon.ico`} />
             <link rel="stylesheet" href={`${BASE_URL || ''}/myst-theme.css`} />
           </>

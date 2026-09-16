@@ -35,6 +35,7 @@ if (
 // manifest and routes can replace the originals.
 const build = { ...require(BUILD_DIR) };
 const app = express();
+app.use(compression());
 
 if (prefix) {
   // Remix matches decoded pathnames against route paths; Express matches raw ones.
@@ -95,20 +96,23 @@ if (prefix) {
       .set('Cache-Control', 'no-store')
       .send('window.__remixManifest=' + JSON.stringify(assets) + ';');
   });
-  // The import map covers module imports; font and image URLs inside the
-  // compiled stylesheets need the prefix too. The files on disk stay unchanged.
+  // Prefix compiled module imports and asset URLs before the browser sees them.
+  // This also covers client-side stylesheet links and works when modulepreload
+  // runs before the page's scripts on a cached reload. Files on disk stay unchanged.
   const assetRoot = path.resolve('public/build');
-  const styles = new Map();
-  app.get(prefix + '/myst_assets_folder/*.css', async (req, res, next) => {
-    const filename = path.resolve(assetRoot, req.params[0] + '.css');
-    if (!filename.startsWith(assetRoot + path.sep)) return res.sendStatus(404);
+  const assetFiles = new Map();
+  app.get(prefix + '/myst_assets_folder/*', async (req, res, next) => {
+    const filename = path.resolve(assetRoot, req.params[0]);
+    const extension = path.extname(filename);
+    if (extension !== '.css' && extension !== '.js') return next();
+    if (filename.includes('\0') || !filename.startsWith(assetRoot + path.sep)) return res.sendStatus(404);
     try {
-      if (!styles.has(filename)) {
-        const css = await readFile(filename, 'utf8');
-        styles.set(filename, css.replaceAll('/myst_assets_folder/', prefix + '/myst_assets_folder/'));
+      if (!assetFiles.has(filename)) {
+        const source = await readFile(filename, 'utf8');
+        assetFiles.set(filename, source.replaceAll('/myst_assets_folder/', prefix + '/myst_assets_folder/'));
       }
-      res.type('text/css').set('Cache-Control', 'public, max-age=31536000, immutable');
-      res.send(styles.get(filename));
+      res.type(extension).set('Cache-Control', 'public, max-age=31536000, immutable');
+      res.send(assetFiles.get(filename));
     } catch (error) {
       if (error.code === 'ENOENT' || error.code === 'ENOTDIR') return next();
       next(error);
@@ -116,7 +120,6 @@ if (prefix) {
   });
 }
 
-app.use(compression());
 app.disable('x-powered-by');
 
 // Remix fingerprints its assets so we can cache forever.
