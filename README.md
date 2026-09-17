@@ -82,7 +82,11 @@ site:
 
 Then run `myst start` or `myst build --html` in that project. The
 `desi-myst-proto` sibling repository is the end-to-end publication fixture used
-during development.
+during development. Static export under a base URL needs no stylesheet
+substitution: the theme build ends with `relativize-css-assets`, which rewrites the
+`/myst_assets_folder/` urls Remix writes into the compiled stylesheets to paths relative
+to each stylesheet, because `myst build --html` substitutes that public path in html, js
+and json only.
 
 Published builds can be selected directly:
 
@@ -125,8 +129,9 @@ The host supplies authentication, resource authorization and an appropriate
 iframe policy; the Node servers should listen on loopback.
 
 The production server mounts the same literal prefix in the server and browser
-Remix route manifests and prefixes asset URLs in compiled JavaScript and CSS
-as it serves them, including module imports and client-side stylesheet links.
+Remix route manifests and prefixes asset URLs in compiled JavaScript as it
+serves them, including module imports and client-side stylesheet links; the
+compiled stylesheets already reference their fonts relatively.
 These URLs work directly on initial loads, live reloads and client navigation;
 compiled files on disk remain unchanged. Content resources, ASTRA navigation
 and reload connections use the public URLs.
