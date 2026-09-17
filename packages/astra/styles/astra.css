@@ -109,10 +109,12 @@
 
 /* Citation previews use the shared floating tree so pointer travel remains
    coordinated with their parent record card. Their inner document keeps the
-   stock MyST bibliography appearance; this only makes the shared shell inert. */
+   stock MyST bibliography appearance; this only makes the shared shell inert.
+   The card portals beside its parent preview rather than inside it, so it
+   must stack above the shared preview level to be seen at all. */
 .astra-ui.astra-preview-popover-portal.astra-citation-preview-portal
   .astra-citation-preview {
-  z-index: 70;
+  z-index: calc(var(--astra-z-preview, 1100) + 1);
   width: 500px;
   max-width: calc(100vw - 1rem);
   color: inherit;

@@ -54,6 +54,8 @@ describe('publication inventory', () => {
     const inventory = await screen.findByRole('dialog', { name: 'Demo' });
     expect(inventory.closest('article')).toBeNull();
     expect(within(inventory).getByRole('heading', { name: 'Outputs' })).toBeVisible();
+    expect(within(inventory).queryByRole('navigation', { name: 'Project hierarchy' })).toBeNull();
+    expect(within(inventory).queryByRole('button', { name: 'Calibration' })).toBeNull();
     expect(within(inventory).getByRole('img', { name: 'Shear correlation plot' })).toHaveAttribute(
       'src', '/myst-assets/shear_plot.png',
     );
