@@ -146,7 +146,10 @@ article layout and artifact/citation adapters; shared typography, colours, glyph
 and preview geometry live upstream. Inventory and record dialogs mount outside
 article prose, with an explicit branded `astra-isolate` boundary. Serif fonts, including
 Newsreader italic, are bundled by the brand package; identifiers use its existing
-monospace stack.
+monospace stack. The theme build ends with `relativize-css-assets`, which turns the
+`/myst_assets_folder/` font and image urls Remix writes into the compiled stylesheets
+into paths relative to each stylesheet: `myst build --html` rewrites that public path in
+html, js and json only, so absolute urls would 404 on a static host under a base URL.
 
 `@astra-spec/ui` and `@lightcone-research/brand` are installed from npm at exact
 versions rather than caret ranges: the rendering contract is shared with the

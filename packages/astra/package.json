@@ -11,7 +11,8 @@
     "./styles/astra.css": "./styles/astra.css"
   },
   "bin": {
-    "copy-pdfjs-assets": "./scripts/copy-pdfjs-assets.mjs"
+    "copy-pdfjs-assets": "./scripts/copy-pdfjs-assets.mjs",
+    "relativize-css-assets": "./scripts/relativize-css-assets.mjs"
   },
   "files": [
     "scripts",
