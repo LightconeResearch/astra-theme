@@ -40,7 +40,8 @@ it.each(['article', 'book'])(
     );
     const javascript =
       'import "/myst_assets_folder/_shared/chunk.js"; export const css="/myst_assets_folder/style.css"; export const remote="https://example.org/image.png";';
-    const css = '@font-face{src:url(/myst_assets_folder/font.woff2)}';
+    // The build makes stylesheet urls relative, so the server serves CSS as a plain static file.
+    const css = '@font-face{src:url(font.woff2)}';
     const largeJavascript = javascript + '\n/*' + 'padding '.repeat(300) + '*/';
     await writeFile(path.join(directory, 'public/build/entry.js'), javascript);
     await writeFile(path.join(directory, 'public/build/large.js'), largeJavascript);
@@ -120,9 +121,7 @@ it.each(['article', 'book'])(
       expect(await compressed.text()).toContain(
         `import "${prefix}/myst_assets_folder/_shared/chunk.js"`
       );
-      expect(await (await fetch(`${base}/style.css`)).text()).toBe(
-        `@font-face{src:url(${prefix}/myst_assets_folder/font.woff2)}`
-      );
+      expect(await (await fetch(`${base}/style.css`)).text()).toBe(css);
       expect(Buffer.from(await (await fetch(`${base}/font.woff2`)).arrayBuffer())).toEqual(
         Buffer.from([0, 1, 2, 255])
       );

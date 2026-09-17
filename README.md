@@ -125,8 +125,9 @@ The host supplies authentication, resource authorization and an appropriate
 iframe policy; the Node servers should listen on loopback.
 
 The production server mounts the same literal prefix in the server and browser
-Remix route manifests and prefixes asset URLs in compiled JavaScript and CSS
-as it serves them, including module imports and client-side stylesheet links.
+Remix route manifests and prefixes asset URLs in compiled JavaScript as it
+serves them, including module imports and client-side stylesheet links; the
+compiled stylesheets already reference their fonts relatively.
 These URLs work directly on initial loads, live reloads and client navigation;
 compiled files on disk remain unchanged. Content resources, ASTRA navigation
 and reload connections use the public URLs.
