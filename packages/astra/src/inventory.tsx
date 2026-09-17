@@ -68,6 +68,9 @@ export function AstraInventory({
           document={publication.document}
           index={publication.index}
           analysisPath={publication.activeAnalysis.canonicalPath}
+          // The page already fixes which analysis is read; sub-analyses are
+          // reached through their own pages, not by switching the inventory.
+          showHierarchy={false}
           idPrefix="astra-inventory-"
         />
       </DetailDialog>
