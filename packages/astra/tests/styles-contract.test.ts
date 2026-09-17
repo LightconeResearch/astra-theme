@@ -102,6 +102,14 @@ describe('shared ASTRA stylesheet contract', () => {
     expect(orphans).toEqual([]);
   });
 
+  it('stacks a nested citation card above the shared preview it opens from', () => {
+    // Both cards portal beside each other, so the citation must outrank the
+    // shared preview level rather than a fixed number below it.
+    expect(css).toMatch(
+      /\.astra-citation-preview-portal\s+\.astra-citation-preview \{[^}]*z-index: calc\(var\(--astra-z-preview(?:, ?\d+)?\) \+ 1\);/,
+    );
+  });
+
   it('keeps registry identifiers visually identical when no anchor is available', () => {
     expect(css).toMatch(
       /\.astra-inputs \.astra-id,\s*\.astra-outputs \.astra-id \{[^}]*font-weight: 500;[^}]*text-decoration: underline;/,
