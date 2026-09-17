@@ -55,23 +55,45 @@ export function AstraInventory({
       data-lightcone-color-scheme={scheme}
       data-astra-color-scheme={scheme}
     >
-      <DetailDialog
-        className="astra-inventory-dialog"
-        title={publication.activeAnalysis.name}
-        kindLabel="Inventory"
+      <InventoryDialog
+        {...props}
+        key={publication.activeAnalysis.canonicalPath}
+        publication={publication}
         onClose={close}
-        closeLabel="Close inventory"
-      >
-        <Inventory
-          {...props}
-          {...dialogEvents}
-          document={publication.document}
-          index={publication.index}
-          analysisPath={publication.activeAnalysis.canonicalPath}
-          idPrefix="astra-inventory-"
-        />
-      </DetailDialog>
+      />
     </div>,
     document.body,
+  );
+}
+
+/** Keyed by the page's analysis and mounted only while open, so a page change or reopening starts there again. */
+function InventoryDialog({
+  publication,
+  onClose,
+  ...props
+}: Pick<InventoryProps, 'renderArtifact' | 'paperMetadata' | 'loadPdfJs'> & {
+  publication: AstraPublication;
+  onClose: () => void;
+}) {
+  const [analysisPath, setAnalysisPath] = React.useState(publication.activeAnalysis.canonicalPath);
+  const analysis = publication.index.analysisByPath.get(analysisPath) ?? publication.activeAnalysis;
+  return (
+    <DetailDialog
+      className="astra-inventory-dialog"
+      title={analysis.name}
+      kindLabel="Inventory"
+      onClose={onClose}
+      closeLabel="Close inventory"
+    >
+      <Inventory
+        {...props}
+        {...dialogEvents}
+        document={publication.document}
+        index={publication.index}
+        analysisPath={analysisPath}
+        onSelectAnalysis={setAnalysisPath}
+        idPrefix="astra-inventory-"
+      />
+    </DetailDialog>
   );
 }
