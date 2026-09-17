@@ -49,6 +49,16 @@ it('rewrites public-path urls relative to each stylesheet under build/', async (
   expect(await readFile(path.join(dir, 'thebe-core.css'), 'utf8')).toContain('/myst_assets_folder/');
 });
 
+it('fails the build when a public-path reference survives the rewrite', async () => {
+  const css = '@import "/myst_assets_folder/_assets/other.css";';
+  const dir = await publicDir({ 'build/_assets/astra-ABC.css': css });
+
+  expect(() => execFileSync(process.execPath, [script, dir], { stdio: 'pipe' })).toThrow(
+    expect.objectContaining({ status: 1 })
+  );
+  expect(await readFile(path.join(dir, 'build/_assets/astra-ABC.css'), 'utf8')).toBe(css);
+});
+
 it('fails without a public directory argument', () => {
   expect(() => execFileSync(process.execPath, [script], { stdio: 'pipe' })).toThrow(
     expect.objectContaining({ status: 1 })

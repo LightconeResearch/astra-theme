@@ -9,6 +9,8 @@
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
+const PUBLIC_PATH = '/myst_assets_folder/';
+
 const publicDir = process.argv[2];
 if (!publicDir) {
   console.error('Usage: relativize-css-assets.mjs <public-dir>');
@@ -25,13 +27,17 @@ function relativizeCss(css, from) {
 
 const buildDir = path.resolve(publicDir, 'build');
 let count = 0;
-for (const entry of await readdir(buildDir, { recursive: true, withFileTypes: true })) {
-  if (!entry.isFile() || path.extname(entry.name).toLowerCase() !== '.css') continue;
-  const dir = entry.parentPath ?? entry.path;
-  const source = await readFile(path.join(dir, entry.name), 'utf8');
-  const output = relativizeCss(source, path.relative(buildDir, dir).split(path.sep).join('/'));
+for (const file of await readdir(buildDir, { recursive: true })) {
+  if (path.extname(file).toLowerCase() !== '.css') continue;
+  const source = await readFile(path.join(buildDir, file), 'utf8');
+  const output = relativizeCss(source, path.posix.dirname(file.split(path.sep).join('/')));
+  // Any reference the rewrite did not recognise would 404 on a static host; fail the build instead.
+  if (output.includes(PUBLIC_PATH)) {
+    console.error(`${path.join(buildDir, file)} still references ${PUBLIC_PATH} after the rewrite`);
+    process.exit(1);
+  }
   if (output === source) continue;
-  await writeFile(path.join(dir, entry.name), output);
+  await writeFile(path.join(buildDir, file), output);
   count += 1;
 }
 console.log(`asset urls made relative in ${count} stylesheets under ${buildDir}`);

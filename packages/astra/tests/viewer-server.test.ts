@@ -121,7 +121,10 @@ it.each(['article', 'book'])(
       expect(await compressed.text()).toContain(
         `import "${prefix}/myst_assets_folder/_shared/chunk.js"`
       );
-      expect(await (await fetch(`${base}/style.css`)).text()).toBe(css);
+      const stylesheet = await fetch(`${base}/style.css`);
+      expect(stylesheet.headers.get('content-type')).toContain('text/css');
+      expect(stylesheet.headers.get('cache-control')).toContain('immutable');
+      expect(await stylesheet.text()).toBe(css);
       expect(Buffer.from(await (await fetch(`${base}/font.woff2`)).arrayBuffer())).toEqual(
         Buffer.from([0, 1, 2, 255])
       );
