@@ -716,6 +716,20 @@ hr.astra-rule {
   max-width: 100%;
 }
 
+/* Tables are data, not prose: like a MyST `col-page` figure they take the
+   page column of the article grid instead of the editorial measure, so wide
+   registries stop scrolling inside a 40rem box. Their caption and provenance
+   drawer keep the measure so the caption stays readable. */
+.astra-output--table {
+  grid-column: page;
+  max-width: none;
+}
+.astra-output--table figcaption,
+.astra-output--table .astra-output__caption,
+.astra-output--table .astra-output__provenance {
+  max-width: var(--astra-measure);
+}
+
 .astra-output figcaption,
 .astra-output__caption {
   font-family: var(--astra-label);
