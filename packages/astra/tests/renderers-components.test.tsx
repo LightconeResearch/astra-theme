@@ -42,14 +42,14 @@ describe('canonical SDK-backed ASTRA renderers', () => {
     expect(screen.getByText(/default: Analytic · 2 options/)).toBeVisible();
 
     const viewGroup = screen.getByRole('group', { name: 'Decision view' });
-    const narrativeButton = within(viewGroup).getByRole('button', { name: 'Narrative' });
+    const rationaleButton = within(viewGroup).getByRole('button', { name: 'Rationale' });
     const optionsButton = within(viewGroup).getByRole('button', { name: 'Options' });
-    expect(narrativeButton).toHaveAttribute('aria-pressed', 'true');
+    expect(rationaleButton).toHaveAttribute('aria-pressed', 'true');
     expect(optionsButton).toHaveAttribute('aria-pressed', 'false');
     expect(screen.queryByRole('tab')).not.toBeInTheDocument();
 
     fireEvent.click(optionsButton);
-    expect(narrativeButton).toHaveAttribute('aria-pressed', 'false');
+    expect(rationaleButton).toHaveAttribute('aria-pressed', 'false');
     expect(optionsButton).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByText('Analytic')).toBeVisible();
 

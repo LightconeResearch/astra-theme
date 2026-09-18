@@ -16,7 +16,7 @@ import {
   useAstraRecord,
 } from '../rendererUtils';
 
-type DecisionView = 'narrative' | 'options' | 'evidence';
+type DecisionView = 'rationale' | 'options' | 'evidence';
 
 function claimExcerpt(claim: string): string | undefined {
   const text = claim.trim().replace(/\s+/g, ' ');
@@ -67,7 +67,7 @@ function EvidenceItem({
 /** Existing decision panel, now joined exclusively through SDK paths. */
 export const AstraDecision: React.FC<{ node: GenericNode }> = ({ node }) => {
   const located = useAstraRecord(node, 'decision');
-  const [view, setView] = React.useState<DecisionView>('narrative');
+  const [view, setView] = React.useState<DecisionView>('rationale');
   const rootClass = Array.from(
     new Set([
       'astra-decision',
@@ -80,8 +80,8 @@ export const AstraDecision: React.FC<{ node: GenericNode }> = ({ node }) => {
   const { publication, record } = located;
   const evidence = decisionInsights(publication.index, record);
   const views: DecisionView[] = evidence.length
-    ? ['narrative', 'options', 'evidence']
-    : ['narrative', 'options'];
+    ? ['rationale', 'options', 'evidence']
+    : ['rationale', 'options'];
   const selectedLabel = record.selectedOptionId
     ? record.options.find((option) => option.id === record.selectedOptionId)?.label ??
       record.selectedOptionId
@@ -105,7 +105,7 @@ export const AstraDecision: React.FC<{ node: GenericNode }> = ({ node }) => {
           </button>
         ))}
       </div>
-      {view === 'narrative' && record.rationale ? (
+      {view === 'rationale' && record.rationale ? (
         <div className="astra-decision__rationale">
           <p>
             <Prose text={record.rationale} field="rationale" />
