@@ -71,17 +71,6 @@ npm run typecheck
 npm run build        # or build:article / build:book
 ```
 
-To try a local build, point a MyST project at the checkout
-([`desi-myst-proto`](https://github.com/LightconeResearch/desi-myst-proto) is
-the reference fixture), then run `myst start`:
-
-```yaml
-project:
-  plugins:
-    - /path/to/MySTRA/dist/mystra.mjs
-site:
-  template: /path/to/astra-theme/themes/article
-```
 
 **Releasing:** push a `vX.Y.Z` tag. CI builds both themes, publishes them to
 the deploy repos above, attaches zips to a GitHub Release and bumps the version
