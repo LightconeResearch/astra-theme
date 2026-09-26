@@ -71,31 +71,6 @@ site:
 the deploy repos above, attaches zips to a GitHub Release and bumps the version
 on `main` (see `.github/workflows/publish-theme.yml`).
 
-## Embedding in MySTRA Viewer
-
-The production servers support the optional `mystra-viewer.v1` contract for
-serving a live site under a proxied path. Start `myst start` with all three
-variables set (public paths, no trailing slash):
-
-```text
-MYSTRA_BASE_URL=/user/alice/jupyterlab_lightcone/mystra/SESSION/site
-MYSTRA_CONTENT_URL=/user/alice/jupyterlab_lightcone/mystra/SESSION/content
-MYSTRA_RELOAD_URL=/user/alice/jupyterlab_lightcone/mystra/SESSION/socket
-```
-
-The host must:
-
-- forward site requests with their full public path, and content requests with
-  the content prefix removed;
-- forward the reload WebSocket to the content server's `/socket`;
-- relay `X-Remix-*` response headers (they carry redirects and errors during
-  client navigation);
-- handle authentication and iframe policy, with the Node servers on loopback.
-
-`GET $MYSTRA_BASE_URL/mystra-capabilities` answers
-`{"protocol":"mystra-viewer.v1","baseUrl":"..."}` for readiness checks.
-Without these variables, `myst start` and static export behave normally.
-
 ## License
 
 BSD 3-Clause for the ASTRA overlay and repository configuration; the vendored
