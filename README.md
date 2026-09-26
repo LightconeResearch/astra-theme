@@ -88,12 +88,13 @@ substitution: the theme build ends with `relativize-css-assets`, which rewrites 
 to each stylesheet, because `myst build --html` substitutes that public path in html, js
 and json only.
 
-Published builds can be selected directly:
+Published builds can be selected directly (keep the `.git` suffix: MyST reads
+any other non-zip URL as a template-index link):
 
 ```yaml
 site:
-  template: https://github.com/EiffL/astra-article-theme
-  # or https://github.com/EiffL/astra-book-theme
+  template: https://github.com/LightconeResearch/astra-article-theme.git
+  # or https://github.com/LightconeResearch/astra-book-theme.git
 ```
 
 ## License
