@@ -22,8 +22,24 @@ site:
 ```
 
 Keep the `.git` suffix: MyST reads any other non-zip URL as a template-index
-link. To pin a release, use its archive, e.g.
-`https://github.com/LightconeResearch/astra-article-theme/archive/refs/tags/v0.0.15.zip`.
+link. This form tracks the latest release, but MyST downloads the template once
+into `_build/templates/` and reuses it; run `myst clean --templates` to pick up
+a newer release.
+
+### Pinning a version
+
+Every release is tagged in the published repos (see
+[the article tags](https://github.com/LightconeResearch/astra-article-theme/tags)
+or [the book tags](https://github.com/LightconeResearch/astra-book-theme/tags)).
+To stay on one, point `site.template` at that tag's zip archive:
+
+```yaml
+site:
+  template: https://github.com/LightconeResearch/astra-article-theme/archive/refs/tags/v0.0.15.zip
+```
+
+A pinned build is reproducible and never changes under you. To upgrade, edit
+the tag; the new URL is downloaded on the next build.
 
 ## What it adds
 
