@@ -30,8 +30,9 @@ function OpenInsight() {
     <button
       type="button"
       onClick={() => {
-        const record = publication?.index.recordByPath.get(INSIGHT);
-        const analysis = publication?.index.analysisByRecordPath.get(INSIGHT);
+        const entry = publication?.index.elementByRef.get(INSIGHT);
+        const record = entry?.collection === 'prior_insights' ? entry.element : undefined;
+        const analysis = entry?.analysis;
         if (record && analysis) details?.onOpenRecord(record, analysis);
       }}
     >

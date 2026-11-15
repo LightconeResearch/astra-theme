@@ -27,7 +27,8 @@ interface BrandRootState {
 const brandRoots = new WeakMap<HTMLElement, BrandRootState>();
 
 function activeScheme(state: BrandRootState): AstraColorScheme {
-  return Array.from(state.owners.values()).at(-1) ?? 'light';
+  const schemes = Array.from(state.owners.values());
+  return schemes[schemes.length - 1] ?? 'light';
 }
 
 function synchronizeBrandRoot(root: HTMLElement, state: BrandRootState): void {

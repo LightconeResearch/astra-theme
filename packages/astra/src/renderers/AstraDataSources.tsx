@@ -1,10 +1,13 @@
 import * as React from 'react';
 import { Prose } from '@astra-spec/ui/primitives';
+import { recordId } from '@astra-spec/ui/model';
+import { publicationResult } from '../publication/contract';
 import type { GenericNode } from 'myst-common';
 
 import { useAstraPublication } from '../publication/AstraPublicationProvider';
 import {
   astraMetadata,
+  publicationForMetadata,
   NeutralNode,
   nodeClassName,
   nodeHtmlId,
@@ -52,32 +55,31 @@ function rowsFor(
     const expectedKind = registry === 'inputs' ? 'input' : 'output';
     const canonicalPath = stringMetadata(metadata, 'canonicalPath');
     if (metadata?.kind !== expectedKind || !canonicalPath) return undefined;
-    const record = publication.index.recordByPath.get(canonicalPath);
+    const entry = publication.index.elementByRef.get(canonicalPath);
 
     if (registry === 'inputs') {
-      if (record?.kind !== 'input') return undefined;
+      if (entry?.collection !== 'inputs') return undefined;
+      const record = entry.element;
       rows.push({
-        id: record.id,
+        id: recordId(record),
         anchorId: nodeHtmlId(row),
         label: record.label,
-        type: record.type,
         description: record.description,
-        source:
-          record.source ?? record.from ?? record.ref ?? record.resolvedFrom,
+        source: record.path,
       });
     } else {
-      if (record?.kind !== 'output' || !record.active) return undefined;
+      if (entry?.collection !== 'outputs') return undefined;
+      const record = entry.element;
+      const context = publicationForMetadata(publication, metadata);
+      const result = context ? publicationResult(context, record) : undefined;
+      if (!result) return undefined;
       rows.push({
-        id: record.id,
+        id: recordId(record),
         anchorId: nodeHtmlId(row),
         label: record.label,
         type: record.type,
         description: record.description,
-        source:
-          record.recipe?.command ??
-          publication.artifactUrls.get(record.canonicalPath) ??
-          record.from ??
-          record.resolvedFrom,
+        source: result.command ?? publication.artifactUrls.get(result.id),
       });
     }
   }
@@ -85,13 +87,15 @@ function rowsFor(
 }
 
 export const AstraDataSources: React.FC<{ node: GenericNode }> = ({ node }) => {
-  const publication = useAstraPublication();
+  const publication = publicationForMetadata(
+    useAstraPublication(),
+    astraMetadata(node),
+  );
   const registry = registryOf(node);
   const className = nodeClassName(node);
 
-  const rows = publication && registry
-    ? rowsFor(publication, node, registry)
-    : undefined;
+  const rows =
+    publication && registry ? rowsFor(publication, node, registry) : undefined;
 
   if (!publication || !registry || !rows?.length) {
     return (
@@ -140,9 +144,7 @@ export const AstraDataSources: React.FC<{ node: GenericNode }> = ({ node }) => {
                   ) : (
                     <span className="astra-id">{row.id}</span>
                   )}
-                  {row.label ? (
-                    <span> {row.label}</span>
-                  ) : null}
+                  {row.label ? <span> {row.label}</span> : null}
                 </td>
                 <td>{row.type ?? '—'}</td>
                 <td>

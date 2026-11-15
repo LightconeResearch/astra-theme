@@ -1,26 +1,43 @@
 import {
-  indexAnalysis,
-  parseResolvedAnalysisBundle,
-  type AnalysisIndex,
-  type ResolvedAnalysisBundle,
-  type ResolvedAnalysisDocument,
-  type ResolvedAnalysisNode,
-} from '@astra-spec/sdk';
+  indexResolvedAnalysis,
+  parseResolvedAnalysis,
+  parseStatusReport,
+  selectResult,
+  getResult,
+  type Analysis,
+  type Output,
+  type ResolvedAnalysis,
+  type ResolvedAnalysisIndex,
+  type Result,
+  type StatusReport,
+} from '@astra-spec/sdk/reports';
 import type { GenericNode } from 'myst-common';
 
 export const ASTRA_PUBLICATION_SCHEMA_VERSION =
-  'astra-publication-bundle.v1' as const;
+  'astra-publication-bundle.v2' as const;
 
 /** The decoded, indexed publication data exposed to React renderers. */
 export interface AstraPublication {
-  bundle: ResolvedAnalysisBundle;
-  document: ResolvedAnalysisDocument;
-  index: AnalysisIndex;
-  activeAnalysis: ResolvedAnalysisNode;
-  /** MyST-rewritten artifact URLs keyed by canonical output path. */
+  document: ResolvedAnalysis;
+  status: StatusReport;
+  index: ResolvedAnalysisIndex;
+  activeAnalysis: Analysis;
+  universe?: string;
+  resources: Readonly<Record<string, { cacheToken: string }>>;
+  /** MyST-rewritten artifact URLs keyed by result ID, including its universe. */
   artifactUrls: ReadonlyMap<string, string>;
   /** HTML anchors that are actually present in this page's rendered AST. */
   placedIdentifiers: ReadonlySet<string>;
+}
+
+/** Resolve presentation context without reconstructing authored addresses. */
+export function publicationResult(
+  publication: AstraPublication,
+  output: Output,
+): Result | undefined {
+  return publication.universe === undefined
+    ? getResult(publication.index, output.ref)
+    : selectResult(publication.index, output.ref, publication.universe);
 }
 
 type UnknownRecord = Record<string, unknown>;
@@ -36,10 +53,7 @@ function hasClass(node: UnknownRecord, className: string): boolean {
   if (typeof value === 'string') {
     return value.split(/\s+/).includes(className);
   }
-  return (
-    Array.isArray(value) &&
-    value.some((item) => item === className)
-  );
+  return Array.isArray(value) && value.some((item) => item === className);
 }
 
 /**
@@ -72,7 +86,7 @@ function safeArtifactUrl(value: unknown): string | undefined {
 
 function artifactUrls(
   resourceCarrier: unknown,
-  bundle: ResolvedAnalysisBundle,
+  resources: Readonly<Record<string, { cacheToken: string }>>,
 ): ReadonlyMap<string, string> {
   const carrier = object(resourceCarrier);
   if (
@@ -80,75 +94,36 @@ function artifactUrls(
     carrier.type !== 'div' ||
     !hasClass(carrier, 'astra-publication-resources') ||
     !Array.isArray(carrier.children)
-  ) {
+  )
     return new Map();
-  }
 
-  const bindings = new Map(
-    bundle.bindings.map((binding) => [binding.outputPath, binding] as const),
-  );
   const urls = new Map<string, string>();
-
   for (const value of carrier.children) {
     const link = object(value);
-    const data = object(link?.data);
-    const identity = object(data?.astraArtifact);
+    const identity = object(object(link?.data)?.astraArtifact);
     if (
       !link ||
       link.type !== 'link' ||
       link.static !== true ||
       !identity ||
-      typeof identity.outputPath !== 'string' ||
-      typeof identity.cacheToken !== 'string'
-    ) {
+      typeof identity.resultId !== 'string' ||
+      typeof identity.cacheToken !== 'string' ||
+      !Object.prototype.hasOwnProperty.call(resources, identity.resultId)
+    )
       continue;
-    }
 
-    const binding = bindings.get(identity.outputPath);
+    const resource = resources[identity.resultId];
     const url = safeArtifactUrl(link.url);
     if (
-      !binding ||
-      binding.cacheToken !== identity.cacheToken ||
+      !resource ||
+      resource.cacheToken !== identity.cacheToken ||
       !url ||
-      urls.has(identity.outputPath)
-    ) {
+      urls.has(identity.resultId)
+    )
       continue;
-    }
-    urls.set(identity.outputPath, url);
+    urls.set(identity.resultId, url);
   }
-
   return urls;
-}
-
-/** Reject identities that the SDK's convenience index would overwrite. */
-function hasIdentityCollisions(bundle: ResolvedAnalysisBundle): boolean {
-  const canonicalPaths = new Set<string>();
-  const pending: ResolvedAnalysisNode[] = [bundle.document.analysis];
-
-  while (pending.length > 0) {
-    const analysis = pending.pop()!;
-    if (canonicalPaths.has(analysis.canonicalPath)) return true;
-    canonicalPaths.add(analysis.canonicalPath);
-
-    for (const record of [
-      ...analysis.inputs,
-      ...analysis.outputs,
-      ...analysis.decisions,
-      ...analysis.prior_insights,
-      ...analysis.findings,
-    ]) {
-      if (canonicalPaths.has(record.canonicalPath)) return true;
-      canonicalPaths.add(record.canonicalPath);
-    }
-    pending.push(...analysis.analyses);
-  }
-
-  const boundOutputs = new Set<string>();
-  for (const binding of bundle.bindings) {
-    if (boundOutputs.has(binding.outputPath)) return true;
-    boundOutputs.add(binding.outputPath);
-  }
-  return false;
 }
 
 function decodeCarrier(
@@ -165,26 +140,47 @@ function decodeCarrier(
     !hasClass(node, 'astra-publication-bundle') ||
     !envelope ||
     envelope.schemaVersion !== ASTRA_PUBLICATION_SCHEMA_VERSION ||
-    typeof envelope.activeAnalysisPath !== 'string'
+    typeof envelope.activeAnalysisKey !== 'string' ||
+    (envelope.universe !== undefined && typeof envelope.universe !== 'string')
   ) {
     return undefined;
   }
 
   try {
-    const bundle = parseResolvedAnalysisBundle(envelope.bundle);
-    if (hasIdentityCollisions(bundle)) return undefined;
-    const index = indexAnalysis(bundle.document);
-    const activeAnalysis = index.analysisByPath.get(
-      envelope.activeAnalysisPath,
-    );
+    const document = parseResolvedAnalysis(envelope.analysis);
+    const status = parseStatusReport(envelope.status);
+    const index = indexResolvedAnalysis(document);
+    const activeAnalysis = index.analysisByKey.get(envelope.activeAnalysisKey);
     if (!activeAnalysis) return undefined;
-
+    const universe = envelope.universe;
+    if (
+      universe !== undefined &&
+      index.elementByRef.get(universe)?.collection !== 'universes'
+    )
+      return undefined;
+    const candidateResources = object(envelope.resources);
+    if (!candidateResources) return undefined;
+    const resources: Record<string, { cacheToken: string }> =
+      Object.create(null);
+    for (const [id, candidate] of Object.entries(candidateResources)) {
+      const resource = object(candidate);
+      if (
+        !index.resultById.has(id) ||
+        !resource ||
+        typeof resource.cacheToken !== 'string' ||
+        !resource.cacheToken
+      )
+        return undefined;
+      resources[id] = { cacheToken: resource.cacheToken };
+    }
     return {
-      bundle,
-      document: bundle.document,
+      document,
+      status,
       index,
       activeAnalysis,
-      artifactUrls: artifactUrls(resourceSibling, bundle),
+      ...(universe === undefined ? {} : { universe }),
+      resources,
+      artifactUrls: artifactUrls(resourceSibling, resources),
       placedIdentifiers,
     };
   } catch {

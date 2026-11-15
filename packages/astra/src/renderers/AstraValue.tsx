@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { InlineReference } from '@astra-spec/ui/primitives';
+import { locateRecord } from '@astra-spec/ui/model';
 import type { GenericNode } from 'myst-common';
 import { MyST } from 'myst-to-react';
 
@@ -7,6 +8,7 @@ import { AstraPreviewPopover } from '../preview';
 import { useAstraPublication } from '../publication/AstraPublicationProvider';
 import {
   astraMetadata,
+  publicationForMetadata,
   nodeClassName,
   stringMetadata,
 } from '../rendererUtils';
@@ -17,30 +19,26 @@ export interface AstraValueProps {
 
 /** Inline values keep their MySTRA-formatted children and preview their owner. */
 export const AstraValue: React.FC<AstraValueProps> = ({ node }) => {
-  const publication = useAstraPublication();
+  const current = useAstraPublication();
   const metadata = astraMetadata(node);
+  const publication = publicationForMetadata(current, metadata);
   const number = <MyST ast={node.children} />;
   const valueSpan = (
-    <InlineReference kind="value" className={nodeClassName(node, 'astra-ref astra-ref--value')}>
+    <InlineReference
+      kind="value"
+      className={nodeClassName(node, 'astra-ref astra-ref--value')}
+    >
       {number}
     </InlineReference>
   );
 
   if (!publication || metadata?.kind !== 'value') return valueSpan;
   const canonicalPath = stringMetadata(metadata, 'canonicalPath');
-  const record = canonicalPath
-    ? publication.index.recordByPath.get(canonicalPath)
+  const located = canonicalPath
+    ? locateRecord(publication.index, canonicalPath)
     : undefined;
-  const analysis = canonicalPath
-    ? publication.index.analysisByRecordPath.get(canonicalPath)
-    : undefined;
-  if (
-    !record ||
-    record.kind !== 'output' ||
-    !analysis
-  ) {
-    return valueSpan;
-  }
+  if (!located || located.kind !== 'output') return valueSpan;
+  const { record, analysis } = located;
 
   return (
     <AstraPreviewPopover

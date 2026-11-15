@@ -56,7 +56,15 @@ publication bundle in the MyST output. The theme validates that bundle with
 - Lightcone styling from
   [`@lightcone-research/brand`](https://www.npmjs.com/package/@lightcone-research/brand).
 
+The theme consumes ASTRA 0.1 reports through MySTRA's
+`astra-publication-bundle.v2` transport: a resolved analysis, status report,
+active analysis key and universe, and resource tokens keyed by result ID.
+The inventory switches universes from the same report. Artifact URLs come only
+from MyST-rewritten resource links whose result ID and byte token match that
+transport; historical results never fall back to a current worktree path.
+
 If the bundle is missing or invalid, the plain MyST content still renders.
+The former publication v1 transport and pre-0.1 analyses are unsupported.
 `@astra-spec/ui` and the brand package are pinned to exact versions because the
 JupyterLab and VS Code hosts share the same rendering contract.
 

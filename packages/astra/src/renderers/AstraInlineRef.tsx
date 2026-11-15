@@ -1,8 +1,11 @@
 import { useBaseurl } from '@myst-theme/providers';
 import { previewHref } from '../viewerTransport';
 import * as React from 'react';
-import { InlineReference, type InlineReferenceProps } from '@astra-spec/ui/primitives';
-import type { ResolvedRecord } from '@astra-spec/sdk';
+import {
+  InlineReference,
+  type InlineReferenceProps,
+} from '@astra-spec/ui/primitives';
+import { locateRecord, type RecordKind } from '@astra-spec/ui/model';
 import { primaryLiteratureEvidence } from '@astra-spec/ui/model';
 import type { GenericNode } from 'myst-common';
 import { MyST } from 'myst-to-react';
@@ -12,12 +15,14 @@ import { AstraPreviewPopover } from '../preview';
 import { useAstraPublication } from '../publication/AstraPublicationProvider';
 import {
   astraMetadata,
+  publicationForMetadata,
+  analysisKeyMetadata,
   nodeClassName,
   safeNavigationHref,
   stringMetadata,
 } from '../rendererUtils';
 
-const PREVIEWABLE_RECORD_KINDS = new Set<ResolvedRecord['kind']>([
+const PREVIEWABLE_RECORD_KINDS = new Set<RecordKind>([
   'decision',
   'output',
   'finding',
@@ -59,22 +64,27 @@ function tokenSpan(node: GenericNode): React.ReactElement {
 
 /** Rich inline ASTRA references resolved solely through canonical SDK identity. */
 export const AstraInlineRef: React.FC<{ node: GenericNode }> = ({ node }) => {
-  const publication = useAstraPublication();
+  const current = useAstraPublication();
   const baseurl = useBaseurl();
   const metadata = astraMetadata(node);
+  const publication = publicationForMetadata(current, metadata);
   const kind = stringMetadata(metadata, 'kind');
   const token = tokenSpan(node);
 
   if (!publication || !kind) return token;
 
   if (kind === 'analysis') {
-    const analysisPath = stringMetadata(metadata, 'analysisPath');
-    const analysis = analysisPath
-      ? publication.index.analysisByPath.get(analysisPath)
-      : undefined;
+    const analysisPath = analysisKeyMetadata(metadata);
+    const analysis =
+      analysisPath === undefined
+        ? undefined
+        : publication.index.analysisByKey.get(analysisPath);
     if (!analysis) return token;
 
-    const href = previewHref(safeNavigationHref(stringMetadata(metadata, 'href')), baseurl);
+    const href = previewHref(
+      safeNavigationHref(stringMetadata(metadata, 'href')),
+      baseurl,
+    );
     const trigger = href ? (
       <a className="astra-ref-anchor" href={href}>
         {token}
@@ -92,21 +102,19 @@ export const AstraInlineRef: React.FC<{ node: GenericNode }> = ({ node }) => {
     );
   }
 
-  if (!PREVIEWABLE_RECORD_KINDS.has(kind as ResolvedRecord['kind'])) {
+  if (!PREVIEWABLE_RECORD_KINDS.has(kind as RecordKind)) {
     return token;
   }
   const canonicalPath = stringMetadata(metadata, 'canonicalPath');
-  const record = canonicalPath
-    ? publication.index.recordByPath.get(canonicalPath)
+  const located = canonicalPath
+    ? locateRecord(publication.index, canonicalPath)
     : undefined;
-  const analysis = canonicalPath
-    ? publication.index.analysisByRecordPath.get(canonicalPath)
-    : undefined;
-  if (!record || record.kind !== kind || !analysis) return token;
-
-  const source = record.kind === 'prior_insight'
-    ? primaryLiteratureEvidence(record)
-    : undefined;
+  if (!located || located.kind !== kind) return token;
+  const { record, analysis } = located;
+  const source =
+    located.kind === 'prior_insight'
+      ? primaryLiteratureEvidence(located.record)
+      : undefined;
 
   return (
     <>

@@ -2,22 +2,21 @@ import { useBaseurl } from '@myst-theme/providers';
 import { previewHref } from '../viewerTransport';
 import { InlineReference } from '@astra-spec/ui/primitives';
 import * as React from 'react';
-import type {
-  ResolvedAnalysisNode,
-  ResolvedDecision,
-  ResolvedOutput,
-} from '@astra-spec/sdk';
 import {
-  linkedRecord,
-  selectedOptionLabel,
-  type LinkedRecord,
-} from '@astra-spec/ui/model';
+  getSelectedOption,
+  type Analysis,
+  type Decision,
+  type Output,
+  type Result,
+} from '@astra-spec/sdk/reports';
+import { recordId } from '@astra-spec/ui/model';
 import { Prose } from '@astra-spec/ui/primitives';
 import type { GenericNode } from 'myst-common';
 import { MyST } from 'myst-to-react';
 
 import { AstraPreviewPopover } from '../preview';
 import type { AstraPublication } from '../publication/AstraPublicationProvider';
+import { publicationResult } from '../publication/contract';
 import {
   NeutralNode,
   nodeClassName,
@@ -80,104 +79,91 @@ function MetricStat({ metric }: { metric: MetricView }) {
       {metric.uncertainty ? (
         <span className="astra-metric__uncertainty">{metric.uncertainty}</span>
       ) : null}
-      {metric.unit ? <span className="astra-metric__unit">{metric.unit}</span> : null}
-      {metric.label ? <span className="astra-metric__label">{metric.label}</span> : null}
+      {metric.unit ? (
+        <span className="astra-metric__unit">{metric.unit}</span>
+      ) : null}
+      {metric.label ? (
+        <span className="astra-metric__label">{metric.label}</span>
+      ) : null}
     </div>
   );
 }
 
 interface ProvenanceDecision {
-  decision: ResolvedDecision;
-  analysis: ResolvedAnalysisNode;
+  decision: Decision;
+  analysis: Analysis;
+  universe?: string;
   via?: string;
 }
-
-function provenanceDecisions(
-  publication: AstraPublication,
-  links: LinkedRecord[],
-): ProvenanceDecision[] {
-  const seen = new Set<string>();
-  const decisions: ProvenanceDecision[] = [];
-  for (const link of links) {
-    if (seen.has(link.canonicalPath)) continue;
-    seen.add(link.canonicalPath);
-    if (link.record?.kind !== 'decision' || !link.analysis) continue;
-    const isCurrent =
-      link.analysis.canonicalPath === publication.activeAnalysis.canonicalPath;
-    const via = isCurrent
-      ? undefined
-      : link.analysis.canonicalPath === '$'
-        ? 'root'
-        : link.analysis.canonicalPath;
-    decisions.push({
-      decision: link.record,
-      analysis: link.analysis,
-      via,
-    });
-  }
-  return decisions;
+interface SourceInput {
+  ref: string;
+  label?: string;
+  id?: string;
 }
-
 interface TracedProvenance {
-  decisions: LinkedRecord[];
-  inputs: LinkedRecord[];
+  decisions: ProvenanceDecision[];
+  inputs: SourceInput[];
 }
 
-/** Preserve the released decision anchor for direct and inherited records. */
+/** Preserve direct and inherited decision anchors using analysis keys. */
 function decisionHref(item: ProvenanceDecision): string {
-  const anchor = `#decision-${item.decision.id}`;
+  const anchor = `#decision-${recordId(item.decision)}`;
   if (!item.via) return anchor;
-  return item.via === 'root'
-    ? `/${anchor}`
-    : `/${item.via.split('.').join('/')}${anchor}`;
+  return item.analysis.key
+    ? `/${item.analysis.key.split('.').join('/')}${anchor}`
+    : `/${anchor}`;
 }
 
-/**
- * Trace provenance in authored, depth-first order. This matches the released
- * transport's flattened provenance while deriving it from canonical records.
- */
+/** Follow effective result inputs, including cross-universe pins and cycles. */
 function traceOutputProvenance(
   publication: AstraPublication,
-  output: ResolvedOutput,
+  output: Output,
 ): TracedProvenance {
-  const decisions = new Map<string, LinkedRecord>();
-  const roots = new Map<string, LinkedRecord>();
-  const seenOutputs = new Set<string>();
-  const seenDependencies = new Set<string>();
-
-  const visitDependency = (path: string): void => {
-    if (seenDependencies.has(path)) return;
-    seenDependencies.add(path);
-    const link = linkedRecord(publication.index, path);
-    const record = link.record;
-    if (!record) {
-      roots.set(path, link);
-    } else if (record.kind === 'input') {
-      if (record.resolvedFrom) visitDependency(record.resolvedFrom);
-      else roots.set(record.canonicalPath, link);
-    } else if (record.kind === 'output') {
-      visitOutput(record);
+  const decisions = new Map<string, ProvenanceDecision>();
+  const inputs = new Map<string, SourceInput>();
+  const visited = new Set<string>();
+  const visit = (result: Result): void => {
+    if (visited.has(result.id)) return;
+    visited.add(result.id);
+    const indexed = publication.index.elementByRef.get(result.output);
+    if (indexed?.collection !== 'outputs') return;
+    const universe = result.universe ?? publication.universe;
+    for (const ref of indexed.element.decisions) {
+      const entry = publication.index.elementByRef.get(ref);
+      if (entry?.collection !== 'decisions') continue;
+      const identity = JSON.stringify([ref, universe]);
+      if (decisions.has(identity)) continue;
+      decisions.set(identity, {
+        decision: entry.element,
+        analysis: entry.analysis,
+        universe,
+        via:
+          entry.analysis.key === publication.activeAnalysis.key
+            ? undefined
+            : entry.analysis.key || 'root',
+      });
     }
-  };
-
-  const visitOutput = (candidate: ResolvedOutput): void => {
-    if (seenOutputs.has(candidate.canonicalPath)) return;
-    seenOutputs.add(candidate.canonicalPath);
-    for (const path of candidate.provenance.decisionPaths) {
-      if (!decisions.has(path)) {
-        decisions.set(path, linkedRecord(publication.index, path));
+    for (const source of result.inputs) {
+      if (source.result) {
+        const upstream = publication.index.resultById.get(source.result);
+        if (upstream) visit(upstream);
+      } else {
+        const ref = source.input ?? source.entry;
+        const entry = publication.index.elementByRef.get(ref);
+        inputs.set(ref, {
+          ref,
+          label: entry?.element.label,
+          id:
+            entry?.collection === 'inputs'
+              ? recordId(entry.element)
+              : undefined,
+        });
       }
     }
-    for (const path of candidate.provenance.inputPaths) {
-      visitDependency(path);
-    }
   };
-
-  visitOutput(output);
-  return {
-    decisions: [...decisions.values()],
-    inputs: [...roots.values()],
-  };
+  const result = publicationResult(publication, output);
+  if (result) visit(result);
+  return { decisions: [...decisions.values()], inputs: [...inputs.values()] };
 }
 
 function ProvenanceDecisionRef({
@@ -194,7 +180,7 @@ function ProvenanceDecisionRef({
         className="astra-ref astra-ref--decision"
         href={previewHref(decisionHref(item), baseurl)}
       >
-        {item.decision.label ?? item.decision.id}
+        {item.decision.label ?? recordId(item.decision)}
       </a>
     </InlineReference>
   );
@@ -214,11 +200,11 @@ function ProvenanceDrawer({
   output,
   publication,
 }: {
-  output: ResolvedOutput;
+  output: Output;
   publication: AstraPublication;
 }) {
   const traced = traceOutputProvenance(publication, output);
-  const decisions = provenanceDecisions(publication, traced.decisions);
+  const decisions = traced.decisions;
   const inputs = traced.inputs;
   if (!decisions.length && !inputs.length) return null;
 
@@ -227,15 +213,36 @@ function ProvenanceDrawer({
       <summary>Provenance</summary>
       {decisions.length ? (
         <>
-          <div className="astra-card__section">Decisions ({decisions.length})</div>
+          <div className="astra-card__section">
+            Decisions ({decisions.length})
+          </div>
           <ul className="astra-output__prov-decisions">
             {decisions.map((item) => (
-              <li key={item.decision.canonicalPath} className="astra-output__prov-row">
+              <li
+                key={JSON.stringify([item.decision.ref, item.universe])}
+                className="astra-output__prov-row"
+              >
                 <ProvenanceDecisionRef item={item} publication={publication} />
-                {item.via ? <span className="astra-prov-via">via {item.via}</span> : null}
-                {item.decision.selectedOptionId ? (
+                {item.via ? (
+                  <span className="astra-prov-via">via {item.via}</span>
+                ) : null}
+                {item.universe &&
+                getSelectedOption(
+                  publication.index,
+                  item.universe,
+                  item.decision.ref,
+                ) ? (
                   <span className="astra-prov-selection">
-                    {selectedOptionLabel(item.decision)}
+                    {getSelectedOption(
+                      publication.index,
+                      item.universe!,
+                      item.decision.ref,
+                    )?.label ??
+                      getSelectedOption(
+                        publication.index,
+                        item.universe!,
+                        item.decision.ref,
+                      )?.id}
                   </span>
                 ) : null}
               </li>
@@ -245,15 +252,17 @@ function ProvenanceDrawer({
       ) : null}
       {inputs.length ? (
         <>
-          <div className="astra-card__section">Source data ({inputs.length})</div>
+          <div className="astra-card__section">
+            Source data ({inputs.length})
+          </div>
           <div className="astra-output__prov-row">
             {inputs.map((input) => (
               <code
-                key={input.canonicalPath}
+                key={input.id ?? input.ref}
                 className="astra-flow__node"
-                title={input.record?.label ?? input.record?.id ?? input.canonicalPath}
+                title={input.label ?? input.ref}
               >
-                {input.record?.id ?? input.canonicalPath}
+                {input.id ?? input.ref}
               </code>
             ))}
           </div>
@@ -263,7 +272,7 @@ function ProvenanceDrawer({
   );
 }
 
-function OutputCaption({ output }: { output: ResolvedOutput }) {
+function OutputCaption({ output }: { output: Output }) {
   const text = output.description ?? output.label;
   return text ? (
     <div className="astra-output__caption">
@@ -299,14 +308,16 @@ export function AstraOutput({ node }: AstraOutputProps): React.ReactElement {
 
   const { publication, record: output } = located;
   const hasStockChildren = Boolean(node.children?.length);
-  const actualSubtype = subtype === 'unknown' && output.type === 'metric'
-    ? 'metric'
-    : subtype;
-  const metric = actualSubtype === 'metric' ? metricFromChildren(node) : undefined;
+  const actualSubtype =
+    subtype === 'unknown' && output.type === 'metric' ? 'metric' : subtype;
+  const metric =
+    actualSubtype === 'metric' ? metricFromChildren(node) : undefined;
 
   let body: React.ReactNode = hasStockChildren ? stockChildren : null;
-  if (actualSubtype === 'metric' && metric) body = <MetricStat metric={metric} />;
-  if (!body && actualSubtype === 'metric') body = <OutputCaption output={output} />;
+  if (actualSubtype === 'metric' && metric)
+    body = <MetricStat metric={metric} />;
+  if (!body && actualSubtype === 'metric')
+    body = <OutputCaption output={output} />;
 
   return (
     <div className={className} id={identifier}>

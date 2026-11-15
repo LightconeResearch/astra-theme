@@ -2,10 +2,12 @@ import { useBaseurl } from '@myst-theme/providers';
 import { previewHref } from './viewerTransport';
 import * as React from 'react';
 import type {
-  ResolvedAnalysisNode,
-  ResolvedInsight,
-  ResolvedRecord,
-} from '@astra-spec/sdk';
+  Analysis,
+  Input,
+  Output,
+  Decision,
+  Insight,
+} from '@astra-spec/sdk/reports';
 import type { GenericNode } from 'myst-common';
 import { MyST } from 'myst-to-react';
 
@@ -27,13 +29,17 @@ export interface AstraNodeMetadata extends UnknownRecord {
   filter?: unknown;
   product?: unknown;
   selection?: unknown;
+  universe?: unknown;
   unit?: unknown;
 }
 
 /** Read only MySTRA's canonical node metadata; identifiers are presentation only. */
-export function astraMetadata(node: GenericNode): AstraNodeMetadata | undefined {
+export function astraMetadata(
+  node: GenericNode,
+): AstraNodeMetadata | undefined {
   const data = node.data;
-  if (!data || typeof data !== 'object' || Array.isArray(data)) return undefined;
+  if (!data || typeof data !== 'object' || Array.isArray(data))
+    return undefined;
   const value = (data as UnknownRecord).astra;
   return value && typeof value === 'object' && !Array.isArray(value)
     ? (value as AstraNodeMetadata)
@@ -46,6 +52,24 @@ export function stringMetadata(
 ): string | undefined {
   const value = metadata?.[key];
   return typeof value === 'string' && value.trim() ? value : undefined;
+}
+
+/** A placed request can select a universe independently of its page. */
+export function publicationForMetadata(
+  publication: AstraPublication | undefined,
+  metadata: AstraNodeMetadata | undefined,
+): AstraPublication | undefined {
+  if (!publication) return undefined;
+  const universe = metadata?.universe;
+  if (universe === undefined) return publication;
+  if (
+    typeof universe !== 'string' ||
+    publication.index.elementByRef.get(universe)?.collection !== 'universes'
+  )
+    return undefined;
+  return universe === publication.universe
+    ? publication
+    : { ...publication, universe };
 }
 
 /**
@@ -79,7 +103,9 @@ export function nodeClassName(node: GenericNode, fallback = ''): string {
   const value = (node as { class?: unknown }).class;
   if (typeof value === 'string') return value;
   if (Array.isArray(value)) {
-    return value.filter((item): item is string => typeof item === 'string').join(' ');
+    return value
+      .filter((item): item is string => typeof item === 'string')
+      .join(' ');
   }
   return fallback;
 }
@@ -124,62 +150,93 @@ export function NeutralNode({
   return <MyST ast={clone} />;
 }
 
-type RecordKind = ResolvedRecord['kind'];
-type RecordForKind<K extends RecordKind> = K extends
+export type RecordKind =
+  | 'input'
+  | 'output'
+  | 'decision'
   | 'finding'
-  | 'prior_insight'
-  ? ResolvedInsight
-  : Extract<ResolvedRecord, { kind: K }>;
+  | 'prior_insight';
+interface RecordTypes {
+  input: Input;
+  output: Output;
+  decision: Decision;
+  finding: Insight;
+  prior_insight: Insight;
+}
+const RECORD_COLLECTIONS = {
+  input: 'inputs',
+  output: 'outputs',
+  decision: 'decisions',
+  finding: 'findings',
+  prior_insight: 'prior_insights',
+} as const;
 
 export interface LocatedRecord<K extends RecordKind> {
   publication: AstraPublication;
-  record: RecordForKind<K>;
-  analysis: ResolvedAnalysisNode;
+  record: RecordTypes[K];
+  analysis: Analysis;
 }
 
-/** Canonical SDK lookup for one placed record. */
+/** Look up the placed element and its owner without parsing its ref. */
 export function useAstraRecord<K extends RecordKind>(
   node: GenericNode,
   kind: K,
 ): LocatedRecord<K> | undefined {
-  const publication = useAstraPublication();
+  const current = useAstraPublication();
   const metadata = astraMetadata(node);
+  const publication = publicationForMetadata(current, metadata);
   if (!publication || metadata?.kind !== kind) return undefined;
-  const canonicalPath = stringMetadata(metadata, 'canonicalPath');
-  if (!canonicalPath) return undefined;
-  const record = publication.index.recordByPath.get(canonicalPath);
-  const analysis = publication.index.analysisByRecordPath.get(canonicalPath);
-  if (!record || record.kind !== kind || !analysis) return undefined;
+  const ref = stringMetadata(metadata, 'canonicalPath');
+  const entry = ref ? publication.index.elementByRef.get(ref) : undefined;
+  if (!entry || entry.collection !== RECORD_COLLECTIONS[kind]) return undefined;
   return {
     publication,
-    record: record as RecordForKind<K>,
-    analysis,
+    record: entry.element as RecordTypes[K],
+    analysis: entry.analysis,
   };
+}
+
+/** Analysis keys include the root's empty string. */
+export function analysisKeyMetadata(
+  metadata: AstraNodeMetadata | undefined,
+): string | undefined {
+  return typeof metadata?.analysisPath === 'string'
+    ? metadata.analysisPath
+    : undefined;
 }
 
 export interface LocatedAnalysis {
   publication: AstraPublication;
-  analysis: ResolvedAnalysisNode;
+  analysis: Analysis;
   href?: string;
 }
 
 /** Canonical SDK lookup for an analysis reference/card. */
-export function useAstraAnalysis(node: GenericNode): LocatedAnalysis | undefined {
-  const publication = useAstraPublication();
+export function useAstraAnalysis(
+  node: GenericNode,
+): LocatedAnalysis | undefined {
+  const current = useAstraPublication();
   const baseurl = useBaseurl();
   const metadata = astraMetadata(node);
+  const publication = publicationForMetadata(current, metadata);
   if (!publication || metadata?.kind !== 'analysis') return undefined;
-  const analysisPath = stringMetadata(metadata, 'analysisPath');
-  const analysis = analysisPath
-    ? publication.index.analysisByPath.get(analysisPath)
-    : undefined;
+  const analysisPath = analysisKeyMetadata(metadata);
+  const analysis =
+    analysisPath === undefined
+      ? undefined
+      : publication.index.analysisByKey.get(analysisPath);
   if (!analysis) return undefined;
-  const href = previewHref(safeNavigationHref(stringMetadata(metadata, 'href')), baseurl);
+  const href = previewHref(
+    safeNavigationHref(stringMetadata(metadata, 'href')),
+    baseurl,
+  );
   return { publication, analysis, ...(href ? { href } : {}) };
 }
 
 /** Relative or explicit HTTP(S) navigation only. */
-export function safeNavigationHref(value: string | undefined): string | undefined {
+export function safeNavigationHref(
+  value: string | undefined,
+): string | undefined {
   if (!value || /[\u0000-\u001f\u007f]/.test(value)) return undefined;
   const href = value.trim();
   if (!href || /^[\\/]{2}/.test(href)) return undefined;

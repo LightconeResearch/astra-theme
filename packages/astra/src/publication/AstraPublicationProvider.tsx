@@ -1,13 +1,18 @@
 import * as React from 'react';
+import { selectResult } from '@astra-spec/sdk/reports';
 import { createPortal } from 'react-dom';
-import { ArtifactPreview, RecordDialog, type ArtifactRenderer } from '@astra-spec/ui/components';
+import {
+  ArtifactPreview,
+  RecordDialog,
+  type ArtifactRenderer,
+} from '@astra-spec/ui/components';
 import {
   useDetailStack,
   type DetailEntry,
   type OpenRecordHandler,
   type PdfJsLoader,
 } from '@astra-spec/ui/lib';
-import { recordTitle } from '@astra-spec/ui/model';
+import { locateRecord, recordId, recordTitle } from '@astra-spec/ui/model';
 import type { GenericNode, GenericParent, References } from 'myst-common';
 
 import { doiCiteTitles } from '../cite';
@@ -17,6 +22,7 @@ import { usePdfJsLoader } from '../pdf';
 import { AstraThemeScope, useAstraColorScheme } from '../themeScope';
 import {
   findAstraPublication,
+  publicationResult,
   type AstraPublication,
 } from './contract';
 
@@ -47,16 +53,28 @@ export interface AstraPublicationProviderProps {
 export function createAstraArtifactRenderer(
   publication: AstraPublication,
 ): ArtifactRenderer {
-  return (output, { compact }) => {
-    const url = publication.artifactUrls.get(output.canonicalPath);
+  return (output, { compact, result, universeRef, status }) => {
+    const selected =
+      result ??
+      (universeRef === undefined
+        ? publicationResult(publication, output)
+        : selectResult(publication.index, output.ref, universeRef));
+    const url = selected
+      ? publication.artifactUrls.get(selected.id)
+      : undefined;
     if (output.type === 'figure' && url) {
       return (
         <ArtifactPreview
           output={output}
+          result={selected}
+          status={
+            status ??
+            (selected ? publication.status.statuses[selected.id] : undefined)
+          }
           preview={{
             kind: 'image',
             url,
-            alt: output.label ?? output.id,
+            alt: output.label ?? recordId(output),
           }}
           compact={compact}
           caption={null}
@@ -65,7 +83,17 @@ export function createAstraArtifactRenderer(
       );
     }
     if (output.type === 'figure' || output.type === 'table') {
-      return compact ? null : <ArtifactPreview output={output} compact={false} />;
+      return compact ? null : (
+        <ArtifactPreview
+          output={output}
+          result={selected}
+          status={
+            status ??
+            (selected ? publication.status.statuses[selected.id] : undefined)
+          }
+          compact={false}
+        />
+      );
     }
     return null;
   };
@@ -77,8 +105,8 @@ function detailTitle(
 ): string | undefined {
   if (!entry) return undefined;
   if (entry.kind === 'paper') return entry.doi;
-  const record = publication.index.recordByPath.get(entry.canonicalPath);
-  return record ? recordTitle(record) : undefined;
+  const record = locateRecord(publication.index, entry.canonicalPath);
+  return record ? recordTitle(record.record) : undefined;
 }
 
 function AstraPublicationBoundary({
@@ -104,17 +132,20 @@ function AstraPublicationBoundary({
   }, [publication, details.close]);
 
   const detailContext = React.useMemo<AstraPublicationDetails | undefined>(
-    () => publication ? { onOpenRecord: details.openRecord } : undefined,
+    () => (publication ? { onOpenRecord: details.openRecord } : undefined),
     [publication, details.openRecord],
   );
   const renderArtifact = React.useMemo(
-    () => publication ? createAstraArtifactRenderer(publication) : undefined,
+    () => (publication ? createAstraArtifactRenderer(publication) : undefined),
     [publication],
   );
   // Papers are read straight from arXiv when a DOI names one; every other
   // paper keeps astra-ui's DOI-link state. See ../papers.ts.
   const paperMetadata = React.useMemo(
-    () => (publication?.document ? citedPaperMetadata(publication.document, paperTitles) : undefined),
+    () =>
+      publication?.document
+        ? citedPaperMetadata(publication.document, paperTitles)
+        : undefined,
     [publication, paperTitles],
   );
   const siteLoader = usePdfJsLoader();
@@ -133,29 +164,33 @@ function AstraPublicationBoundary({
             loadPdfJs={loadPdfJs}
           />
         )}
-        {publication && activeDetail ? createPortal(
-          <div
-            className="lightcone-brand astra-ui astra-isolate"
-            data-lightcone-color-scheme={scheme}
-            data-astra-color-scheme={scheme}
-            style={{ display: 'contents' }}
-          >
-            <RecordDialog
-              entry={activeDetail}
-              document={publication.document}
-              index={publication.index}
-              renderArtifact={renderArtifact}
-              paperMetadata={paperMetadata}
-              loadPdfJs={loadPdfJs}
-              onOpenRecord={details.pushRecord}
-              onOpenPaper={details.pushPaper}
-              onBack={details.previous ? details.back : undefined}
-              backText={detailTitle(publication, details.previous)}
-              onClose={details.close}
-            />
-          </div>,
-          document.body,
-        ) : null}
+        {publication && activeDetail
+          ? createPortal(
+              <div
+                className="lightcone-brand astra-ui astra-isolate"
+                data-lightcone-color-scheme={scheme}
+                data-astra-color-scheme={scheme}
+                style={{ display: 'contents' }}
+              >
+                <RecordDialog
+                  entry={activeDetail}
+                  document={publication.document}
+                  index={publication.index}
+                  universeRef={publication.universe}
+                  statusReport={publication.status}
+                  renderArtifact={renderArtifact}
+                  paperMetadata={paperMetadata}
+                  loadPdfJs={loadPdfJs}
+                  onOpenRecord={details.pushRecord}
+                  onOpenPaper={details.pushPaper}
+                  onBack={details.previous ? details.back : undefined}
+                  backText={detailTitle(publication, details.previous)}
+                  onClose={details.close}
+                />
+              </div>,
+              document.body,
+            )
+          : null}
       </AstraPublicationDetailsContext.Provider>
     </AstraPublicationContext.Provider>
   );
@@ -177,8 +212,13 @@ export function AstraPublicationProvider({
   // AST carries them when the references do not.
   const paperTitles = React.useMemo(() => {
     const article =
-      references?.article ?? (Array.isArray(mdast) ? { type: 'root', children: mdast } : mdast);
-    return doiCiteTitles(article ? { ...references, article: article as GenericParent } : references);
+      references?.article ??
+      (Array.isArray(mdast) ? { type: 'root', children: mdast } : mdast);
+    return doiCiteTitles(
+      article
+        ? { ...references, article: article as GenericParent }
+        : references,
+    );
   }, [references, mdast]);
 
   return (
@@ -227,7 +267,14 @@ export function AstraInventoryButton({
       href="#astra-inventory"
       aria-haspopup="dialog"
       onClick={(event) => {
-        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        if (
+          event.button !== 0 ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.shiftKey ||
+          event.altKey
+        )
+          return;
         // Keep native link behaviour for new tabs, but avoid the router's
         // scroll reset when opening a view over the current reading page.
         event.preventDefault();
@@ -237,8 +284,17 @@ export function AstraInventoryButton({
     >
       {/* Default icon: Lucide Sparkles, matching astra-spec. ISC license: see NOTICE. */}
       {children ?? (
-        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          aria-hidden="true"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594zM20 2v4M22 4h-4" />
           <circle cx="4" cy="20" r="2" />
         </svg>
