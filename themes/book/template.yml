@@ -9,7 +9,7 @@ description: >-
   renders richly here by changing one line: `site.template: astra-book-theme`.
 version: 0.0.16
 license: BSD-3-Clause
-source: https://github.com/LightconeResearch/astra-theme
+source: https://github.com/astra-project/astra-theme
 tags:
   - book
   - astra
