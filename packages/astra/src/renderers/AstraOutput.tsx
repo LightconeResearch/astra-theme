@@ -3,11 +3,11 @@ import { previewHref } from '../viewerTransport';
 import { InlineReference } from '@astra-spec/ui/primitives';
 import * as React from 'react';
 import {
-  getSelectedOption,
+  traceResultProvenance,
   type Analysis,
   type Decision,
+  type Option,
   type Output,
-  type Result,
 } from '@astra-spec/sdk/reports';
 import { recordId } from '@astra-spec/ui/model';
 import { Prose } from '@astra-spec/ui/primitives';
@@ -93,6 +93,7 @@ interface ProvenanceDecision {
   decision: Decision;
   analysis: Analysis;
   universe?: string;
+  option?: Option;
   via?: string;
 }
 interface SourceInput {
@@ -114,55 +115,36 @@ function decisionHref(item: ProvenanceDecision): string {
     : `/${anchor}`;
 }
 
-/** Follow effective result inputs, including cross-universe pins and cycles. */
+/** Group SDK provenance occurrences for the publication's compact summary. */
 function traceOutputProvenance(
   publication: AstraPublication,
   output: Output,
 ): TracedProvenance {
-  const decisions = new Map<string, ProvenanceDecision>();
-  const inputs = new Map<string, SourceInput>();
-  const visited = new Set<string>();
-  const visit = (result: Result): void => {
-    if (visited.has(result.id)) return;
-    visited.add(result.id);
-    const indexed = publication.index.elementByRef.get(result.output);
-    if (indexed?.collection !== 'outputs') return;
-    const universe = result.universe ?? publication.universe;
-    for (const ref of indexed.element.decisions) {
-      const entry = publication.index.elementByRef.get(ref);
-      if (entry?.collection !== 'decisions') continue;
-      const identity = JSON.stringify([ref, universe]);
-      if (decisions.has(identity)) continue;
-      decisions.set(identity, {
-        decision: entry.element,
-        analysis: entry.analysis,
-        universe,
-        via:
-          entry.analysis.key === publication.activeAnalysis.key
-            ? undefined
-            : entry.analysis.key || 'root',
-      });
-    }
-    for (const source of result.inputs) {
-      if (source.result) {
-        const upstream = publication.index.resultById.get(source.result);
-        if (upstream) visit(upstream);
-      } else {
-        const ref = source.input ?? source.entry;
-        const entry = publication.index.elementByRef.get(ref);
-        inputs.set(ref, {
-          ref,
-          label: entry?.element.label,
-          id:
-            entry?.collection === 'inputs'
-              ? recordId(entry.element)
-              : undefined,
-        });
-      }
-    }
-  };
   const result = publicationResult(publication, output);
-  if (result) visit(result);
+  if (!result) return { decisions: [], inputs: [] };
+  const traced = traceResultProvenance(publication.index, result.id);
+  const decisions = new Map<string, ProvenanceDecision>();
+  for (const item of traced.decisions) {
+    const entry = publication.index.elementByRef.get(item.decision.ref)!;
+    const identity = JSON.stringify([item.decision.ref, item.universe]);
+    if (decisions.has(identity)) continue;
+    decisions.set(identity, {
+      decision: item.decision,
+      analysis: entry.analysis,
+      universe: item.universe,
+      option: item.option,
+      via:
+        entry.analysis.key === publication.activeAnalysis.key
+          ? undefined
+          : entry.analysis.key || 'root',
+    });
+  }
+  const inputs = new Map(
+    traced.inputs.map(({ input }) => [
+      input.ref,
+      { ref: input.ref, label: input.label, id: recordId(input) },
+    ]),
+  );
   return { decisions: [...decisions.values()], inputs: [...inputs.values()] };
 }
 
@@ -189,7 +171,11 @@ function ProvenanceDecisionRef({
   if (item.via) return trigger;
   return (
     <AstraPreviewPopover
-      publication={publication}
+      publication={
+        item.universe === publication.universe
+          ? publication
+          : { ...publication, universe: item.universe }
+      }
       entry={{ kind: 'record', record: item.decision, analysis: item.analysis }}
       trigger={trigger}
     />
@@ -226,23 +212,9 @@ function ProvenanceDrawer({
                 {item.via ? (
                   <span className="astra-prov-via">via {item.via}</span>
                 ) : null}
-                {item.universe &&
-                getSelectedOption(
-                  publication.index,
-                  item.universe,
-                  item.decision.ref,
-                ) ? (
+                {item.option ? (
                   <span className="astra-prov-selection">
-                    {getSelectedOption(
-                      publication.index,
-                      item.universe!,
-                      item.decision.ref,
-                    )?.label ??
-                      getSelectedOption(
-                        publication.index,
-                        item.universe!,
-                        item.decision.ref,
-                      )?.id}
+                    {item.option.label ?? item.option.id}
                   </span>
                 ) : null}
               </li>

@@ -62,6 +62,8 @@ active analysis key and universe, and resource tokens keyed by result ID.
 The inventory switches universes from the same report. Artifact URLs come only
 from MyST-rewritten resource links whose result ID and byte token match that
 transport; historical results never fall back to a current worktree path.
+Evidence follows the selected universe's SDK bindings, including explicit pins.
+Output provenance uses the shared SDK trace for decision selections and source data.
 
 If the bundle is missing or invalid, the plain MyST content still renders.
 The former publication v1 transport and pre-0.1 analyses are unsupported.

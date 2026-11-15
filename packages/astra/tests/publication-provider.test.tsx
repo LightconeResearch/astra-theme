@@ -129,7 +129,7 @@ describe('AstraPublicationProvider', () => {
     expect(renderArtifact(metric as Output, { compact: false })).toBeNull();
   });
 
-  it('does not leak page-universe assets into an inactive selected universe', () => {
+  it('does not leak page-universe assets when the selected universe has no planned result', () => {
     const publication = makePublication();
     publication.document.results = publication.document.results.filter(
       (result) => result.id !== 'shear_plot#alternate',
@@ -148,7 +148,7 @@ describe('AstraPublicationProvider', () => {
     expect(container.querySelector('img')).toBeNull();
     expect(
       container.querySelector('[data-slot="artifact-preview"]'),
-    ).toHaveTextContent('This output is not active in the selected universe.');
+    ).toHaveTextContent('No result is planned for this output in the selected universe.');
   });
 
   it('uses the shared unavailable state when a verified figure fails to load', () => {
