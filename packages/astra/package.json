@@ -23,8 +23,8 @@
     "typecheck": "tsc --noEmit --skipLibCheck"
   },
   "dependencies": {
-    "@astra-spec/sdk": "^0.1.2",
-    "@astra-spec/ui": "0.0.6",
+    "@astra-spec/sdk": "git+https://github.com/LightconeResearch/astra-typescript.git#c49a2932e48ea80c7a0b0db3a7e747f71cc46e0b",
+    "@astra-spec/ui": "https://pkg.pr.new/@astra-spec/ui@a6b362b16fad3ececcb8c17dc03098887d262510",
     "@lightcone-research/brand": "0.0.3",
     "@myst-theme/providers": "^1.3.1",
     "myst-common": "^1.8.1",

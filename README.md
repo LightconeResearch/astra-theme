@@ -65,8 +65,12 @@ transport; historical results never fall back to a current worktree path.
 
 If the bundle is missing or invalid, the plain MyST content still renders.
 The former publication v1 transport and pre-0.1 analyses are unsupported.
-`@astra-spec/ui` and the brand package are pinned to exact versions because the
-JupyterLab and VS Code hosts share the same rendering contract.
+The SDK is pinned to the candidate commit from
+[astra-typescript #17](https://github.com/LightconeResearch/astra-typescript/pull/17),
+and the UI uses an immutable review build from
+[astra-ui #38](https://github.com/LightconeResearch/astra-ui/pull/38). These pins
+make the coordinated migration installable before the npm releases. The brand
+package retains its exact published version.
 
 ## Development
 
