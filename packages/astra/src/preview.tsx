@@ -133,8 +133,16 @@ export function AstraPreviewPopover({
     React.useCallback<RecordPreviewReferenceRenderer>(
       ({ target, trigger: relatedTrigger }) => (
         <AstraPreviewPopover
-          publication={publication}
-          entry={{ kind: 'record', ...target }}
+          publication={
+            target.universeRef === publication.universe
+              ? publication
+              : { ...publication, universe: target.universeRef }
+          }
+          entry={{
+            kind: 'record',
+            record: target.record,
+            analysis: target.analysis,
+          }}
           trigger={relatedTrigger}
           triggerClassName=""
           openDetailsOnTrigger={false}

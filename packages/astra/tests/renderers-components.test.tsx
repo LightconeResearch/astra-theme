@@ -131,6 +131,54 @@ describe('canonical SDK-backed ASTRA renderers', () => {
     );
   });
 
+  it('keeps a pinned citation universe through nested output hover and details', async () => {
+    const publication = makePublication();
+    publication.document.analyses[0]!.findings[0]!.evidence[0]!.cites = [
+      'shear_plot#alternate',
+    ];
+    const node = {
+      type: 'span',
+      class: 'astra-ref astra-ref--finding',
+      data: {
+        astra: { kind: 'finding', canonicalPath: 'findings.s8_consistent' },
+      },
+      children: [
+        { type: 'text', key: 'pinned-finding-label', value: 'the finding' },
+      ],
+    } as GenericNode;
+    const { container } = renderWithProviders(
+      <AstraInlineRef node={node} />,
+      publication,
+    );
+    fireEvent.focus(container.querySelector('.astra-ref-trigger')!);
+    const findingPreview = await screen.findByRole('dialog', {
+      name: /S8 consistent with Planck finding preview/i,
+    });
+    expect(findingPreview.querySelector('img')).toHaveAttribute(
+      'src',
+      '/myst-assets/shear_plot-alternate.png',
+    );
+    const outputTrigger = within(findingPreview).getByRole('button', {
+      name: /Open output details: Shear correlation plot/i,
+    });
+    fireEvent.focus(outputTrigger);
+    const outputPreview = await screen.findByRole('dialog', {
+      name: /Shear correlation plot output preview/i,
+    });
+    expect(outputPreview.querySelector('img')).toHaveAttribute(
+      'src',
+      '/myst-assets/shear_plot-alternate.png',
+    );
+    fireEvent.click(outputTrigger);
+    const detail = await screen.findByRole('dialog', {
+      name: 'Shear correlation plot',
+    });
+    expect(detail.querySelector('img')).toHaveAttribute(
+      'src',
+      '/myst-assets/shear_plot-alternate.png',
+    );
+  });
+
   it('retains finding block classes and SDK prose', () => {
     const node: GenericNode = {
       type: 'div',
