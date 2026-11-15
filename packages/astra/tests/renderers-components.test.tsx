@@ -947,6 +947,87 @@ describe('canonical SDK-backed ASTRA renderers', () => {
     );
   });
 
+  it('shows switch-only provenance decisions in the selected universe', () => {
+    const publication = makePublication();
+    const analysis = publication.document.analyses[0]!;
+    analysis.outputs[0]!.inputs = [
+      { entry: 'chosen', target: 'switches.chosen' },
+    ];
+    analysis.switches = [{
+      ref: 'switches.chosen',
+      decision: 'decisions.cov_source',
+      cases: {
+        analytic: { entry: 'analytic_data', target: 'outputs.analytic_data' },
+        jackknife: { entry: 'jackknife_data', target: 'outputs.jackknife_data' },
+      },
+    }];
+    for (const method of ['analytic', 'jackknife']) {
+      analysis.outputs.push({
+        ref: `outputs.${method}_data`,
+        type: 'data', format: 'json', tags: [], decisions: [], inputs: [],
+      });
+      publication.document.results.push({
+        id: `${method}_data`, output: `outputs.${method}_data`,
+        places: [], inputs: [],
+      });
+    }
+    publication.document.results.find((result) => result.id === 'sigma8_metric#default')!.inputs = [
+      { entry: 'chosen', result: 'analytic_data' },
+    ];
+    publication.document.results.find((result) => result.id === 'sigma8_metric#alternate')!.inputs = [
+      { entry: 'chosen', result: 'jackknife_data' },
+    ];
+    publication.index = indexResolvedAnalysis(publication.document);
+    const node = {
+      type: 'div', class: 'astra-output astra-output--metric',
+      data: { astra: { kind: 'output', canonicalPath: 'outputs.sigma8_metric' } },
+      children: [],
+    } as GenericNode;
+    for (const [universe, option] of [['default', 'Analytic'], ['alternate', 'Jackknife']]) {
+      const { container, unmount } = renderWithProviders(
+        <AstraOutput node={node} />,
+        { ...publication, universe: `universes.${universe}` },
+      );
+      const provenance = container.querySelector('.astra-output__provenance');
+      expect(provenance).toHaveTextContent('Decisions (1)');
+      expect(provenance).toHaveTextContent('Covariance source');
+      expect(provenance?.querySelector('.astra-prov-selection')).toHaveTextContent(option);
+      unmount();
+    }
+  });
+
+  it.each(['Analytic', 'Jackknife'])(
+    'keeps both pinned provenance options and the %s preview context',
+    async (option) => {
+      const publication = makePublication();
+      publication.document.results[0]!.inputs = [
+        { entry: 'shear_plot#default', result: 'shear_plot#default' },
+        { entry: 'shear_plot#alternate', result: 'shear_plot#alternate' },
+      ];
+      const node = {
+        type: 'div', class: 'astra-output astra-output--metric',
+        data: { astra: { kind: 'output', canonicalPath: 'outputs.sigma8_metric' } },
+        children: [],
+      } as GenericNode;
+      const { container } = renderWithProviders(<AstraOutput node={node} />, publication);
+      const provenance = container.querySelector('.astra-output__provenance')!;
+      expect(provenance).toHaveTextContent('Decisions (2)');
+      const rows = [...provenance.querySelectorAll('.astra-output__prov-decisions li')];
+      expect(rows.map((row) => row.querySelector('.astra-prov-selection')?.textContent)).toEqual([
+        'Analytic', 'Jackknife',
+      ]);
+      fireEvent.click(provenance.querySelector('summary')!);
+      const row = rows.find((item) => item.querySelector('.astra-prov-selection')?.textContent === option)!;
+      const trigger = row.querySelector('.astra-ref-trigger')!;
+      fireEvent.focus(trigger);
+      const preview = await screen.findByRole('dialog', { name: /Covariance source decision preview/i });
+      expect(preview.querySelector('li[data-selected] strong')).toHaveTextContent(option);
+      fireEvent.click(trigger);
+      const detail = await screen.findByRole('dialog', { name: 'Covariance source' });
+      expect(detail.querySelector('.astra-decision-options li[data-selected] strong')).toHaveTextContent(option);
+    },
+  );
+
   it('keeps inherited provenance decisions as navigation-only links', () => {
     const publication = makePublication();
     const analysis = publication.document.analyses[0]!;
