@@ -19,9 +19,9 @@ permissions:
 
 jobs:
   preview:
-    uses: astra-project/astra-ui/.github/workflows/preview.yml@c5553e931203c47d6e863fa483259df1d93fa558
+    uses: astra-project/astra-ui/.github/workflows/preview.yml@87066d758710b9ec3085a57f4479df9775b2c056
     with:
-      ui: c5553e931203c47d6e863fa483259df1d93fa558
+      ui: 87066d758710b9ec3085a57f4479df9775b2c056
       theme: ${{ github.event.pull_request.head.sha }}
     secrets:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
