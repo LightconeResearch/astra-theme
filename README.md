@@ -68,7 +68,7 @@ Output provenance uses the shared SDK trace for decision selections and source d
 If the bundle is missing or invalid, the plain MyST content still renders.
 The former publication v1 transport and pre-0.1 analyses are unsupported.
 The SDK is pinned to the candidate commit from
-[astra-typescript #17](https://github.com/LightconeResearch/astra-typescript/pull/17),
+[astra-typescript #17](https://github.com/astra-project/astra-typescript/pull/17),
 and the UI uses an immutable review build from
 [astra-ui #38](https://github.com/LightconeResearch/astra-ui/pull/38). These pins
 make the coordinated migration installable before the npm releases. The brand
