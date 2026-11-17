@@ -5,7 +5,12 @@ import {
   type RecordPreviewReferenceRenderer,
 } from '@astra-spec/ui/components';
 import { LabelsProvider, type AstraLabelOverrides } from '@astra-spec/ui/lib';
-import { analysisTitle, recordTitle, type SurfaceKind } from '@astra-spec/ui/model';
+import {
+  analysisTitle,
+  recordKind,
+  recordTitle,
+  type SurfaceKind,
+} from '@astra-spec/ui/model';
 import { PreviewPopover } from '@astra-spec/ui/primitives';
 
 import { AstraPreviewCite } from './cite';
@@ -42,7 +47,7 @@ const PREVIEW_LABELS = {
 function entryKind(entry: RecordPreviewEntry): SurfaceKind | 'value' {
   if (entry.kind === 'value') return 'value';
   if (entry.kind === 'analysis') return 'analysis';
-  return entry.record.kind;
+  return recordKind(entry.record);
 }
 
 function entryTitle(entry: RecordPreviewEntry): string {
@@ -62,30 +67,12 @@ function entryForPreview(
       ? { ...entry, analysis: { ...entry.analysis, description: undefined } }
       : entry;
   }
-  if (
-    entry.kind === 'record' &&
-    entry.record.kind === 'input' &&
-    entry.record.from &&
-    entry.record.resolvedFrom
-  ) {
-    // Keep the authored alias visible, as it was in the released input card;
-    // the canonical target remains available to details and provenance.
-    return {
-      ...entry,
-      record: { ...entry.record, resolvedFrom: undefined },
-    };
-  }
-  if (
-    entry.kind !== 'record' ||
-    (entry.record.kind !== 'finding' && entry.record.kind !== 'prior_insight')
-  ) {
-    return entry;
-  }
-  const scope = displayScope(
-    entry.record.scope,
-    publication.document.universe.universeId,
-  );
-  return scope === entry.record.scope
+  if (entry.kind !== 'record') return entry;
+  const kind = recordKind(entry.record);
+  if (kind !== 'finding' && kind !== 'prior_insight') return entry;
+  const insight = entry.record as import('@astra-spec/sdk/reports').Insight;
+  const scope = displayScope(insight.scope, publication.universe);
+  return scope === insight.scope
     ? entry
     : { ...entry, record: { ...entry.record, scope } };
 }
@@ -142,18 +129,27 @@ export function AstraPreviewPopover({
     () => createAstraArtifactRenderer(publication),
     [publication],
   );
-  const renderRecordReference = React.useCallback<RecordPreviewReferenceRenderer>(
-    ({ target, trigger: relatedTrigger }) => (
-      <AstraPreviewPopover
-        publication={publication}
-        entry={{ kind: 'record', ...target }}
-        trigger={relatedTrigger}
-        triggerClassName=""
-        openDetailsOnTrigger={false}
-      />
-    ),
-    [publication],
-  );
+  const renderRecordReference =
+    React.useCallback<RecordPreviewReferenceRenderer>(
+      ({ target, trigger: relatedTrigger }) => (
+        <AstraPreviewPopover
+          publication={
+            target.universeRef === publication.universe
+              ? publication
+              : { ...publication, universe: target.universeRef }
+          }
+          entry={{
+            kind: 'record',
+            record: target.record,
+            analysis: target.analysis,
+          }}
+          trigger={relatedTrigger}
+          triggerClassName=""
+          openDetailsOnTrigger={false}
+        />
+      ),
+      [publication],
+    );
   const kind = entryKind(entry);
   // A value token previews the output record behind it, so that is what the
   // accessible name announces.
@@ -164,12 +160,19 @@ export function AstraPreviewPopover({
   ) : (
     trigger
   );
-  const opensRecord = entry.kind !== 'analysis' && details
-    ? () => details.onOpenRecord(entry.record, entry.analysis)
-    : undefined;
-  const detailTrigger = openDetailsOnTrigger && opensRecord
-    ? withDetailInteraction(wrappedTrigger, opensRecord)
-    : wrappedTrigger;
+  const opensRecord =
+    entry.kind !== 'analysis' && details
+      ? () =>
+          details.onOpenRecord(
+            entry.record,
+            entry.analysis,
+            publication.universe,
+          )
+      : undefined;
+  const detailTrigger =
+    openDetailsOnTrigger && opensRecord
+      ? withDetailInteraction(wrappedTrigger, opensRecord)
+      : wrappedTrigger;
 
   return (
     <PreviewPopover
@@ -190,6 +193,8 @@ export function AstraPreviewPopover({
           entry={previewEntry}
           document={publication.document}
           index={publication.index}
+          universeRef={publication.universe}
+          statusReport={publication.status}
           renderArtifact={renderArtifact}
           renderCitation={(doi) => <AstraPreviewCite doi={doi} />}
           renderRecordReference={renderRecordReference}

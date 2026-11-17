@@ -12,7 +12,7 @@ ASTRA renders exactly as in the stock MyST themes.
 
 ## Usage
 
-Pair the theme with the [MySTRA](https://github.com/LightconeResearch/MySTRA)
+Pair the theme with the [MySTRA](https://github.com/astra-project/MySTRA)
 plugin in `myst.yml`:
 
 ```yaml
@@ -56,9 +56,20 @@ publication bundle in the MyST output. The theme validates that bundle with
 - Lightcone styling from
   [`@lightcone-research/brand`](https://www.npmjs.com/package/@lightcone-research/brand).
 
+The theme consumes ASTRA 0.1 reports through MySTRA's
+`astra-publication-bundle.v2` transport: a resolved analysis, status report,
+active analysis key and universe, and resource tokens keyed by result ID.
+The inventory switches universes from the same report. Artifact URLs come only
+from MyST-rewritten resource links whose result ID and byte token match that
+transport; historical results never fall back to a current worktree path.
+Evidence follows the selected universe's SDK bindings, including explicit pins.
+Output provenance uses the shared SDK trace for decision selections and source data.
+
 If the bundle is missing or invalid, the plain MyST content still renders.
-`@astra-spec/ui` and the brand package are pinned to exact versions because the
-JupyterLab and VS Code hosts share the same rendering contract.
+The former publication v1 transport and pre-0.1 analyses are unsupported.
+The SDK is pinned to the published `0.2.0-rc1` release. The UI uses an immutable
+review build from [astra-ui #38](https://github.com/astra-project/astra-ui/pull/38)
+until its npm release. The brand package retains its exact published version.
 
 ## Development
 

@@ -11,8 +11,12 @@
  * Every other DOI, and any arXiv DOI whose PDF fails to load at runtime, keeps
  * astra-ui's own "no paper content" state, which links to the DOI instead.
  */
-import { normalizeDoi, walkAnalyses, type ResolvedAnalysisDocument } from '@astra-spec/sdk';
-import type { InventoryPaperMetadata, InventoryPaperMetadataMap } from '@astra-spec/ui/model';
+import type { ResolvedAnalysis } from '@astra-spec/sdk/reports';
+import { normalizeDoi } from './cite';
+import type {
+  InventoryPaperMetadata,
+  InventoryPaperMetadataMap,
+} from '@astra-spec/ui/model';
 
 const ARXIV_DOI_PREFIX = '10.48550/arxiv.';
 
@@ -27,7 +31,7 @@ const OLD_STYLE_ID = /^[a-z][a-z-]*(?:\.[a-z][a-z-]*)?\/\d{7}$/;
 /** The arXiv identifier named by a DOI, or undefined for any other DOI. */
 export function arxivIdFromDoi(doi: string): string | undefined {
   const key = normalizeDoi(doi);
-  if (!key.startsWith(ARXIV_DOI_PREFIX)) return undefined;
+  if (!key?.startsWith(ARXIV_DOI_PREFIX)) return undefined;
   const id = key.slice(ARXIV_DOI_PREFIX.length);
   return NEW_STYLE_ID.test(id) || OLD_STYLE_ID.test(id) ? id : undefined;
 }
@@ -76,19 +80,25 @@ interface CitedPaper {
  * needs each evidence entry's `version` as well.
  */
 export function citedPaperMetadata(
-  document: ResolvedAnalysisDocument,
+  document: ResolvedAnalysis,
   titles?: PaperTitles,
 ): InventoryPaperMetadataMap {
   const cited = new Map<string, CitedPaper>();
-  for (const analysis of walkAnalyses(document)) {
+  for (const analysis of document.analyses) {
     for (const insight of [...analysis.prior_insights, ...analysis.findings]) {
       for (const evidence of insight.evidence) {
         if (typeof evidence.doi !== 'string') continue;
         const key = normalizeDoi(evidence.doi);
         if (!key) continue;
-        const paper = cited.get(key) ?? { id: arxivIdFromDoi(key), version: undefined };
+        const paper = cited.get(key) ?? {
+          id: arxivIdFromDoi(key),
+          version: undefined,
+        };
         const version = citedVersion(evidence.version);
-        if (version !== undefined && (paper.version === undefined || version > paper.version)) {
+        if (
+          version !== undefined &&
+          (paper.version === undefined || version > paper.version)
+        ) {
           paper.version = version;
         }
         cited.set(key, paper);

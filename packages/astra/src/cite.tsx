@@ -17,7 +17,6 @@
  * node is missing we fall back to a plain doi.org link. Never throws.
  */
 import * as React from 'react';
-import { normalizeDoi as normalizeSdkDoi } from '@astra-spec/sdk';
 import { doiHref } from '@astra-spec/ui/model';
 import { PreviewPopover } from '@astra-spec/ui/primitives';
 import type { GenericNode, References } from 'myst-common';
@@ -29,7 +28,7 @@ import { useAstraColorScheme } from './themeScope';
 /** Normalize a raw DOI (tolerates full URLs and `doi:` prefixes) to a key. */
 export function normalizeDoi(raw: string | undefined): string | undefined {
   if (!raw) return undefined;
-  return normalizeSdkDoi(raw) || undefined;
+  return raw.trim().replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '').replace(/^doi:\s*/i, '').toLowerCase() || undefined;
 }
 
 export { doiHref };

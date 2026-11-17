@@ -1,7 +1,11 @@
 import * as React from 'react';
-import type { ResolvedAnalysisNode, ResolvedInsight } from '@astra-spec/sdk';
+import {
+  getSelectedOption,
+  type Analysis,
+  type Insight,
+} from '@astra-spec/sdk/reports';
 import { primaryLiteratureEvidence } from '@astra-spec/ui/model';
-import { decisionInsights } from '@astra-spec/ui/model';
+import { decisionInsights, recordId } from '@astra-spec/ui/model';
 import { InlineReference, Prose } from '@astra-spec/ui/primitives';
 import type { GenericNode } from 'myst-common';
 
@@ -32,19 +36,23 @@ function EvidenceItem({
   analysis,
   publication,
 }: {
-  insight: ResolvedInsight;
-  analysis: ResolvedAnalysisNode;
+  insight: Insight;
+  analysis: Analysis;
   publication: AstraPublication;
 }) {
   const source = primaryLiteratureEvidence(insight);
-  const name = insight.label ?? claimExcerpt(insight.claim) ?? insight.id;
+  const name =
+    insight.label ?? claimExcerpt(insight.claim) ?? recordId(insight);
   return (
     <li className="astra-evidence__item">
       <AstraPreviewPopover
         publication={publication}
         entry={{ kind: 'record', record: insight, analysis }}
         trigger={
-          <InlineReference kind="prior_insight" className="astra-evidence__title">
+          <InlineReference
+            kind="prior_insight"
+            className="astra-evidence__title"
+          >
             <span className="astra-evidence__name">{name}</span>
             <span className="astra-evidence__tag">prior insight</span>
           </InlineReference>
@@ -75,23 +83,41 @@ export const AstraDecision: React.FC<{ node: GenericNode }> = ({ node }) => {
     ]),
   ).join(' ');
 
-  if (!located) return <NeutralNode node={node} recognitionClass="astra-decision" />;
+  if (!located)
+    return <NeutralNode node={node} recognitionClass="astra-decision" />;
 
   const { publication, record } = located;
-  const evidence = decisionInsights(publication.index, record);
+  const evidence = decisionInsights(
+    publication.index,
+    record,
+    publication.universe,
+  );
   const views: DecisionView[] = evidence.length
     ? ['rationale', 'options', 'evidence']
     : ['rationale', 'options'];
-  const selectedLabel = record.selectedOptionId
-    ? record.options.find((option) => option.id === record.selectedOptionId)?.label ??
-      record.selectedOptionId
-    : '—';
+  const selected = publication.universe
+    ? getSelectedOption(publication.index, publication.universe, record.ref)
+    : undefined;
+  const selectedLabel = selected?.label ?? selected?.id ?? '—';
 
   return (
-    <details className={rootClass} data-kind="decision" id={nodeHtmlId(node)} open>
-      <summary className="astra-decision__head">{kindLabel('decision')}</summary>
-      {record.label ? <div className="astra-decision__title">{record.label}</div> : null}
-      <div className="astra-decision__toggle" role="group" aria-label="Decision view">
+    <details
+      className={rootClass}
+      data-kind="decision"
+      id={nodeHtmlId(node)}
+      open
+    >
+      <summary className="astra-decision__head">
+        {kindLabel('decision')}
+      </summary>
+      {record.label ? (
+        <div className="astra-decision__title">{record.label}</div>
+      ) : null}
+      <div
+        className="astra-decision__toggle"
+        role="group"
+        aria-label="Decision view"
+      >
         {views.map((nextView) => (
           <button
             key={nextView}
@@ -115,16 +141,26 @@ export const AstraDecision: React.FC<{ node: GenericNode }> = ({ node }) => {
       {view === 'options' ? (
         <ul className="astra-options">
           {record.options.map((option) => {
-            const selected = option.id === record.selectedOptionId;
+            const isSelected = option.id === selected?.id;
             return (
               <li
                 key={option.id}
-                className={`astra-option ${
-                  selected ? 'astra-option--selected' : 'astra-option--excluded'
-                }`}
-                aria-current={selected ? 'true' : undefined}
+                className={[
+                  'astra-option',
+                  isSelected
+                    ? 'astra-option--selected'
+                    : option.excluded
+                      ? 'astra-option--excluded'
+                      : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                title={option.excluded}
+                aria-current={isSelected ? 'true' : undefined}
               >
-                <span className="astra-option__label">{option.label}</span>
+                <span className="astra-option__label">
+                  {option.label ?? option.id}
+                </span>
               </li>
             );
           })}
@@ -133,12 +169,12 @@ export const AstraDecision: React.FC<{ node: GenericNode }> = ({ node }) => {
       {view === 'evidence' ? (
         <ul className="astra-evidence">
           {evidence.map((insight) => {
-            const analysis = publication.index.analysisByRecordPath.get(
-              insight.canonicalPath,
-            );
+            const analysis = publication.index.elementByRef.get(
+              insight.ref,
+            )?.analysis;
             return analysis ? (
               <EvidenceItem
-                key={insight.canonicalPath}
+                key={insight.ref}
                 insight={insight}
                 analysis={analysis}
                 publication={publication}
@@ -148,7 +184,7 @@ export const AstraDecision: React.FC<{ node: GenericNode }> = ({ node }) => {
         </ul>
       ) : null}
       <div className="astra-decision__meta">
-        default: {selectedLabel} · {record.options.length} option
+        selected: {selectedLabel} · {record.options.length} option
         {record.options.length === 1 ? '' : 's'}
       </div>
     </details>

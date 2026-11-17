@@ -2,7 +2,7 @@ name: Preview
 
 # Renders the DESI demo paper with this pull request's astra-theme through astra-ui's
 # reusable preview workflow and posts the Vercel URL as a sticky comment. The
-# build, deploy and screenshot steps live in LightconeResearch/astra-ui
+# build, deploy and screenshot steps live in astra-project/astra-ui
 # (packages/preview); this file only supplies the ref to substitute.
 #
 # Deploying needs the VERCEL_TOKEN, VERCEL_ORG_ID and VERCEL_PROJECT_ID secrets;
@@ -19,9 +19,9 @@ permissions:
 
 jobs:
   preview:
-    uses: LightconeResearch/astra-ui/.github/workflows/preview.yml@6248ae0bf1ca7b4ee45de52f0b9839c0e0d1d4e6
+    uses: astra-project/astra-ui/.github/workflows/preview.yml@3094ce3d7a2d199f409cd7d0ab05c0c0cce71e76
     with:
-      ui: 6248ae0bf1ca7b4ee45de52f0b9839c0e0d1d4e6
+      ui: 3094ce3d7a2d199f409cd7d0ab05c0c0cce71e76
       theme: ${{ github.event.pull_request.head.sha }}
     secrets:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}

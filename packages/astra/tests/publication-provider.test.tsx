@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import type { ResolvedAnalysisBundle, ResolvedOutput } from '@astra-spec/sdk';
+import { indexResolvedAnalysis, type Output } from '@astra-spec/sdk/reports';
 import { ThemeProvider } from '@myst-theme/providers';
 import type { GenericNode } from 'myst-common';
 import { describe, expect, it } from 'vitest';
@@ -12,30 +12,7 @@ import {
   useAstraPublicationDetails,
   type AstraPublication,
 } from '../src/publication/AstraPublicationProvider';
-import { makePublication } from './helpers/publication';
-
-const bundle: ResolvedAnalysisBundle = {
-  document: {
-    schemaVersion: 'astra-resolved-analysis.v1',
-    universe: {
-      universeId: 'default',
-      availableUniverseIds: [],
-      source: 'none',
-    },
-    analysis: {
-      version: '1',
-      name: 'Provider publication',
-      canonicalPath: '$',
-      inputs: [],
-      outputs: [],
-      decisions: [],
-      prior_insights: [],
-      findings: [],
-      analyses: [],
-    },
-  },
-  bindings: [],
-};
+import { makePublication, publicationEnvelope } from './helpers/publication';
 
 const mdast = {
   type: 'root',
@@ -43,13 +20,7 @@ const mdast = {
     {
       type: 'div',
       class: 'astra-publication-bundle',
-      data: {
-        astraPublication: {
-          schemaVersion: 'astra-publication-bundle.v1',
-          activeAnalysisPath: '$',
-          bundle,
-        },
-      },
+      data: { astraPublication: publicationEnvelope() },
     },
   ],
 } as GenericNode;
@@ -58,7 +29,7 @@ function Probe() {
   const publication = useAstraPublication();
   return (
     <output data-testid="publication">
-      {publication?.activeAnalysis.canonicalPath ?? 'neutral'}
+      {publication ? publication.activeAnalysis.key || 'root' : 'neutral'}
     </output>
   );
 }
@@ -66,10 +37,9 @@ function Probe() {
 function DetailProbe() {
   const publication = useAstraPublication();
   const details = useAstraPublicationDetails();
-  const record = publication?.index.recordByPath.get('decisions.cov_source');
-  const analysis = publication?.index.analysisByRecordPath.get(
-    'decisions.cov_source',
-  );
+  const entry = publication?.index.elementByRef.get('decisions.cov_source');
+  const record = entry?.collection === 'decisions' ? entry.element : undefined;
+  const analysis = entry?.analysis;
   return (
     <button
       type="button"
@@ -93,7 +63,7 @@ function Host({ children }: { children: React.ReactNode }) {
 describe('AstraPublicationProvider', () => {
   it('exposes an explicit publication without changing child DOM topology', () => {
     const publication = {
-      activeAnalysis: { canonicalPath: 'explicit' },
+      activeAnalysis: { key: 'explicit' },
     } as AstraPublication;
     const { container } = render(
       <Host>
@@ -118,7 +88,7 @@ describe('AstraPublicationProvider', () => {
       </Host>,
     );
 
-    expect(screen.getByTestId('publication')).toHaveTextContent('$');
+    expect(screen.getByTestId('publication')).toHaveTextContent('root');
   });
 
   it('fails neutrally when no publication is available', () => {
@@ -138,38 +108,79 @@ describe('AstraPublicationProvider', () => {
       ...makePublication(),
       artifactUrls: new Map<string, string>(),
     };
-    const figure = publication.index.recordByPath.get('outputs.shear_plot');
-    const metric = publication.index.recordByPath.get('outputs.sigma8_metric');
-    expect(figure?.kind).toBe('output');
-    expect(metric?.kind).toBe('output');
+    const figure = publication.document.analyses[0]!.outputs[1];
+    const metric = publication.document.analyses[0]!.outputs[0];
+    expect(figure?.ref).toBe('outputs.shear_plot');
+    expect(metric?.ref).toBe('outputs.sigma8_metric');
     const renderArtifact = createAstraArtifactRenderer(publication);
 
     const { container, rerender } = render(
-      <>{renderArtifact(figure as ResolvedOutput, { compact: true })}</>,
+      <>{renderArtifact(figure as Output, { compact: true })}</>,
     );
-    expect(container.querySelector('[data-slot="artifact-preview"]')).toBeNull();
+    expect(
+      container.querySelector('[data-slot="artifact-preview"]'),
+    ).toBeNull();
 
-    const table = { ...figure, type: 'table' } as ResolvedOutput;
-    rerender(<>{renderArtifact(table, { compact: false })}</>);
-    expect(container.querySelector('[data-slot="artifact-preview"]')).toHaveTextContent(
-      'This host has not supplied an artifact preview.',
+    const table = { ...figure, type: 'table' } as Output;
+    rerender(
+      <>
+        {renderArtifact(table, {
+          compact: false,
+          result: publication.index.resultById.get('shear_plot#default'),
+          status: publication.status.statuses['shear_plot#default'],
+        })}
+      </>,
     );
-    expect(renderArtifact(metric as ResolvedOutput, { compact: false })).toBeNull();
+    expect(
+      container.querySelector('[data-slot="artifact-preview"]'),
+    ).toHaveTextContent('This output has no valid provenance record.');
+    expect(renderArtifact(metric as Output, { compact: false })).toBeNull();
+  });
+
+  it('does not leak page-universe assets when the selected universe has no planned result', () => {
+    const publication = makePublication();
+    publication.document.results = publication.document.results.filter(
+      (result) => result.id !== 'shear_plot#alternate',
+    );
+    publication.index = indexResolvedAnalysis(publication.document);
+    const figure = publication.document.analyses[0]!.outputs[1]!;
+    const renderArtifact = createAstraArtifactRenderer(publication);
+    const { container } = render(
+      <>
+        {renderArtifact(figure, {
+          compact: false,
+          universeRef: 'universes.alternate',
+        })}
+      </>,
+    );
+    expect(container.querySelector('img')).toBeNull();
+    expect(
+      container.querySelector('[data-slot="artifact-preview"]'),
+    ).toHaveTextContent('No result is planned for this output in the selected universe.');
   });
 
   it('uses the shared unavailable state when a verified figure fails to load', () => {
     const publication = makePublication();
-    const figure = publication.index.recordByPath.get('outputs.shear_plot');
-    expect(figure?.kind).toBe('output');
+    publication.status.statuses['shear_plot#default']!.bytes = {
+      state: 'absent',
+    };
+    const figure = publication.document.analyses[0]!.outputs[1];
+    expect(figure?.ref).toBe('outputs.shear_plot');
     const renderArtifact = createAstraArtifactRenderer(publication);
 
     const { container } = render(
-      <>{renderArtifact(figure as ResolvedOutput, { compact: true })}</>,
+      <>
+        {renderArtifact(figure as Output, {
+          compact: true,
+          result: publication.index.resultById.get('shear_plot#default'),
+          status: publication.status.statuses['shear_plot#default'],
+        })}
+      </>,
     );
     fireEvent.error(container.querySelector('img')!);
-    expect(container.querySelector('[data-slot="artifact-preview"]')).toHaveTextContent(
-      'Figure preview unavailable',
-    );
+    expect(
+      container.querySelector('[data-slot="artifact-preview"]'),
+    ).toHaveTextContent('Figure preview unavailable');
   });
 
   it('owns one detail surface and clears it when the publication changes', async () => {
@@ -186,7 +197,9 @@ describe('AstraPublicationProvider', () => {
     expect(
       await screen.findByRole('dialog', { name: 'Covariance source' }),
     ).toBeVisible();
-    expect(document.querySelectorAll('dialog[data-slot="dialog"]')).toHaveLength(1);
+    expect(
+      document.querySelectorAll('dialog[data-slot="dialog"]'),
+    ).toHaveLength(1);
 
     rerender(
       <Host>

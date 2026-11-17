@@ -14,7 +14,9 @@ import {
 } from '../rendererUtils';
 
 /** Placed prior-insight chrome retained over canonical SDK evidence. */
-export const AstraPriorInsight: React.FC<{ node: GenericNode }> = ({ node }) => {
+export const AstraPriorInsight: React.FC<{ node: GenericNode }> = ({
+  node,
+}) => {
   const located = useAstraRecord(node, 'prior_insight');
   const className = Array.from(
     new Set([
@@ -28,17 +30,11 @@ export const AstraPriorInsight: React.FC<{ node: GenericNode }> = ({ node }) => 
   }
 
   const { publication, record } = located;
-  const scope = displayScope(
-    record.scope,
-    publication.document.universe.universeId,
-  );
+  const scope = displayScope(record.scope, publication.universe);
   const source = primaryLiteratureEvidence(record);
   const quote = source?.quote;
   return (
-    <aside
-      className={className || 'astra-prior-insight'}
-      id={nodeHtmlId(node)}
-    >
+    <aside className={className || 'astra-prior-insight'} id={nodeHtmlId(node)}>
       <div className="astra-prior-insight__kind">
         {kindLabel('prior_insight')}
         {scope ? (
@@ -47,7 +43,9 @@ export const AstraPriorInsight: React.FC<{ node: GenericNode }> = ({ node }) => 
           </span>
         ) : null}
       </div>
-      {record.label ? <div className="astra-card__title">{record.label}</div> : null}
+      {record.label ? (
+        <div className="astra-card__title">{record.label}</div>
+      ) : null}
       <div className="astra-insight__claim">
         <Prose text={record.claim} field="claim" />
       </div>

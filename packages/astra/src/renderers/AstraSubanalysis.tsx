@@ -39,7 +39,7 @@ function readableNeutralCard(node: GenericNode): GenericNode {
   } as GenericNode;
 }
 
-/** Placed analysis navigation card backed by data.astra.analysisPath. */
+/** Placed analysis navigation card backed by data.astra.analysisKey. */
 export const AstraSubanalysis: React.FC<{ node: GenericNode }> = ({ node }) => {
   const located = useAstraAnalysis(node);
   if (!located) {
@@ -52,14 +52,17 @@ export const AstraSubanalysis: React.FC<{ node: GenericNode }> = ({ node }) => {
   }
 
   const { analysis, href } = located;
-  const name = analysis.name ?? analysis.id ?? analysis.canonicalPath;
+  const name = analysis.label ?? (analysis.key || 'Analysis');
   const counts = `${plural(analysis.decisions.length, 'decision')} · ${plural(
     analysis.outputs.length,
     'output',
   )}`;
 
   return (
-    <div className={nodeClassName(node, 'astra-subanalysis')} id={nodeHtmlId(node)}>
+    <div
+      className={nodeClassName(node, 'astra-subanalysis')}
+      id={nodeHtmlId(node)}
+    >
       <BlockKindLabel kind="analysis" className="astra-subanalysis__kind" />
       <div className="astra-subanalysis__name">
         {href ? (

@@ -2,7 +2,7 @@ import * as React from 'react';
 import { createPortal } from 'react-dom';
 import { Inventory, type InventoryProps } from '@astra-spec/ui/views';
 import { DetailDialog } from '@astra-spec/ui/primitives';
-import type { AstraPublication } from './publication/contract';
+import type { AstraPublication } from '@astra-spec/mystra/publication';
 import { useAstraColorScheme } from './themeScope';
 
 const INVENTORY_HASH = '#astra-inventory';
@@ -30,7 +30,11 @@ export function AstraInventory({
   publication: AstraPublication;
 }) {
   const scheme = useAstraColorScheme();
-  const hash = React.useSyncExternalStore(subscribe, () => window.location.hash, () => '');
+  const hash = React.useSyncExternalStore(
+    subscribe,
+    () => window.location.hash,
+    () => '',
+  );
   const open = hash === INVENTORY_HASH || hash.startsWith(`${INVENTORY_HASH}-`);
   const returnHash = React.useRef('');
   React.useEffect(() => {
@@ -43,7 +47,8 @@ export function AstraInventory({
   const close = () => {
     // Keep unrelated query parameters and the original article anchor intact.
     window.history.replaceState(
-      window.history.state, '',
+      window.history.state,
+      '',
       `${window.location.pathname}${window.location.search}${returnHash.current}`,
     );
     window.dispatchEvent(new HashChangeEvent('hashchange'));
@@ -57,17 +62,23 @@ export function AstraInventory({
     >
       <DetailDialog
         className="astra-inventory-dialog"
-        title={publication.activeAnalysis.name}
+        title={publication.activeAnalysis.label ?? 'Analysis'}
         kindLabel="Inventory"
         onClose={close}
         closeLabel="Close inventory"
       >
         <Inventory
+          key={JSON.stringify([
+            publication.activeAnalysis.key,
+            publication.universe,
+          ])}
           {...props}
           {...dialogEvents}
           document={publication.document}
           index={publication.index}
-          analysisPath={publication.activeAnalysis.canonicalPath}
+          defaultUniverseRef={publication.universe}
+          statusReport={publication.status}
+          analysisKey={publication.activeAnalysis.key}
           // The page already fixes which analysis is read; sub-analyses are
           // reached through their own pages, not by switching the inventory.
           showHierarchy={false}
