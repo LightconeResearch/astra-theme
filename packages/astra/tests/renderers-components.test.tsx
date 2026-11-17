@@ -26,7 +26,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
         astra: {
           kind: 'decision',
           id: 'cov_source',
-          canonicalPath: 'decisions.cov_source',
+          ref: 'decisions.cov_source',
         },
       },
       children: [
@@ -74,7 +74,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
       data: {
         astra: {
           kind: 'decision',
-          canonicalPath: 'decisions.cov_source',
+          ref: 'decisions.cov_source',
           universe: 'universes.alternate',
         },
       },
@@ -100,7 +100,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
       data: {
         astra: {
           kind: 'output',
-          canonicalPath: 'outputs.shear_plot',
+          ref: 'outputs.shear_plot',
           universe: 'universes.alternate',
         },
       },
@@ -133,14 +133,25 @@ describe('canonical SDK-backed ASTRA renderers', () => {
 
   it('keeps a pinned citation universe through nested output hover and details', async () => {
     const publication = makePublication();
-    publication.document.analyses[0]!.findings[0]!.evidence[0]!.cites = [
-      'shear_plot#alternate',
-    ];
+    const finding = publication.document.analyses[0]!.findings[0]!;
+    finding.evidence[0] = {
+      ...finding.evidence[0]!,
+      artifact: 'shear_plot#alternate',
+      cites: ['shear_plot#alternate'],
+      bindings: [
+        {
+          universe: 'universes.alternate',
+          output: 'outputs.shear_plot',
+          target_universe: 'universes.alternate',
+          result: 'shear_plot#alternate',
+        },
+      ],
+    };
     const node = {
       type: 'span',
       class: 'astra-ref astra-ref--finding',
       data: {
-        astra: { kind: 'finding', canonicalPath: 'findings.s8_consistent' },
+        astra: { kind: 'finding', ref: 'findings.s8_consistent' },
       },
       children: [
         { type: 'text', key: 'pinned-finding-label', value: 'the finding' },
@@ -188,7 +199,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
         astra: {
           kind: 'finding',
           id: 's8_consistent',
-          canonicalPath: 'findings.s8_consistent',
+          ref: 'findings.s8_consistent',
         },
       },
       children: [
@@ -240,7 +251,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
         astra: {
           kind: 'finding',
           id: 's8_consistent',
-          canonicalPath: 'findings.s8_consistent',
+          ref: 'findings.s8_consistent',
         },
       },
       children: [
@@ -287,7 +298,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
         astra: {
           kind: 'prior_insight',
           id: 'kids_s8_low',
-          canonicalPath: 'prior_insights.kids_s8_low',
+          ref: 'prior_insights.kids_s8_low',
         },
       },
     };
@@ -311,7 +322,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
         astra: {
           kind: 'decision',
           id: 'cov_source',
-          canonicalPath: 'decisions.cov_source',
+          ref: 'decisions.cov_source',
         },
       },
       children: [
@@ -349,7 +360,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
         astra: {
           kind: 'prior_insight',
           id: 'kids_s8_low',
-          canonicalPath: 'prior_insights.kids_s8_low',
+          ref: 'prior_insights.kids_s8_low',
         },
       },
       children: [{ type: 'text', key: 'kids-result', value: 'KiDS result' }],
@@ -378,7 +389,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
         astra: {
           kind: 'input',
           id: 'shear_catalog',
-          canonicalPath: input.ref,
+          ref: input.ref,
         },
       },
       children: [{ type: 'text', key: 'input-alias', value: 'catalog alias' }],
@@ -403,13 +414,13 @@ describe('canonical SDK-backed ASTRA renderers', () => {
     const source = analysis.prior_insights[0]!;
     const paths = [source.ref];
     for (let number = 2; number <= 4; number += 1) {
-      const canonicalPath = `prior_insights.support_${number}`;
+      const ref = `prior_insights.support_${number}`;
       analysis.prior_insights.push({
         ...source,
-        ref: canonicalPath,
+        ref: ref,
         label: `Supporting insight ${number}`,
       });
-      paths.push(canonicalPath);
+      paths.push(ref);
     }
     analysis.decisions[0]!.options[0]!.insights = paths;
     publication.index = indexResolvedAnalysis(publication.document);
@@ -421,7 +432,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
         astra: {
           kind: 'decision',
           id: 'cov_source',
-          canonicalPath: 'decisions.cov_source',
+          ref: 'decisions.cov_source',
         },
       },
       children: [
@@ -446,7 +457,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
         astra: {
           kind: 'decision',
           id: 'cov_source',
-          canonicalPath: 'decisions.cov_source',
+          ref: 'decisions.cov_source',
         },
       },
       children: [
@@ -551,7 +562,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
         astra: {
           kind: 'decision',
           id: 'cov_source',
-          canonicalPath: 'decisions.cov_source',
+          ref: 'decisions.cov_source',
         },
       },
       children: [
@@ -583,7 +594,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
         astra: {
           kind: 'analysis',
           id: 'calibration',
-          analysisPath: 'calibration',
+          analysisKey: 'calibration',
           href: '/calibration',
         },
       },
@@ -625,7 +636,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
         astra: {
           kind: 'value',
           id: 'sigma8_metric',
-          canonicalPath: 'outputs.sigma8_metric',
+          ref: 'outputs.sigma8_metric',
           type: 'metric',
           product: 'sigma8 metric',
           unit: 'dimensionless',
@@ -669,7 +680,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
         astra: {
           kind: 'value',
           id: 'sigma8_metric',
-          canonicalPath: 'outputs.sigma8_metric',
+          ref: 'outputs.sigma8_metric',
           filter: 'tracer=elg1, recon=Pre',
           selection: 'alpha1_std',
         },
@@ -702,7 +713,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
         astra: {
           kind: 'output',
           id: 'shear_plot',
-          canonicalPath: 'outputs.shear_plot',
+          ref: 'outputs.shear_plot',
         },
       },
       children: [{ type: 'text', key: 'shear-plot', value: 'shear plot' }],
@@ -740,7 +751,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
         astra: {
           kind: 'output',
           id: 'sigma8_metric',
-          canonicalPath: 'outputs.sigma8_metric',
+          ref: 'outputs.sigma8_metric',
         },
       },
       children: [
@@ -782,7 +793,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
         astra: {
           kind: 'output',
           id: 'shear_plot',
-          canonicalPath: 'outputs.shear_plot',
+          ref: 'outputs.shear_plot',
         },
       },
     };
@@ -809,7 +820,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
         astra: {
           kind: 'output',
           id: 'sigma8_metric',
-          canonicalPath: 'outputs.sigma8_metric',
+          ref: 'outputs.sigma8_metric',
         },
       },
       children: [
@@ -904,7 +915,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
       type: 'div',
       class: 'astra-output astra-output--metric',
       data: {
-        astra: { kind: 'output', canonicalPath: 'outputs.sigma8_metric' },
+        astra: { kind: 'output', ref: 'outputs.sigma8_metric' },
       },
       children: [],
     } as GenericNode;
@@ -934,7 +945,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
       type: 'div',
       class: 'astra-output astra-output--metric',
       data: {
-        astra: { kind: 'output', canonicalPath: 'outputs.sigma8_metric' },
+        astra: { kind: 'output', ref: 'outputs.sigma8_metric' },
       },
       children: [],
     } as GenericNode;
@@ -980,7 +991,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
     publication.index = indexResolvedAnalysis(publication.document);
     const node = {
       type: 'div', class: 'astra-output astra-output--metric',
-      data: { astra: { kind: 'output', canonicalPath: 'outputs.sigma8_metric' } },
+      data: { astra: { kind: 'output', ref: 'outputs.sigma8_metric' } },
       children: [],
     } as GenericNode;
     for (const [universe, option] of [['default', 'Analytic'], ['alternate', 'Jackknife']]) {
@@ -1006,7 +1017,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
       ];
       const node = {
         type: 'div', class: 'astra-output astra-output--metric',
-        data: { astra: { kind: 'output', canonicalPath: 'outputs.sigma8_metric' } },
+        data: { astra: { kind: 'output', ref: 'outputs.sigma8_metric' } },
         children: [],
       } as GenericNode;
       const { container } = renderWithProviders(<AstraOutput node={node} />, publication);
@@ -1048,7 +1059,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
         astra: {
           kind: 'output',
           id: 'sigma8_metric',
-          canonicalPath: 'outputs.sigma8_metric',
+          ref: 'outputs.sigma8_metric',
         },
       },
       children: [],
@@ -1069,7 +1080,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
         astra: {
           kind: 'output',
           id: 'catalog_summary',
-          canonicalPath: 'outputs.catalog_summary',
+          ref: 'outputs.catalog_summary',
         },
       },
       children: [
@@ -1114,7 +1125,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
     expect(details?.querySelector('.astra-output__provenance')).toBeNull();
   });
 
-  it('uses registry row canonical paths and analysisPath for cards', () => {
+  it('uses registry row canonical paths and analysisKey for cards', () => {
     const publication = makePublication();
     publication.document.analyses[0]!.inputs[0]!.path =
       'data/reconstruction.csv';
@@ -1130,7 +1141,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
             astra: {
               kind: 'input',
               id: 'shear_catalog',
-              canonicalPath: 'inputs.shear_catalog',
+              ref: 'inputs.shear_catalog',
             },
           },
           children: [],
@@ -1145,7 +1156,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
         astra: {
           kind: 'analysis',
           id: 'calibration',
-          analysisPath: 'calibration',
+          analysisKey: 'calibration',
           href: '/calibration',
         },
       },
@@ -1191,7 +1202,7 @@ describe('canonical SDK-backed ASTRA renderers', () => {
             astra: {
               kind: 'output',
               id: 'shear_plot',
-              canonicalPath: 'outputs.shear_plot',
+              ref: 'outputs.shear_plot',
             },
           },
           children: [],

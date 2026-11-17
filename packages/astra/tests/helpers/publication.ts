@@ -86,6 +86,12 @@ export function makePublication(
               {
                 artifact: 'shear_plot',
                 cites: ['shear_plot#default', 'shear_plot#alternate'],
+                bindings: ['default', 'alternate'].map((universe) => ({
+                  universe: `universes.${universe}`,
+                  output: 'outputs.shear_plot',
+                  target_universe: `universes.${universe}`,
+                  result: `shear_plot#${universe}`,
+                })),
                 quote: {
                   exact: 'The recovered band sits on the Planck prediction.',
                 },

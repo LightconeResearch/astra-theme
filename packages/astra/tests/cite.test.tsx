@@ -244,7 +244,7 @@ describe('citation resolution in insight surfaces', () => {
       astra: {
         kind: 'prior_insight',
         id: 'kids_s8_low',
-        canonicalPath: 'prior_insights.kids_s8_low',
+        ref: 'prior_insights.kids_s8_low',
       },
     },
     children: [
@@ -259,7 +259,7 @@ describe('citation resolution in insight surfaces', () => {
       astra: {
         kind: 'prior_insight',
         id: 'kids_s8_low',
-        canonicalPath: 'prior_insights.kids_s8_low',
+        ref: 'prior_insights.kids_s8_low',
       },
     },
     children: [

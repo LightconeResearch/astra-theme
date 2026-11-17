@@ -122,7 +122,15 @@ describe('AstraPublicationProvider', () => {
     ).toBeNull();
 
     const table = { ...figure, type: 'table' } as Output;
-    rerender(<>{renderArtifact(table, { compact: false })}</>);
+    rerender(
+      <>
+        {renderArtifact(table, {
+          compact: false,
+          result: publication.index.resultById.get('shear_plot#default'),
+          status: publication.status.statuses['shear_plot#default'],
+        })}
+      </>,
+    );
     expect(
       container.querySelector('[data-slot="artifact-preview"]'),
     ).toHaveTextContent('This output has no valid provenance record.');
@@ -161,7 +169,13 @@ describe('AstraPublicationProvider', () => {
     const renderArtifact = createAstraArtifactRenderer(publication);
 
     const { container } = render(
-      <>{renderArtifact(figure as Output, { compact: true })}</>,
+      <>
+        {renderArtifact(figure as Output, {
+          compact: true,
+          result: publication.index.resultById.get('shear_plot#default'),
+          status: publication.status.statuses['shear_plot#default'],
+        })}
+      </>,
     );
     fireEvent.error(container.querySelector('img')!);
     expect(

@@ -80,7 +80,7 @@ export const ASTRA_RENDERERS: NodeRenderers = {
 
   // Decision + finding blocks use current MySTRA `div` carriers whose full
   // neutral fallback is nested inside.
-  // The enriched body comes from the SDK record keyed by data.astra.canonicalPath;
+  // The enriched body comes from the SDK record keyed by data.astra.ref;
   // the full carrier remains the neutral fallback.
   // (An option heading (`astra-option`) intentionally has no override: a
   // single placed option reads fine as the stock heading + prose.)

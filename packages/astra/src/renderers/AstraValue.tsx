@@ -33,9 +33,9 @@ export const AstraValue: React.FC<AstraValueProps> = ({ node }) => {
   );
 
   if (!publication || metadata?.kind !== 'value') return valueSpan;
-  const canonicalPath = stringMetadata(metadata, 'canonicalPath');
-  const located = canonicalPath
-    ? locateRecord(publication.index, canonicalPath)
+  const ref = stringMetadata(metadata, 'ref');
+  const located = ref
+    ? locateRecord(publication.index, ref)
     : undefined;
   if (!located || located.kind !== 'output') return valueSpan;
   const { record, analysis } = located;

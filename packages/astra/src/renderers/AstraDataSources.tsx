@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { Prose } from '@astra-spec/ui/primitives';
-import { recordId } from '@astra-spec/ui/model';
-import { publicationResult } from '../publication/contract';
+import { outputResult, recordId } from '@astra-spec/ui/model';
 import type { GenericNode } from 'myst-common';
 
 import { useAstraPublication } from '../publication/AstraPublicationProvider';
@@ -53,9 +52,9 @@ function rowsFor(
   for (const row of dataRows) {
     const metadata = astraMetadata(row);
     const expectedKind = registry === 'inputs' ? 'input' : 'output';
-    const canonicalPath = stringMetadata(metadata, 'canonicalPath');
-    if (metadata?.kind !== expectedKind || !canonicalPath) return undefined;
-    const entry = publication.index.elementByRef.get(canonicalPath);
+    const ref = stringMetadata(metadata, 'ref');
+    if (metadata?.kind !== expectedKind || !ref) return undefined;
+    const entry = publication.index.elementByRef.get(ref);
 
     if (registry === 'inputs') {
       if (entry?.collection !== 'inputs') return undefined;
@@ -71,7 +70,7 @@ function rowsFor(
       if (entry?.collection !== 'outputs') return undefined;
       const record = entry.element;
       const context = publicationForMetadata(publication, metadata);
-      const result = context ? publicationResult(context, record) : undefined;
+      const result = context ? outputResult(context.index, record, context.universe) : undefined;
       if (!result) return undefined;
       rows.push({
         id: recordId(record),

@@ -78,7 +78,7 @@ export function AstraInventory({
           index={publication.index}
           defaultUniverseRef={publication.universe}
           statusReport={publication.status}
-          analysisPath={publication.activeAnalysis.key}
+          analysisKey={publication.activeAnalysis.key}
           // The page already fixes which analysis is read; sub-analyses are
           // reached through their own pages, not by switching the inventory.
           showHierarchy={false}

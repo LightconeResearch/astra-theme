@@ -2,8 +2,6 @@ import {
   indexResolvedAnalysis,
   parseResolvedAnalysis,
   parseStatusReport,
-  selectResult,
-  getResult,
   type Analysis,
   type Output,
   type ResolvedAnalysis,
@@ -31,15 +29,6 @@ export interface AstraPublication {
 }
 
 /** Resolve presentation context without reconstructing authored addresses. */
-export function publicationResult(
-  publication: AstraPublication,
-  output: Output,
-): Result | undefined {
-  return publication.universe === undefined
-    ? getResult(publication.index, output.ref)
-    : selectResult(publication.index, output.ref, publication.universe);
-}
-
 type UnknownRecord = Record<string, unknown>;
 
 function object(value: unknown): UnknownRecord | undefined {

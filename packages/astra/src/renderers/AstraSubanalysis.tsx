@@ -39,7 +39,7 @@ function readableNeutralCard(node: GenericNode): GenericNode {
   } as GenericNode;
 }
 
-/** Placed analysis navigation card backed by data.astra.analysisPath. */
+/** Placed analysis navigation card backed by data.astra.analysisKey. */
 export const AstraSubanalysis: React.FC<{ node: GenericNode }> = ({ node }) => {
   const located = useAstraAnalysis(node);
   if (!located) {

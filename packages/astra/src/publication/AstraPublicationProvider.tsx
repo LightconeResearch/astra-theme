@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { selectResult } from '@astra-spec/sdk/reports';
 import { createPortal } from 'react-dom';
 import {
   ArtifactPreview,
@@ -20,11 +19,7 @@ import { AstraInventory } from '../inventory';
 import { citedPaperMetadata, type PaperTitles } from '../papers';
 import { usePdfJsLoader } from '../pdf';
 import { AstraThemeScope, useAstraColorScheme } from '../themeScope';
-import {
-  findAstraPublication,
-  publicationResult,
-  type AstraPublication,
-} from './contract';
+import { findAstraPublication, type AstraPublication } from './contract';
 
 const AstraPublicationContext = React.createContext<
   AstraPublication | undefined
@@ -49,28 +44,22 @@ export interface AstraPublicationProviderProps {
   loadPdfJs?: PdfJsLoader | undefined;
 }
 
-/** Render only transport-verified figure URLs supplied by the publication. */
+/**
+ * Render only transport-verified figure URLs supplied by the publication.
+ * astra-ui hands over the result it selected for the viewed universe and that
+ * result's status, so the renderer only maps a result to its URL.
+ */
 export function createAstraArtifactRenderer(
   publication: AstraPublication,
 ): ArtifactRenderer {
-  return (output, { compact, result, universeRef, status }) => {
-    const selected =
-      result ??
-      (universeRef === undefined
-        ? publicationResult(publication, output)
-        : selectResult(publication.index, output.ref, universeRef));
-    const url = selected
-      ? publication.artifactUrls.get(selected.id)
-      : undefined;
+  return (output, { compact, result, status }) => {
+    const url = result ? publication.artifactUrls.get(result.id) : undefined;
     if (output.type === 'figure' && url) {
       return (
         <ArtifactPreview
           output={output}
-          result={selected}
-          status={
-            status ??
-            (selected ? publication.status.statuses[selected.id] : undefined)
-          }
+          result={result}
+          status={status}
           preview={{
             kind: 'image',
             url,
@@ -86,11 +75,8 @@ export function createAstraArtifactRenderer(
       return compact ? null : (
         <ArtifactPreview
           output={output}
-          result={selected}
-          status={
-            status ??
-            (selected ? publication.status.statuses[selected.id] : undefined)
-          }
+          result={result}
+          status={status}
           compact={false}
         />
       );
@@ -105,7 +91,7 @@ function detailTitle(
 ): string | undefined {
   if (!entry) return undefined;
   if (entry.kind === 'paper') return entry.doi;
-  const record = locateRecord(publication.index, entry.canonicalPath);
+  const record = locateRecord(publication.index, entry.ref);
   return record ? recordTitle(record.record) : undefined;
 }
 

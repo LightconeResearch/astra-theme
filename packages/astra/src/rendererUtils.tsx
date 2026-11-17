@@ -21,8 +21,8 @@ type UnknownRecord = Record<string, unknown>;
 export interface AstraNodeMetadata extends UnknownRecord {
   kind?: unknown;
   id?: unknown;
-  canonicalPath?: unknown;
-  analysisPath?: unknown;
+  ref?: unknown;
+  analysisKey?: unknown;
   href?: unknown;
   type?: unknown;
   col?: unknown;
@@ -186,7 +186,7 @@ export function useAstraRecord<K extends RecordKind>(
   const metadata = astraMetadata(node);
   const publication = publicationForMetadata(current, metadata);
   if (!publication || metadata?.kind !== kind) return undefined;
-  const ref = stringMetadata(metadata, 'canonicalPath');
+  const ref = stringMetadata(metadata, 'ref');
   const entry = ref ? publication.index.elementByRef.get(ref) : undefined;
   if (!entry || entry.collection !== RECORD_COLLECTIONS[kind]) return undefined;
   return {
@@ -200,8 +200,8 @@ export function useAstraRecord<K extends RecordKind>(
 export function analysisKeyMetadata(
   metadata: AstraNodeMetadata | undefined,
 ): string | undefined {
-  return typeof metadata?.analysisPath === 'string'
-    ? metadata.analysisPath
+  return typeof metadata?.analysisKey === 'string'
+    ? metadata.analysisKey
     : undefined;
 }
 
@@ -220,11 +220,11 @@ export function useAstraAnalysis(
   const metadata = astraMetadata(node);
   const publication = publicationForMetadata(current, metadata);
   if (!publication || metadata?.kind !== 'analysis') return undefined;
-  const analysisPath = analysisKeyMetadata(metadata);
+  const analysisKey = analysisKeyMetadata(metadata);
   const analysis =
-    analysisPath === undefined
+    analysisKey === undefined
       ? undefined
-      : publication.index.analysisByKey.get(analysisPath);
+      : publication.index.analysisByKey.get(analysisKey);
   if (!analysis) return undefined;
   const href = previewHref(
     safeNavigationHref(stringMetadata(metadata, 'href')),

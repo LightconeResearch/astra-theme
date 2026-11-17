@@ -9,14 +9,13 @@ import {
   type Option,
   type Output,
 } from '@astra-spec/sdk/reports';
-import { recordId } from '@astra-spec/ui/model';
+import { outputResult, recordId } from '@astra-spec/ui/model';
 import { Prose } from '@astra-spec/ui/primitives';
 import type { GenericNode } from 'myst-common';
 import { MyST } from 'myst-to-react';
 
 import { AstraPreviewPopover } from '../preview';
 import type { AstraPublication } from '../publication/AstraPublicationProvider';
-import { publicationResult } from '../publication/contract';
 import {
   NeutralNode,
   nodeClassName,
@@ -120,7 +119,7 @@ function traceOutputProvenance(
   publication: AstraPublication,
   output: Output,
 ): TracedProvenance {
-  const result = publicationResult(publication, output);
+  const result = outputResult(publication.index, output, publication.universe);
   if (!result) return { decisions: [], inputs: [] };
   const traced = traceResultProvenance(publication.index, result.id);
   const decisions = new Map<string, ProvenanceDecision>();

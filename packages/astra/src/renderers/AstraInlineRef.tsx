@@ -74,11 +74,11 @@ export const AstraInlineRef: React.FC<{ node: GenericNode }> = ({ node }) => {
   if (!publication || !kind) return token;
 
   if (kind === 'analysis') {
-    const analysisPath = analysisKeyMetadata(metadata);
+    const analysisKey = analysisKeyMetadata(metadata);
     const analysis =
-      analysisPath === undefined
+      analysisKey === undefined
         ? undefined
-        : publication.index.analysisByKey.get(analysisPath);
+        : publication.index.analysisByKey.get(analysisKey);
     if (!analysis) return token;
 
     const href = previewHref(
@@ -105,9 +105,9 @@ export const AstraInlineRef: React.FC<{ node: GenericNode }> = ({ node }) => {
   if (!PREVIEWABLE_RECORD_KINDS.has(kind as RecordKind)) {
     return token;
   }
-  const canonicalPath = stringMetadata(metadata, 'canonicalPath');
-  const located = canonicalPath
-    ? locateRecord(publication.index, canonicalPath)
+  const ref = stringMetadata(metadata, 'ref');
+  const located = ref
+    ? locateRecord(publication.index, ref)
     : undefined;
   if (!located || located.kind !== kind) return token;
   const { record, analysis } = located;
