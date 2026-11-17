@@ -3,7 +3,10 @@ import {
   type ResolvedAnalysis,
   type StatusReport,
 } from '@astra-spec/sdk/reports';
-import type { AstraPublication } from '../../src/publication/AstraPublicationProvider';
+import {
+  ASTRA_PUBLICATION_SCHEMA_VERSION,
+  type AstraPublication,
+} from '@astra-spec/mystra/publication';
 
 export const TEST_DOI = '10.1051/0004-6361/202039070';
 export type Mutable<T> = T extends readonly (infer U)[]
@@ -214,7 +217,7 @@ export function publicationEnvelope(
   overrides: Record<string, unknown> = {},
 ) {
   return {
-    schemaVersion: 'astra-publication-bundle.v2',
+    schemaVersion: ASTRA_PUBLICATION_SCHEMA_VERSION,
     activeAnalysisKey: publication.activeAnalysis.key,
     universe: publication.universe,
     analysis: publication.document,

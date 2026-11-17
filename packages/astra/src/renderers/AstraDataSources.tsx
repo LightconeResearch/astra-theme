@@ -5,7 +5,7 @@ import type { GenericNode } from 'myst-common';
 
 import { useAstraPublication } from '../publication/AstraPublicationProvider';
 import {
-  astraMetadata,
+  astraNodeMetadata,
   publicationForMetadata,
   NeutralNode,
   nodeClassName,
@@ -50,7 +50,7 @@ function rowsFor(
   const rows: Row[] = [];
 
   for (const row of dataRows) {
-    const metadata = astraMetadata(row);
+    const metadata = astraNodeMetadata(row);
     const expectedKind = registry === 'inputs' ? 'input' : 'output';
     const ref = stringMetadata(metadata, 'ref');
     if (metadata?.kind !== expectedKind || !ref) return undefined;
@@ -88,7 +88,7 @@ function rowsFor(
 export const AstraDataSources: React.FC<{ node: GenericNode }> = ({ node }) => {
   const publication = publicationForMetadata(
     useAstraPublication(),
-    astraMetadata(node),
+    astraNodeMetadata(node),
   );
   const registry = registryOf(node);
   const className = nodeClassName(node);

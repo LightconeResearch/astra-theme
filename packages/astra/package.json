@@ -23,6 +23,7 @@
     "typecheck": "tsc --noEmit --skipLibCheck"
   },
   "dependencies": {
+    "@astra-spec/mystra": "https://pkg.pr.new/astra-project/MySTRA/@astra-spec/mystra@c16e9393f19c744cea940f6b9e5a526120481f40",
     "@astra-spec/sdk": "0.2.0-rc1",
     "@astra-spec/ui": "https://pkg.pr.new/astra-project/astra-ui/@astra-spec/ui@3094ce3d7a2d199f409cd7d0ab05c0c0cce71e76",
     "@lightcone-research/brand": "0.0.3",

@@ -16,35 +16,12 @@ import {
   type AstraPublication,
 } from './publication/AstraPublicationProvider';
 
-type UnknownRecord = Record<string, unknown>;
+import {
+  astraNodeMetadata,
+  type AstraNodeMetadata,
+} from '@astra-spec/mystra/publication';
 
-export interface AstraNodeMetadata extends UnknownRecord {
-  kind?: unknown;
-  id?: unknown;
-  ref?: unknown;
-  analysisKey?: unknown;
-  href?: unknown;
-  type?: unknown;
-  col?: unknown;
-  filter?: unknown;
-  product?: unknown;
-  selection?: unknown;
-  universe?: unknown;
-  unit?: unknown;
-}
-
-/** Read only MySTRA's canonical node metadata; identifiers are presentation only. */
-export function astraMetadata(
-  node: GenericNode,
-): AstraNodeMetadata | undefined {
-  const data = node.data;
-  if (!data || typeof data !== 'object' || Array.isArray(data))
-    return undefined;
-  const value = (data as UnknownRecord).astra;
-  return value && typeof value === 'object' && !Array.isArray(value)
-    ? (value as AstraNodeMetadata)
-    : undefined;
-}
+export { astraNodeMetadata, type AstraNodeMetadata };
 
 export function stringMetadata(
   metadata: AstraNodeMetadata | undefined,
@@ -183,7 +160,7 @@ export function useAstraRecord<K extends RecordKind>(
   kind: K,
 ): LocatedRecord<K> | undefined {
   const current = useAstraPublication();
-  const metadata = astraMetadata(node);
+  const metadata = astraNodeMetadata(node);
   const publication = publicationForMetadata(current, metadata);
   if (!publication || metadata?.kind !== kind) return undefined;
   const ref = stringMetadata(metadata, 'ref');
@@ -217,7 +194,7 @@ export function useAstraAnalysis(
 ): LocatedAnalysis | undefined {
   const current = useAstraPublication();
   const baseurl = useBaseurl();
-  const metadata = astraMetadata(node);
+  const metadata = astraNodeMetadata(node);
   const publication = publicationForMetadata(current, metadata);
   if (!publication || metadata?.kind !== 'analysis') return undefined;
   const analysisKey = analysisKeyMetadata(metadata);

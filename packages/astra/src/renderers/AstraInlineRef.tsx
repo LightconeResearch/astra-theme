@@ -14,7 +14,7 @@ import { AstraCite } from '../cite';
 import { AstraPreviewPopover } from '../preview';
 import { useAstraPublication } from '../publication/AstraPublicationProvider';
 import {
-  astraMetadata,
+  astraNodeMetadata,
   publicationForMetadata,
   analysisKeyMetadata,
   nodeClassName,
@@ -51,7 +51,7 @@ const INLINE_REFERENCE_KINDS = [
 
 /** Preserve the neutral inline token; shared UI only enriches it. */
 function tokenSpan(node: GenericNode): React.ReactElement {
-  const kind = stringMetadata(astraMetadata(node), 'kind');
+  const kind = stringMetadata(astraNodeMetadata(node), 'kind');
   return (
     <InlineReference
       kind={INLINE_REFERENCE_KINDS.find((candidate) => candidate === kind)}
@@ -66,7 +66,7 @@ function tokenSpan(node: GenericNode): React.ReactElement {
 export const AstraInlineRef: React.FC<{ node: GenericNode }> = ({ node }) => {
   const current = useAstraPublication();
   const baseurl = useBaseurl();
-  const metadata = astraMetadata(node);
+  const metadata = astraNodeMetadata(node);
   const publication = publicationForMetadata(current, metadata);
   const kind = stringMetadata(metadata, 'kind');
   const token = tokenSpan(node);

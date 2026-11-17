@@ -19,7 +19,10 @@ import { AstraInventory } from '../inventory';
 import { citedPaperMetadata, type PaperTitles } from '../papers';
 import { usePdfJsLoader } from '../pdf';
 import { AstraThemeScope, useAstraColorScheme } from '../themeScope';
-import { findAstraPublication, type AstraPublication } from './contract';
+import {
+  findAstraPublication,
+  type AstraPublication,
+} from '@astra-spec/mystra/publication';
 
 const AstraPublicationContext = React.createContext<
   AstraPublication | undefined
@@ -235,8 +238,8 @@ export function useAstraPublicationDetails():
 export {
   ASTRA_PUBLICATION_SCHEMA_VERSION,
   findAstraPublication,
-} from './contract';
-export type { AstraPublication } from './contract';
+} from '@astra-spec/mystra/publication';
+export type { AstraPublication } from '@astra-spec/mystra/publication';
 
 /** A fragment link works in both running themes and static HTML exports. */
 export function AstraInventoryButton({

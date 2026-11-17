@@ -2,7 +2,7 @@ import * as React from 'react';
 import { createPortal } from 'react-dom';
 import { Inventory, type InventoryProps } from '@astra-spec/ui/views';
 import { DetailDialog } from '@astra-spec/ui/primitives';
-import type { AstraPublication } from './publication/contract';
+import type { AstraPublication } from '@astra-spec/mystra/publication';
 import { useAstraColorScheme } from './themeScope';
 
 const INVENTORY_HASH = '#astra-inventory';

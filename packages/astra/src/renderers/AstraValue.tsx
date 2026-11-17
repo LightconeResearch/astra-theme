@@ -7,7 +7,7 @@ import { MyST } from 'myst-to-react';
 import { AstraPreviewPopover } from '../preview';
 import { useAstraPublication } from '../publication/AstraPublicationProvider';
 import {
-  astraMetadata,
+  astraNodeMetadata,
   publicationForMetadata,
   nodeClassName,
   stringMetadata,
@@ -20,7 +20,7 @@ export interface AstraValueProps {
 /** Inline values keep their MySTRA-formatted children and preview their owner. */
 export const AstraValue: React.FC<AstraValueProps> = ({ node }) => {
   const current = useAstraPublication();
-  const metadata = astraMetadata(node);
+  const metadata = astraNodeMetadata(node);
   const publication = publicationForMetadata(current, metadata);
   const number = <MyST ast={node.children} />;
   const valueSpan = (
